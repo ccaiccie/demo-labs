@@ -1,0 +1,71 @@
+# Local lab: Grafana OSS + Prometheus + node_exporter + blackbox_exporter
+# Run with: docker compose up -d
+# Stop with: docker compose down
+#
+# Grafana is published on host port 3001 because many lab machines already
+# have something on 3000. Change the left-hand port if you want 3000.
+# Admin login is local-lab only: admin / labpass
+#
+# On WSL2, publish on 0.0.0.0 (not 127.0.0.1) so Windows localhost forwarding works.
+# From Windows, use http://127.0.0.1:3001 (localhost may fail if it resolves to IPv6).
+
+name: grafana-netmon
+
+services:
+  prometheus:
+    image: prom/prometheus:v3.16.0
+    container_name: netmon-prometheus
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+      - --web.enable-lifecycle
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    ports:
+      - "9090:9090"
+    restart: "no"
+
+  blackbox_exporter:
+    image: prom/blackbox-exporter:v0.29.1
+    container_name: netmon-blackbox
+    command:
+      - --config.file=/etc/blackbox/blackbox.yml
+    volumes:
+      - ./blackbox.yml:/etc/blackbox/blackbox.yml:ro
+    cap_add:
+      - NET_RAW
+    ports:
+      - "9115:9115"
+    restart: "no"
+
+  node_exporter:
+    image: prom/node-exporter:v1.12.1
+    container_name: netmon-node-exporter
+    pid: host
+    command:
+      - --path.procfs=/host/proc
+      - --path.sysfs=/host/sys
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+    ports:
+      - "9100:9100"
+    restart: "no"
+
+  grafana:
+    image: grafana/grafana-oss:13.0.2
+    container_name: netmon-grafana
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: labpass
+      GF_USERS_ALLOW_SIGN_UP: "false"
+      GF_AUTH_ANONYMOUS_ENABLED: "false"
+      GF_SERVER_HTTP_PORT: "3000"
+      GF_SNAPSHOTS_EXTERNAL_ENABLED: "false"
+      GF_ANALYTICS_REPORTING_ENABLED: "false"
+      GF_CHECK_FOR_UPDATES: "false"
+    ports:
+      - "3001:3000"
+    depends_on:
+      - prometheus
+    restart: "no"
