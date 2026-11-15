@@ -52,6 +52,8 @@ Use `127.0.0.1`, not `localhost`, if `localhost` resolves to IPv6 and the page t
 
 Login (local lab only): **admin** / **labpass**. Change that password if you expose the port beyond your machine.
 
+Grafana starts in the **light** theme (`GF_USERS_DEFAULT_THEME=light` in the compose file) so the UI is easier to read in the walkthrough. You can switch it under Preferences after login.
+
 Inside Docker, the Prometheus data source URL is `http://prometheus:9090` (the Compose service name). Do not use `localhost` inside the Grafana container.
 
 ## node_exporter on WSL
