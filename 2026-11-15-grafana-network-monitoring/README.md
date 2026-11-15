@@ -2,7 +2,7 @@
 
 Local Docker Compose lab used in the walkthrough: Grafana OSS, Prometheus, node_exporter, and blackbox_exporter. This is a lab on your machine, not a production install.
 
-Video: on the Network Technician YouTube channel
+Video: [Grafana and Prometheus Network Monitoring Explained Step by Step](https://youtu.be/5CA2YiSQ_68)
 
 Lab folder: https://github.com/ccaiccie/demo-labs/tree/main/2026-11-15-grafana-network-monitoring
 
