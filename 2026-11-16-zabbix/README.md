@@ -4,6 +4,8 @@ Hands-on lab for the **Network Technician** YouTube demo: stand up Zabbix in Doc
 default "Zabbix server" agent interface, add a Linux host by hand, read latest data, build a
 custom item and trigger, raise and resolve a real problem, and add a dashboard graph.
 
+Video: [Zabbix 7.0 LTS in Docker Step by Step: Hosts, Agents, Triggers, Problems and Dashboards](https://youtu.be/enb_ZUslzEY)
+
 ## What is in this folder
 
 | File | Purpose |
