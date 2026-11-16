@@ -1,0 +1,66 @@
+# Zabbix 7.0 LTS lab: PostgreSQL + Zabbix server + web (nginx) + two Zabbix agent 2 containers.
+# Web UI: http://127.0.0.1:8088  (login Admin / zabbix)
+name: zabbix-lab
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: zbx-postgres
+    env_file: .env
+    volumes:
+      - zbx-db:/var/lib/postgresql/data
+    restart: unless-stopped
+
+  zabbix-server:
+    image: zabbix/zabbix-server-pgsql:alpine-7.0.32
+    container_name: zbx-server
+    env_file: .env
+    environment:
+      DB_SERVER_HOST: postgres
+      ZBX_CACHEUPDATEFREQUENCY: "10"   # pick up new hosts/items every 10 s (lab only)
+    depends_on:
+      - postgres
+    ports:
+      - "127.0.0.1:10051:10051"
+    restart: unless-stopped
+
+  zabbix-web:
+    image: zabbix/zabbix-web-nginx-pgsql:alpine-7.0.32
+    container_name: zbx-web
+    env_file: .env
+    environment:
+      DB_SERVER_HOST: postgres
+      ZBX_SERVER_HOST: zabbix-server
+      PHP_TZ: America/Los_Angeles
+    depends_on:
+      - zabbix-server
+    ports:
+      - "8088:8080"
+    restart: unless-stopped
+
+  # Agent that monitors the Zabbix server container itself ("Zabbix server" host).
+  zabbix-agent:
+    image: zabbix/zabbix-agent2:alpine-7.0.32
+    container_name: zbx-agent
+    hostname: zabbix-agent
+    environment:
+      ZBX_HOSTNAME: "Zabbix server"
+      ZBX_SERVER_HOST: zabbix-server
+    depends_on:
+      - zabbix-server
+    restart: unless-stopped
+
+  # A second "Linux server" we add by hand in the web UI during the demo.
+  lab-agent:
+    image: zabbix/zabbix-agent2:alpine-7.0.32
+    container_name: zbx-lab-agent
+    hostname: lab-agent
+    environment:
+      ZBX_HOSTNAME: lab-agent
+      ZBX_SERVER_HOST: zabbix-server
+    depends_on:
+      - zabbix-server
+    restart: unless-stopped
+
+volumes:
+  zbx-db:
