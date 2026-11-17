@@ -1,6 +1,6 @@
 # NetBox for network automation and Infrastructure as Code (2026-11-17)
 
-Video: Coming soon
+Video: [NetBox Network Automation and IaC: Ansible, Jinja2, FRR Routers and Drift Detection](https://youtu.be/9zyP23RBq9I)
 
 NetBox is the **source of truth**, not the configuration engine. This lab demonstrates the complete loop:
 
