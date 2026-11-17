@@ -1,0 +1,30 @@
+# Render each router's FRR config from NetBox data and push it.
+# --check --diff shows the difference between NetBox (intent) and the router (running) without changing anything.
+- name: Configure FRR routers from NetBox
+  hosts: platforms_frr
+  gather_facts: false
+  tasks:
+    - name: Read the running config from the router
+      ansible.builtin.command: vtysh -c "show running-config"
+      register: show_run
+      changed_when: false
+      check_mode: false
+
+    - name: Compare NetBox intent with the running config
+      ansible.utils.fact_diff:
+        before: "{{ show_run.stdout | regex_replace('(?s)^.*?(?=frr defaults)', '') | regex_replace('(?m)^(domainname .*|end)$\\n?', '') }}"
+        after: "{{ lookup('ansible.builtin.template', 'templates/frr.conf.j2') }}"
+      register: drift
+
+    - name: Save the intended config as /etc/frr/frr.conf
+      ansible.builtin.copy:
+        content: "{{ lookup('ansible.builtin.template', 'templates/frr.conf.j2') }}"
+        dest: /etc/frr/frr.conf
+        owner: frr
+        group: frr
+        mode: "0640"
+      diff: false
+
+    - name: Apply it to the running config with frr-reload.py
+      ansible.builtin.command: /usr/lib/frr/frr-reload.py --reload /etc/frr/frr.conf
+      when: drift.changed

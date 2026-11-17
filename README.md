@@ -15,3 +15,4 @@ Labs that go with the Network Technician videos. Each folder is a self-contained
 
 - https://learn.techtohire.com
 - https://quiz.techtohire.com
+| [2026-11-17-netbox-automation](2026-11-17-netbox-automation/) | NetBox 4.7 as the source of truth: Ansible seeding, netbox.netbox dynamic inventory, Jinja2 FRR configs, two real OSPF routers, desired-state changes, live drift detection and repair, API next-available IP and an event webhook. | Coming soon |

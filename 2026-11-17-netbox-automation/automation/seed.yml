@@ -1,0 +1,151 @@
+# Seed NetBox as code: everything the routers need, described once in NetBox.
+# Run it again at any time: each task only changes what differs (idempotent).
+- name: Seed NetBox with the lab network
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  module_defaults:
+    group/netbox.netbox.netbox:
+      netbox_url: "{{ lookup('ansible.builtin.env', 'NETBOX_API') }}"
+      netbox_token: "{{ lookup('ansible.builtin.env', 'NETBOX_TOKEN') }}"
+  vars:
+    nb_api: "{{ lookup('ansible.builtin.env', 'NETBOX_API') }}"
+    nb_headers:
+      Authorization: "Bearer {{ lookup('ansible.builtin.env', 'NETBOX_TOKEN') }}"
+    routers: [r1, r2]
+    links:
+      - { device: r1, name: eth0, address: 10.0.12.1/30, description: to r2 eth0 }
+      - { device: r2, name: eth0, address: 10.0.12.2/30, description: to r1 eth0 }
+    loopbacks:
+      - { device: r1, address: 10.255.0.1/32 }
+      - { device: r2, address: 10.255.0.2/32 }
+    prefixes:
+      - { prefix: 10.0.12.0/30, description: r1-r2 point-to-point link }
+      - { prefix: 10.255.0.0/24, description: Router loopbacks (router IDs) }
+      - { prefix: 10.255.1.0/24, description: Service loopbacks }
+  tasks:
+    - name: Custom field for the OSPF cost of an interface
+      netbox.netbox.netbox_custom_field:
+        data:
+          name: ospf_cost
+          label: OSPF cost
+          type: integer
+          object_types: [dcim.interface]
+
+    - name: Site
+      netbox.netbox.netbox_site:
+        data: { name: Lab DC1, slug: lab-dc1, status: active, time_zone: America/Los_Angeles }
+
+    - name: Manufacturer
+      netbox.netbox.netbox_manufacturer:
+        data: { name: FRRouting, slug: frrouting }
+
+    - name: Device type
+      netbox.netbox.netbox_device_type:
+        data: { model: FRR Router, slug: frr-router, manufacturer: FRRouting, u_height: 1 }
+
+    - name: Device role
+      netbox.netbox.netbox_device_role:
+        data: { name: Router, slug: router, color: "2196f3" }
+
+    - name: Platform (Ansible groups the routers by it)
+      netbox.netbox.netbox_platform:
+        data: { name: FRR, slug: frr, manufacturer: FRRouting }
+
+    - name: Devices
+      netbox.netbox.netbox_device:
+        data:
+          name: "{{ item }}"
+          site: Lab DC1
+          device_role: Router
+          device_type: FRR Router
+          platform: FRR
+          status: active
+      loop: "{{ routers }}"
+
+    - name: Loopback interfaces
+      netbox.netbox.netbox_device_interface:
+        data: { device: "{{ item }}", name: lo, type: virtual, description: Loopback / router ID }
+      loop: "{{ routers }}"
+
+    - name: Link interfaces
+      netbox.netbox.netbox_device_interface:
+        data: { device: "{{ item.device }}", name: "{{ item.name }}", type: 1000base-t, description: "{{ item.description }}" }
+      loop: "{{ links }}"
+
+    - name: Cable between r1 eth0 and r2 eth0
+      netbox.netbox.netbox_cable:
+        data:
+          termination_a_type: dcim.interface
+          termination_a: { device: r1, name: eth0 }
+          termination_b_type: dcim.interface
+          termination_b: { device: r2, name: eth0 }
+          type: cat6
+          label: R1-R2
+
+    - name: Prefixes
+      netbox.netbox.netbox_prefix:
+        data: { prefix: "{{ item.prefix }}", description: "{{ item.description }}", status: active }
+      loop: "{{ prefixes }}"
+
+    - name: Link IP addresses
+      netbox.netbox.netbox_ip_address:
+        data:
+          address: "{{ item.address }}"
+          assigned_object: { device: "{{ item.device }}", name: "{{ item.name }}" }
+      loop: "{{ links }}"
+
+    - name: Loopback IP addresses
+      netbox.netbox.netbox_ip_address:
+        data:
+          address: "{{ item.address }}"
+          role: Loopback
+          assigned_object: { device: "{{ item.device }}", name: lo }
+      loop: "{{ loopbacks }}"
+
+    - name: Loopback is the primary IPv4 (router ID)
+      netbox.netbox.netbox_device:
+        data: { name: "{{ item.device }}", primary_ip4: "{{ item.address }}" }
+      loop: "{{ loopbacks }}"
+
+    - name: Config context with the OSPF settings for every router
+      netbox.netbox.netbox_config_context:
+        data:
+          name: ospf-area-0
+          weight: 1000
+          roles: [router]
+          data: { ospf: { area: 0 } }
+
+    - name: Webhook that posts to the lab webhook receiver
+      netbox.netbox.netbox_webhook:
+        data:
+          name: lab-receiver
+          payload_url: http://webhook:8080/netbox
+          http_method: POST
+          http_content_type: application/json
+      register: webhook
+
+    # There is no event-rule module in the collection, so use the REST API directly.
+    - name: Look up the event rule
+      ansible.builtin.uri:
+        url: "{{ nb_api }}/api/extras/event-rules/?name=ip-address-changes"
+        headers: "{{ nb_headers }}"
+      register: rule
+
+    - name: Event rule - call the webhook when an IP address is created or updated
+      ansible.builtin.uri:
+        url: "{{ nb_api }}/api/extras/event-rules/"
+        method: POST
+        headers: "{{ nb_headers }}"
+        body_format: json
+        status_code: 201
+        body:
+          name: ip-address-changes
+          object_types: [ipam.ipaddress]
+          event_types: [object_created, object_updated]
+          action_type: webhook
+          action_object_type: extras.webhook
+          action_object_id: "{{ webhook.webhook.id }}"
+          enabled: true
+      when: rule.json.count == 0
+      changed_when: true

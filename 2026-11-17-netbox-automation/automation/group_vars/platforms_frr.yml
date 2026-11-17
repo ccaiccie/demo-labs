@@ -1,0 +1,8 @@
+# How Ansible reaches devices whose NetBox platform is "FRR".
+# The lab routers are containers, so Ansible connects through the Docker API (docker exec).
+# nb_inventory sets ansible_host to the primary IP from NetBox; ansible_docker_host
+# overrides it for this connection and names the container instead.
+# On real hardware you would use SSH (ansible_connection: ssh or network_cli) and the primary IP.
+ansible_connection: community.docker.docker_api
+ansible_docker_host: "nbauto-{{ inventory_hostname }}"
+ansible_python_interpreter: /usr/bin/python3

@@ -1,0 +1,57 @@
+# Lab override for the official netbox-docker setup (release 5.1.2, NetBox v4.7).
+# Adds two FRRouting routers, an Ansible controller and a webhook receiver.
+name: nbauto
+services:
+  netbox:
+    ports:
+      - "8000:8080"
+    healthcheck:
+      # The first start runs every database migration (about 6 minutes on the demo PC).
+      # The upstream 90s start period is too short for that, so allow up to 10 minutes.
+      start_period: 600s
+
+  # Two FRRouting routers joined by one point-to-point link (Docker network r1-r2).
+  r1: &router
+    image: quay.io/frrouting/frr:10.7.1
+    container_name: nbauto-r1
+    hostname: r1
+    entrypoint: ["/bin/sh", "/lab/start.sh"]
+    cap_add: [NET_ADMIN, NET_RAW, SYS_ADMIN]
+    sysctls:
+      net.ipv4.ip_forward: 1
+    volumes:
+      - ./routers/start.sh:/lab/start.sh:ro
+    networks:
+      r1-r2:
+  r2:
+    <<: *router
+    container_name: nbauto-r2
+    hostname: r2
+
+  # Ansible controller: ansible-core, pynetbox and the netbox.netbox collection.
+  # Only started on demand with "docker compose run --rm automation ...".
+  automation:
+    build: ./automation
+    image: nbauto-automation:lab
+    profiles: [tools]
+    working_dir: /automation
+    environment:
+      NETBOX_API: http://netbox:8080
+      NETBOX_TOKEN: ${NETBOX_TOKEN:-}
+    volumes:
+      - ./automation:/automation
+      # The playbook reaches the routers through the Docker API (docker exec).
+      - /var/run/docker.sock:/var/run/docker.sock
+
+  # Receives NetBox event-rule webhooks and prints them to its log.
+  webhook:
+    image: mendhak/http-https-echo:43
+    environment:
+      HTTP_PORT: 8080
+      LOG_WITHOUT_NEWLINE: "false"
+
+networks:
+  r1-r2:
+    ipam:
+      config:
+        - subnet: 172.30.12.0/29

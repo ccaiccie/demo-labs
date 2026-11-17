@@ -1,0 +1,11 @@
+# A focused view of the NetBox data that the template uses, read through nb_inventory.
+- name: Show the template inputs from the dynamic inventory
+  hosts: platforms_frr
+  gather_facts: false
+  tasks:
+    - name: Data from NetBox for this router
+      ansible.builtin.debug:
+        msg:
+          router_id: "{{ primary_ip4 }}"
+          ospf: "{{ ospf }}"
+          interfaces: "{% set out = [] %}{% for i in interfaces | sort(attribute='name') %}{% set _ = out.append({'name': i.name, 'description': i.description, 'ospf_cost': i.custom_fields.ospf_cost, 'addresses': i.ip_addresses | map(attribute='address') | list}) %}{% endfor %}{{ out }}"

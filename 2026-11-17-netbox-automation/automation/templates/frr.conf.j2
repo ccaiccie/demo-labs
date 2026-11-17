@@ -1,0 +1,28 @@
+frr defaults traditional
+hostname {{ inventory_hostname }}
+service integrated-vtysh-config
+!
+{% for iface in interfaces | sort(attribute='name') %}
+interface {{ iface.name }}
+{% if iface.description %}
+ description {{ iface.description }}
+{% endif %}
+{% for ip in iface.ip_addresses | map(attribute='address') | sort %}
+ ip address {{ ip }}
+{% endfor %}
+{% if iface.ip_addresses %}
+ ip ospf area {{ ospf.area }}
+{% endif %}
+{% if iface.custom_fields.ospf_cost %}
+ ip ospf cost {{ iface.custom_fields.ospf_cost }}
+{% endif %}
+{% if iface.ip_addresses and iface.type.value != 'virtual' %}
+ ip ospf network point-to-point
+{% endif %}
+exit
+!
+{% endfor %}
+router ospf
+ ospf router-id {{ primary_ip4 | ansible.utils.ipaddr('address') }}
+exit
+!

@@ -1,0 +1,15 @@
+# Dynamic inventory: every device in NetBox becomes an Ansible host.
+plugin: netbox.netbox.nb_inventory
+api_endpoint: http://netbox:8080
+token:
+  type: Bearer
+  value: "{{ lookup('ansible.builtin.env', 'NETBOX_TOKEN') }}"
+config_context: true
+flatten_config_context: true
+interfaces: true
+group_by:
+  - sites
+  - device_roles
+  - platforms
+query_filters:
+  - status: active
