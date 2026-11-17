@@ -1,0 +1,58 @@
+# Lab additions to the official librenms/docker compose example.
+# compose.yml is unchanged; Docker Compose merges this file automatically.
+services:
+  # Pin the LibreNMS image used in the video, and keep data in named volumes
+  # so "docker compose down -v" removes everything.
+  db:
+    volumes: !override
+      - "librenms-db:/var/lib/mysql"
+  librenms:
+    image: librenms/librenms:26.10.2
+    volumes: !override
+      - "librenms-data:/data"
+  dispatcher:
+    image: librenms/librenms:26.10.2
+    volumes: !override
+      - "librenms-data:/data"
+
+  # Optional sidecars from the official example. They publish ports 514 and 162,
+  # so they only start when asked for:  docker compose --profile syslog --profile traps up -d
+  syslogng:
+    profiles: ["syslog"]
+  snmptrapd:
+    profiles: ["traps"]
+
+  # Two Linux SNMP agents (net-snmp + lldpd) to monitor inside the lab network.
+  snmp-sw1:            # SNMP v2c, community labpublic
+    build: ./snmpd
+    container_name: snmp-sw1
+    hostname: snmp-sw1
+    environment: ["SNMPD_CONF=snmpd-v2c.conf"]
+    restart: unless-stopped
+  snmp-sw2:            # SNMPv3 only, user labv3user, SHA + AES
+    build: ./snmpd
+    container_name: snmp-sw2
+    hostname: snmp-sw2
+    environment: ["SNMPD_CONF=snmpd-v3.conf"]
+    restart: unless-stopped
+
+  # Steady ICMP traffic to snmp-sw1 so its port graphs show real data.
+  traffic:
+    image: alpine:3.22
+    container_name: lab-traffic
+    command: ["ping", "-q", "-i", "0.2", "-s", "1200", "snmp-sw1"]
+    depends_on: [snmp-sw1]
+    restart: unless-stopped
+
+  # Receives LibreNMS alert notifications (API transport) and prints each request to its log.
+  webhook:
+    image: mendhak/http-https-echo:43
+    container_name: lab-webhook
+    environment:
+      - "HTTP_PORT=8080"
+      - "LOG_IGNORE_PATH=/favicon.ico"
+    restart: unless-stopped
+
+volumes:
+  librenms-db:
+  librenms-data:
