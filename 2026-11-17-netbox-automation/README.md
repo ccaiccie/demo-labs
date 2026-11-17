@@ -144,8 +144,11 @@ configuration automatically. The operator reviews and re-runs the playbook.
 ## Clean up
 
 ```bash
-docker compose down -v
-# Removes only this stack's containers, networks and named volumes. Images and lab files remain.
+docker compose down -v --rmi local
+# Removes only this stack's containers, networks and named volumes. Lab files remain.
+# --rmi local skips images that have a custom tag, so remove the controller image yourself:
+docker image rm nbauto-automation:lab
+# Optional: docker image rm quay.io/frrouting/frr:10.7.1 (and the NetBox, Postgres and Valkey images)
 ```
 
 ## Troubleshooting observed while building the lab
@@ -153,6 +156,8 @@ docker compose down -v
 - Inventory plugin needs **pytz** as well as pynetbox; it is included in the controller requirements.
 - Modules use `device_role` for a device and capitalized `Loopback` for an IP role, even though the API fields differ.
 - The inventory sets `ansible_host` to the primary IP. Use `ansible_docker_host` for the container transport, not another `ansible_host` group var.
+- A manual `vtysh` change can print `% Configuration applied with notes: No changes found to be committed!` and still
+  appear in `show running-config`. Trust the running config, which is what the drift check compares.
 - OSPF can be Full before the first SPF installs a route. Wait a few seconds, then verify the route and ping again.
 - Ansible 2.22 warns about NetBox inventory fields named `serial` and `tags` (reserved variable names). These warnings
   do not stop the playbook; don't use those fields as play keywords. The template uses only the network data it needs.
