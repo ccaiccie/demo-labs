@@ -3,6 +3,8 @@
 Hands-on lab for the Network Technician video on **NetBox** (Community v4.7) running in Docker with the
 official [netbox-community/netbox-docker](https://github.com/netbox-community/netbox-docker) setup, release 5.1.2.
 
+Video: [NetBox in Docker Step by Step: Sites, Devices, Cables, IPAM and the REST API](https://youtu.be/pylHVnnSOUA)
+
 You build a small, realistic data center record in NetBox and then read it back over the REST API:
 
 - a region (**US West**) and a site (**Seattle DC1**)
