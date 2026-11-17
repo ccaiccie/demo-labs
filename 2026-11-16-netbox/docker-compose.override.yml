@@ -1,0 +1,11 @@
+# Lab override for the official netbox-docker setup (release 5.1.2, NetBox v4.7).
+# Publishes the NetBox web UI on http://127.0.0.1:8000 and gives the stack a fixed project name.
+name: netbox-lab
+services:
+  netbox:
+    ports:
+      - "8000:8080"
+    healthcheck:
+      # The first start runs every database migration (about 6 minutes on the demo PC).
+      # The upstream 90s start period is too short for that, so allow up to 10 minutes.
+      start_period: 600s
