@@ -3,7 +3,7 @@
 Hands-on lab for the Network Technician video on **LibreNMS** 26.10.2 running in Docker with the official
 [librenms/docker](https://github.com/librenms/docker) compose example (librenms, dispatcher, MariaDB, Redis, msmtpd).
 
-Video: Coming soon
+Video: [LibreNMS in Docker Step by Step: SNMP v2c and v3, Discovery, Network Map and Alerts](https://youtu.be/14FF-ES6kPM)
 
 You monitor two Linux SNMP agents that run inside the lab network:
 
