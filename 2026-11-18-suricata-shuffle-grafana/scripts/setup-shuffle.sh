@@ -13,34 +13,32 @@ fi
 cd shuffle
 mkdir -p shuffle-apps shuffle-files shuffle-database
 
-# Generate lab secrets if missing
-if [[ ! -f .env.lab ]]; then
-  ENC=$(python3 -c 'import secrets; print(secrets.token_urlsafe(24))')
-  OSPASS=$(python3 -c 'import secrets; print("Lab-" + secrets.token_urlsafe(16) + "Aa1!")')
-  cat > .env.lab << EENV
-# Lab-only Shuffle env for 2026-11-18-suricata-shuffle-grafana
-BASE_URL=http://shuffle-backend:5001
-SSO_REDIRECT_URL=http://127.0.0.1:3001
-BACKEND_HOSTNAME=shuffle-backend
-BACKEND_PORT=5001
-FRONTEND_PORT=3001
-FRONTEND_PORT_HTTPS=3443
-SHUFFLE_SECURITY_PORT=3002
-SHUFFLE_SECURITY_PORT_HTTPS=3444
-OUTER_HOSTNAME=127.0.0.1
-SHUFFLE_ENCRYPTION_MODIFIER=${ENC}
-SHUFFLE_OPENSEARCH_PASSWORD=${OSPASS}
-OPENSEARCH_INITIAL_ADMIN_PASSWORD=${OSPASS}
-SHUFFLE_APP_HOTLOAD_LOCATION=./shuffle-apps
-SHUFFLE_FILE_LOCATION=./shuffle-files
-SHUFFLE_ELASTIC=true
-TZ=America/Los_Angeles
-EENV
-  echo "[+] wrote .env.lab (secrets generated for lab only)"
-fi
-
-# Merge into .env for compose
-cp .env.lab .env
+# Start from upstream .env and override only what the lab needs.
+# (Keep OUTER_HOSTNAME=shuffle-backend so Orborus/workers can reach the backend.)
+git show HEAD:.env > .env.upstream 2>/dev/null || cp .env .env.upstream
+ENC=$(python3 -c 'import secrets; print(secrets.token_urlsafe(24))')
+OSPASS=$(python3 -c 'import secrets; print("Lab-" + secrets.token_urlsafe(16) + "Aa1!")')
+python3 - "$ENC" "$OSPASS" << 'PYENV'
+import sys, re
+enc, ospass = sys.argv[1], sys.argv[2]
+t = open(".env.upstream").read()
+over = {
+  "SSO_REDIRECT_URL": "http://127.0.0.1:3001",
+  "FRONTEND_PORT": "3001", "FRONTEND_PORT_HTTPS": "3443", "BACKEND_PORT": "5001",
+  "OUTER_HOSTNAME": "shuffle-backend",
+  "SHUFFLE_ENCRYPTION_MODIFIER": enc,
+  "SHUFFLE_OPENSEARCH_PASSWORD": ospass,
+  "TZ": "America/Los_Angeles",
+  "SHUFFLE_APP_REPLICAS": "1",
+}
+for k, v in over.items():
+    if re.search(rf"^{k}=.*$", t, re.M):
+        t = re.sub(rf"^{k}=.*$", f"{k}={v}", t, flags=re.M)
+    else:
+        t += f"\n{k}={v}\n"
+open(".env", "w").write(t)
+print("[+] wrote .env (upstream + lab overrides; secrets generated, not printed)")
+PYENV
 
 # Override publish addresses to loopback only
 cat > docker-compose.override.yml << 'OYAML'
@@ -86,5 +84,12 @@ for i in $(seq 1 90); do
   echo "  ... wait $i ($code)"
 done
 
-docker compose ps
+echo "[*] Waiting for Shuffle backend API"
+for i in $(seq 1 60); do
+  code=$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:5001/api/v1/checkusers || true)
+  if [[ "$code" == "200" ]]; then echo "[+] Shuffle backend ready"; break; fi
+  sleep 5
+done
+
+docker compose ps --format 'table {{.Name}}\t{{.Status}}\t{{.Ports}}'
 echo "[*] Open http://127.0.0.1:3001 and create the first admin user on camera."

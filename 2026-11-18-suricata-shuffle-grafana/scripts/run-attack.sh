@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
-echo "[*] Running local attacker against ids-juiceshop"
+ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+echo "[*] Running local attacker against ids-juiceshop (lab network only)"
 docker exec ids-attacker sh /attack.sh
-echo "[*] Recent eve alerts:"
-docker run --rm -v ids-lab_suricata-logs:/var/log/suricata --entrypoint sh jasonish/suricata:latest -c \
-  "grep '\"event_type\":\"alert\"' /var/log/suricata/eve.json | tail -20" || true
+sleep 3
+echo "[*] Suricata alert summary:"
+"$ROOT/scripts/show-alerts.sh"
