@@ -1,0 +1,7 @@
+shuffle/
+.env
+.env.*
+!.env.example
+**/__pycache__/
+*.pyc
+suricata/etc/suricata.yaml

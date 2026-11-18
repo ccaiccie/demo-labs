@@ -1,0 +1,126 @@
+# 2026-11-18-suricata-shuffle-grafana
+# Detection + visualization stack. Shuffle runs from ./shuffle (cloned separately).
+# NEVER touch netflow-stack containers.
+
+name: ids-lab
+
+networks:
+  ids-lab:
+    name: ids-lab
+    driver: bridge
+
+volumes:
+  suricata-logs:
+  suricata-lib:
+  loki-data:
+  grafana-data:
+  case-data:
+
+services:
+  juiceshop:
+    image: bkimminich/juice-shop:latest
+    container_name: ids-juiceshop
+    networks: [ids-lab]
+    ports:
+      - "127.0.0.1:3200:3000"
+    restart: unless-stopped
+
+  attacker:
+    image: curlimages/curl:8.11.1
+    container_name: ids-attacker
+    networks: [ids-lab]
+    volumes:
+      - ./attacker/attack.sh:/attack.sh:ro
+    entrypoint: ["sleep", "infinity"]
+    restart: unless-stopped
+
+  loki:
+    image: grafana/loki:3.4.2
+    container_name: ids-loki
+    networks: [ids-lab]
+    command: ["-config.file=/etc/loki/loki-config.yml"]
+    ports:
+      - "127.0.0.1:3101:3100"
+    volumes:
+      - loki-data:/loki
+      - ./loki/loki-config.yml:/etc/loki/loki-config.yml:ro
+    restart: unless-stopped
+
+  promtail:
+    image: grafana/promtail:3.4.2
+    container_name: ids-promtail
+    networks: [ids-lab]
+    volumes:
+      - ./promtail/promtail-config.yml:/etc/promtail/config.yml:ro
+      - suricata-logs:/var/log/suricata:ro
+    command: ["-config.file=/etc/promtail/config.yml"]
+    depends_on: [loki]
+    restart: unless-stopped
+
+  grafana:
+    image: grafana/grafana:11.5.2
+    container_name: ids-grafana
+    networks: [ids-lab]
+    ports:
+      - "127.0.0.1:3010:3000"
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: labadmin
+      GF_USERS_DEFAULT_THEME: light
+      GF_AUTH_ANONYMOUS_ENABLED: "false"
+      GF_INSTALL_PLUGINS: ""
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./grafana/dashboards:/var/lib/grafana/dashboards:ro
+    depends_on: [loki]
+    restart: unless-stopped
+
+  caselog:
+    image: python:3.12-alpine
+    container_name: ids-caselog
+    networks: [ids-lab]
+    ports:
+      - "127.0.0.1:8099:8099"
+    volumes:
+      - ./forwarder/case_log_server.py:/app/case_log_server.py:ro
+      - case-data:/data
+    environment:
+      PORT: "8099"
+      CASE_LOG_PATH: /data/cases.jsonl
+    command: ["python", "/app/case_log_server.py"]
+    restart: unless-stopped
+
+  # Suricata uses host networking to sniff the ids-lab bridge interface.
+  # Interface name is injected via SURICATA_IFACE (set by scripts/start-suricata.sh).
+  suricata:
+    image: jasonish/suricata:latest
+    container_name: ids-suricata
+    network_mode: host
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+      - SYS_NICE
+    volumes:
+      - suricata-logs:/var/log/suricata
+      - suricata-lib:/var/lib/suricata
+      - ./suricata/rules/local.rules:/etc/suricata/rules/local.rules:ro
+      - ./suricata/etc/suricata.yaml:/etc/suricata/suricata.yaml:ro
+    # command set by override / start script once interface + yaml exist
+    profiles: ["manual"]
+    restart: unless-stopped
+
+  forwarder:
+    image: python:3.12-alpine
+    container_name: ids-forwarder
+    network_mode: host
+    volumes:
+      - ./forwarder/forward_alerts.py:/app/forward_alerts.py:ro
+      - suricata-logs:/var/log/suricata:ro
+    environment:
+      EVE_PATH: /var/log/suricata/eve.json
+      CASELOG_URL: http://127.0.0.1:8099/case
+      SHUFFLE_WEBHOOK: ${SHUFFLE_WEBHOOK:-}
+    command: ["python", "/app/forward_alerts.py"]
+    depends_on: [caselog]
+    restart: unless-stopped

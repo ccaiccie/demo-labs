@@ -1,0 +1,221 @@
+{
+  "annotations": {
+    "list": []
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "id": null,
+  "links": [],
+  "panels": [
+    {
+      "type": "timeseries",
+      "title": "Suricata alerts over time",
+      "gridPos": {
+        "h": 8,
+        "w": 16,
+        "x": 0,
+        "y": 0
+      },
+      "id": 1,
+      "datasource": {
+        "type": "loki",
+        "name": "Loki"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum(count_over_time({job=\"suricata\", event_type=\"alert\"}[1m]))",
+          "legendFormat": "alerts/min",
+          "datasource": {
+            "type": "loki",
+            "name": "Loki"
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short"
+        },
+        "overrides": []
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Alerts (last 15m)",
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 16,
+        "y": 0
+      },
+      "id": 2,
+      "datasource": {
+        "type": "loki",
+        "name": "Loki"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum(count_over_time({job=\"suricata\", event_type=\"alert\"}[15m]))",
+          "datasource": {
+            "type": "loki",
+            "name": "Loki"
+          }
+        }
+      ],
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "colorMode": "background",
+        "graphMode": "none"
+      }
+    },
+    {
+      "type": "stat",
+      "title": "Unique signatures (15m)",
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 20,
+        "y": 0
+      },
+      "id": 3,
+      "datasource": {
+        "type": "loki",
+        "name": "Loki"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "count(sum by (signature) (count_over_time({job=\"suricata\", event_type=\"alert\"}[15m])))",
+          "datasource": {
+            "type": "loki",
+            "name": "Loki"
+          }
+        }
+      ],
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "colorMode": "background",
+        "graphMode": "none"
+      }
+    },
+    {
+      "type": "piechart",
+      "title": "Alerts by severity",
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 16,
+        "y": 4
+      },
+      "id": 4,
+      "datasource": {
+        "type": "loki",
+        "name": "Loki"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum by (severity) (count_over_time({job=\"suricata\", event_type=\"alert\"}[15m]))",
+          "legendFormat": "sev {{severity}}",
+          "datasource": {
+            "type": "loki",
+            "name": "Loki"
+          }
+        }
+      ]
+    },
+    {
+      "type": "bargauge",
+      "title": "Top signatures (15m)",
+      "gridPos": {
+        "h": 8,
+        "w": 16,
+        "x": 0,
+        "y": 8
+      },
+      "id": 5,
+      "datasource": {
+        "type": "loki",
+        "name": "Loki"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "topk(10, sum by (signature) (count_over_time({job=\"suricata\", event_type=\"alert\"}[15m])))",
+          "legendFormat": "{{signature}}",
+          "datasource": {
+            "type": "loki",
+            "name": "Loki"
+          }
+        }
+      ],
+      "options": {
+        "orientation": "horizontal",
+        "displayMode": "gradient",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        }
+      }
+    },
+    {
+      "type": "logs",
+      "title": "Recent Suricata alerts",
+      "gridPos": {
+        "h": 12,
+        "w": 24,
+        "x": 0,
+        "y": 16
+      },
+      "id": 6,
+      "datasource": {
+        "type": "loki",
+        "name": "Loki"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "{job=\"suricata\", event_type=\"alert\"}",
+          "datasource": {
+            "type": "loki",
+            "name": "Loki"
+          }
+        }
+      ],
+      "options": {
+        "showTime": true,
+        "wrapLogMessage": true,
+        "enableLogDetails": true
+      }
+    }
+  ],
+  "refresh": "5s",
+  "schemaVersion": 39,
+  "tags": [
+    "suricata",
+    "ids",
+    "lab"
+  ],
+  "templating": {
+    "list": []
+  },
+  "time": {
+    "from": "now-15m",
+    "to": "now"
+  },
+  "timezone": "browser",
+  "title": "Suricata IDS Lab Alerts",
+  "uid": "suricata-ids-lab",
+  "version": 1
+}

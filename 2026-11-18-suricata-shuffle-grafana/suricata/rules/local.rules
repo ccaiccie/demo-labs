@@ -1,0 +1,14 @@
+# Lab-only rules for 2026-11-18-suricata-shuffle-grafana. Not for production.
+
+alert http any any -> any any (msg:"LOCAL Lab SQL Injection Attempt"; flow:to_server,established; http.request_line; content:"OR"; nocase; content:"1"; distance:0; classtype:web-application-attack; sid:1100001; rev:2;)
+alert http any any -> any any (msg:"LOCAL Lab SQL Injection Quote"; flow:to_server,established; http.uri; content:"'"; classtype:web-application-attack; sid:1100002; rev:2;)
+alert http any any -> any any (msg:"LOCAL Lab Nikto User-Agent"; flow:to_server,established; http.user_agent; content:"Nikto"; classtype:web-application-attack; sid:1100003; rev:2;)
+alert http any any -> any any (msg:"LOCAL Lab sqlmap User-Agent"; flow:to_server,established; http.user_agent; content:"sqlmap"; classtype:web-application-attack; sid:1100004; rev:2;)
+alert http any any -> any any (msg:"LOCAL Lab Path Traversal"; flow:to_server,established; http.uri; content:"../"; classtype:web-application-attack; sid:1100005; rev:2;)
+alert http any any -> any any (msg:"LOCAL Lab Juice Shop Challenges Probe"; flow:to_server,established; http.uri; content:"/api/Challenges"; classtype:web-application-activity; sid:1100006; rev:2;)
+alert http any any -> any any (msg:"LOCAL Lab Admin Path Probe"; flow:to_server,established; http.uri; content:"/administration"; classtype:web-application-activity; sid:1100007; rev:2;)
+alert http any any -> any any (msg:"LOCAL Lab XSS Probe"; flow:to_server,established; http.uri; content:"script"; nocase; content:"alert"; nocase; classtype:web-application-attack; sid:1100009; rev:2;)
+alert http any any -> any any (msg:"LOCAL Lab Command Injection Probe"; flow:to_server,established; http.uri; content:"cat"; nocase; content:"passwd"; nocase; classtype:web-application-attack; sid:1100010; rev:2;)
+alert http any any -> any any (msg:"LOCAL Lab FTP Directory Probe"; flow:to_server,established; http.uri; content:"/ftp"; classtype:web-application-activity; sid:1100011; rev:1;)
+alert http any any -> any any (msg:"LOCAL Lab Metrics Endpoint Probe"; flow:to_server,established; http.uri; content:"/metrics"; classtype:web-application-activity; sid:1100012; rev:1;)
+alert tcp any any -> any 3000 (msg:"LOCAL Lab SYN Floodish to JuiceShop"; flow:to_server; flags:S,12; threshold:type both, track by_src, count 5, seconds 10; classtype:attempted-recon; sid:1100008; rev:2;)

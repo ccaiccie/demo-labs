@@ -1,0 +1,24 @@
+%YAML 1.1
+---
+# Drop-in notes: the setup script copies the image default suricata.yaml then
+# appends local.rules and forces eve-log. This file documents the required bits.
+
+default-rule-path: /var/lib/suricata/rules
+rule-files:
+  - suricata.rules
+  - /etc/suricata/rules/local.rules
+
+outputs:
+  - eve-log:
+      enabled: yes
+      filetype: regular
+      filename: eve.json
+      types:
+        - alert:
+            tagged-packets: no
+        - http:
+            extended: yes
+        - dns
+        - tls
+        - files
+        - flow
