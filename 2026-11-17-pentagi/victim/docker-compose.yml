@@ -1,0 +1,23 @@
+# Deliberately-vulnerable practice target for the PentAGI lab.
+# OWASP Juice Shop (bkimminich/juice-shop) - a self-contained, intentionally
+# insecure web app published by OWASP specifically for security testing/training.
+#
+# It runs ONLY on your own machine. Do NOT point PentAGI (or any scanner) at any
+# host you do not own or are not explicitly authorized to test.
+#
+# This attaches the target to an external docker network "pentagi-net" so the
+# PentAGI worker (Kali) sandbox can reach it by hostname "juiceshop" on port 3000.
+# It is also published on 127.0.0.1:3100 so you can open it in a browser locally.
+services:
+  juiceshop:
+    image: bkimminich/juice-shop:latest
+    container_name: juiceshop
+    hostname: juiceshop
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:3100:3000"   # local browser view only; 3000 avoided (netflow Grafana uses host 3000)
+    networks:
+      - pentagi-net
+networks:
+  pentagi-net:
+    external: true
