@@ -1,0 +1,7 @@
+notes/
+*.log
+__pycache__/
+lab-chrome-profile/
+ffi/extracted/
+ffi/*.zip
+.agent-desktop/

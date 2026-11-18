@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>AD Lab Page — 2026-11-18-agent-desktop</title>
+  <style>
+    body { font-family: system-ui, Segoe UI, sans-serif; background:#f7f4ee; color:#1b1b1b;
+           max-width: 800px; margin: 40px auto; }
+    h1 { font-size: 32px; }
+    label, input, button { font-size: 20px; }
+    input { padding: 6px 10px; }
+    button { padding: 8px 16px; margin-top: 12px; }
+    #out { font-family: Cascadia Mono, monospace; font-size: 28px; color:#1f6feb; margin-top: 16px; }
+  </style>
+</head>
+<body>
+  <h1>AD Lab Page — 2026-11-18-agent-desktop</h1>
+  <p>This is a local lab page, not a public site. It lives in the demo-labs folder and is opened in a throwaway Chrome profile with extensions disabled.</p>
+  <label for="note">Lab note</label><br>
+  <input id="note" type="text" value="agent-desktop Windows lab"><br>
+  <button id="save" type="button">Save note</button>
+  <div id="out">(not saved yet)</div>
+  <script>
+    document.getElementById('save').onclick = () => {
+      const v = document.getElementById('note').value;
+      document.getElementById('out').textContent = 'Saved: ' + v;
+    };
+  </script>
+</body>
+</html>
