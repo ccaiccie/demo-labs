@@ -1,6 +1,8 @@
 # n8n + OpenAI: AI triage for network device logs
 
 Lab for the Network Technician video of 2026-11-19. A router or switch log arrives at an
+
+Video: https://youtu.be/Q7_AHnNWdWo
 n8n webhook (directly over HTTP, or as real syslog over UDP through a tiny forwarder).
 The n8n OpenAI node (gpt-4o-mini) classifies it and returns JSON with the severity, a
 summary, the likely cause and suggested CLI checks. A Switch node then routes it:
