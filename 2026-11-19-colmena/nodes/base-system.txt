@@ -1,0 +1,1 @@
+/nix/store/6njffzix8vq1xszzd5dbwwsxddcnblrq-nixos-system-nixos-base-26.05pre-git

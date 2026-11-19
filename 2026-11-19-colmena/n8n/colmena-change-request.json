@@ -1,0 +1,145 @@
+{
+  "name": "Colmena change request (chat)",
+  "nodes": [
+    {
+      "parameters": {
+        "public": true,
+        "mode": "hostedChat",
+        "initialMessages": "Hi! I turn change requests for the Colmena lab into Git commits. CI checks every change before Colmena deploys it.",
+        "options": {
+          "responseMode": "lastNode",
+          "title": "Lab change requests",
+          "subtitle": "AI proposes, CI decides, Colmena deploys"
+        }
+      },
+      "id": "0ddb1a49-2c2e-4094-b5d5-94cf40e13c8c",
+      "name": "When chat message received",
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        0,
+        0
+      ],
+      "webhookId": "0c01e6a0-7f5b-4c43-9a6e-1ab5e1c0a26d"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "GPT-4O-MINI"
+        },
+        "responses": {
+          "values": [
+            {
+              "content": "={{ $json.chatInput }}"
+            }
+          ]
+        },
+        "builtInTools": {},
+        "options": {
+          "instructions": "You translate a network engineer's plain-English change request for the Colmena lab into JSON. The lab has three NixOS nodes: router1 (10.88.0.11), dns1 (10.88.0.12, runs the lab. DNS zone) and monitor1 (10.88.0.13). Reply with JSON only, using exactly these keys: action, node, name, ip, port, protocol, summary. action is add_dns_record (an A record name.lab in the lab zone on dns1; name is the short host name without .lab, ip is the address, node is dns1), open_port (allow an inbound port on a node; node, port as a number and protocol tcp or udp) or unsupported for anything else. Translate faithfully and do not judge whether the change is safe: a separate CI policy check approves or rejects every change. Use empty strings or 0 for keys that do not apply, and put a one sentence description of the change in summary.",
+          "textFormat": {
+            "textOptions": {
+              "type": "json_object"
+            }
+          },
+          "temperature": 0
+        }
+      },
+      "id": "47edb888-8904-4947-b157-49ab694b23f0",
+      "name": "Translate to intent",
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 2.3,
+      "position": [
+        240,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://172.28.0.1:8091/change",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ request: $('When chat message received').item.json.chatInput, intent: $json.output[0].content[0].text }) }}",
+        "options": {
+          "timeout": 600000
+        }
+      },
+      "id": "dc3f2621-2234-4e14-aa3e-cce9649bed52",
+      "name": "Branch, CI and deploy",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        480,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "a7caece1-118a-442e-818a-6a980d2617d0",
+              "name": "output",
+              "value": "={{ $json.reply }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "4bbfd876-9787-4b24-86b2-696d97333677",
+      "name": "Reply",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        720,
+        0
+      ]
+    }
+  ],
+  "connections": {
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "Translate to intent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Translate to intent": {
+      "main": [
+        [
+          {
+            "node": "Branch, CI and deploy",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Branch, CI and deploy": {
+      "main": [
+        [
+          {
+            "node": "Reply",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "pinData": {},
+  "active": false,
+  "id": "ColmenaChange0001"
+}

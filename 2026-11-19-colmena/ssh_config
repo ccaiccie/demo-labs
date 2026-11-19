@@ -1,0 +1,7 @@
+# SSH settings for the lab nodes (used by Colmena through SSH_CONFIG_FILE and NIX_SSHOPTS)
+Host 10.88.0.*
+  User root
+  IdentityFile ~/colmena-demo/keys/lab_ed25519
+  IdentitiesOnly yes
+  StrictHostKeyChecking accept-new
+  UserKnownHostsFile ~/colmena-demo/keys/known_hosts

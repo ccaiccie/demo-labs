@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+# Shell with Colmena from the pinned nixpkgs. Nix itself runs through nix-portable
+# (no root and no /nix on the host: it maps ~/.nix-portable/nix to /nix with bubblewrap).
+REV=f68407657ad294471eb4b2e65d193df26edf729f
+NIXBIN=/nix/store/j823gnvpxh1fjibycmldrspkk3pgivwp-nix-2.20.6/bin   # nix-portable's own nix
+export NP_RUNTIME=bwrap
+export SSH_CONFIG_FILE=$HOME/colmena-demo/ssh_config
+export NIX_SSHOPTS="-F $HOME/colmena-demo/ssh_config"
+export LAB_NIXBIN=$NIXBIN
+P=github:NixOS/nixpkgs/$REV
+if [ $# -gt 0 ]; then
+  exec ~/bin/nix-portable nix shell $P#colmena $P#bat $P#dig -c bash -c "export PATH=\$PATH:$NIXBIN; $*"
+fi
+exec ~/bin/nix-portable nix shell $P#colmena $P#bat $P#dig -c bash --rcfile ~/colmena-demo/.labrc -i
