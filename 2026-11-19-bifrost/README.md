@@ -2,6 +2,8 @@
 
 Dated lab folder for the Network Technician channel: `2026-11-19-bifrost`.
 
+Video: https://youtu.be/3rME-2Uy8gM
+
 Bifrost is an Apache 2.0 open-source LLM and MCP gateway from Maxim AI. This lab runs the official OSS image in Docker, not an Enterprise trial. It is aimed at network and security engineers who want one self-hosted, OpenAI-compatible endpoint with:
 
 - A real OpenAI model (`gpt-4o-mini`) and a local Ollama fallback (`llama3.2:1b`)
