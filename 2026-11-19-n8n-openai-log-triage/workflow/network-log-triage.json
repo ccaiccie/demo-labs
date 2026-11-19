@@ -1,0 +1,325 @@
+{
+  "updatedAt": "2026-11-19T16:14:04.560Z",
+  "createdAt": "2026-11-19T16:04:44.045Z",
+  "id": "d4xnLnUkE1UP8pCE",
+  "name": "Network log triage",
+  "description": null,
+  "active": true,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "netlog",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.2,
+      "position": [
+        0,
+        0
+      ],
+      "id": "27d5ece9-06b8-460f-b240-8103ba341b5e",
+      "name": "Webhook",
+      "webhookId": "69180b7b-e3dd-4b02-8803-b2eaf3fb99f8"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "GPT-4O-MINI"
+        },
+        "responses": {
+          "values": [
+            {
+              "content": "=Device: {{ $json.body.host }}\nLog: {{ $json.body.message }}"
+            }
+          ]
+        },
+        "builtInTools": {},
+        "options": {
+          "instructions": "You are a senior network operations engineer. Triage the network device log you receive and reply with JSON only, using exactly these keys: severity (critical, warning or info), category (interface, routing, security, hardware, config or other), summary (one sentence), likely_cause, suggested_checks (array of up to 4 CLI commands to run on the device), action and source_ip. Set action to block_ip only for brute force or attack activity from an outside IP address, and put that address in source_ip. Set action to open_incident for outages or anything critical, such as a BGP or OSPF neighbor down, high CPU or a failed power supply. Otherwise set action to log_only. Use an empty string for source_ip when there is none.",
+          "textFormat": {
+            "textOptions": {
+              "type": "json_object"
+            }
+          },
+          "temperature": 0.2
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 2.3,
+      "position": [
+        224,
+        0
+      ],
+      "id": "a751ed7e-d3d8-4679-9ec7-64839825ccf6",
+      "name": "Message a model"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 4
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.output[0].content[0].text.action }}",
+                    "rightValue": "open_incident",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "1f924973-21fa-4d53-b453-9f0bfef25491"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "incident"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 4
+                },
+                "conditions": [
+                  {
+                    "id": "45fe9b1e-2b4a-4b08-b0e2-f1842346560f",
+                    "leftValue": "={{ $json.output[0].content[0].text.action }}",
+                    "rightValue": "block_ip",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "block"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 4
+                },
+                "conditions": [
+                  {
+                    "id": "3064129e-8c71-4715-9d50-ac1905c0eb1d",
+                    "leftValue": "={{ $json.output[0].content[0].text.action }}",
+                    "rightValue": "log_only",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "log"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.5,
+      "position": [
+        592,
+        0
+      ],
+      "id": "a76d9a54-4777-41d5-827b-4fd2c0293587",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://netops-receiver:8090/incident",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "log",
+              "value": "={{ $('Webhook').item.json.body }}"
+            },
+            {
+              "name": "verdict",
+              "value": "={{ $('Message a model').item.json.output[0].content[0].text }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        816,
+        -112
+      ],
+      "id": "beb992f6-9dcb-4c8f-9d6e-b9766b2af87c",
+      "name": "Open incident"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://netops-receiver:8090/block",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "log",
+              "value": "={{ $('Webhook').item.json.body }}"
+            },
+            {
+              "name": "verdict",
+              "value": "={{ $('Message a model').item.json.output[0].content[0].text }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        816,
+        0
+      ],
+      "id": "e210e8b0-7276-4161-88d8-89e7449648a0",
+      "name": "Block source IP"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://netops-receiver:8090/log",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "log",
+              "value": "={{ $('Webhook').item.json.body }}"
+            },
+            {
+              "name": "verdict",
+              "value": "={{ $('Message a model').item.json.output[0].content[0].text }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        816,
+        112
+      ],
+      "id": "9aa9bd22-efb9-4f10-b7b2-a3466428866a",
+      "name": "Log event"
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Message a model",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Message a model": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "Open incident",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Block source IP",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Log event",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "staticData": null,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "nodeGroups": [],
+  "pinData": {},
+  "versionId": "ee760c7d-8bcd-4fb6-a750-773cfd9cc4e7",
+  "activeVersionId": "ee760c7d-8bcd-4fb6-a750-773cfd9cc4e7",
+  "versionCounter": 60,
+  "triggerCount": 1,
+  "sourceWorkflowId": null,
+  "tags": [],
+  "shared": [
+    {
+      "updatedAt": "2026-11-19T16:04:44.061Z",
+      "createdAt": "2026-11-19T16:04:44.061Z",
+      "role": "workflow:owner",
+      "workflowId": "d4xnLnUkE1UP8pCE",
+      "projectId": "eoLq97S9UXjeslDw",
+      "project": {
+        "updatedAt": "2026-11-19T16:04:05.621Z",
+        "createdAt": "2026-11-19T16:03:24.050Z",
+        "id": "eoLq97S9UXjeslDw",
+        "name": "Demo Admin <demo@example.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "customTelemetryTags": [],
+        "creatorId": "29965171-80c8-4270-81cf-c97f30056cf1"
+      }
+    }
+  ],
+  "versionMetadata": {
+    "name": "Version ee760c7d",
+    "description": ""
+  }
+}
