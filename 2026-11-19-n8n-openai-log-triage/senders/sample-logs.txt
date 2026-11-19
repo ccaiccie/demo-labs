@@ -1,0 +1,6 @@
+# host | message   (Cisco-style lab samples)
+core-rtr1 | %BGP-5-ADJCHANGE: neighbor 203.0.113.9 Down BGP Notification sent, hold time expired
+edge-fw1 | %SEC_LOGIN-4-LOGIN_FAILED: Login failed [user: admin] [Source: 198.51.100.77] [localport: 22] [Reason: Login Authentication Failed] at 10:42:17 PST Thu Nov 19 2026 (20 attempts in 60 seconds)
+access-sw3 | %LINK-3-UPDOWN: Interface GigabitEthernet1/0/24, changed state to up
+dist-sw2 | %SYS-1-CPURISINGTHRESHOLD: Threshold: Total CPU Utilization(Total/Intr): 97%/41%, Top 3 processes(Pid/Util): 112/62%, 87/12%, 301/8%
+access-sw3 | %SYS-5-CONFIG_I: Configured from console by netadmin on vty0 (10.10.20.15)

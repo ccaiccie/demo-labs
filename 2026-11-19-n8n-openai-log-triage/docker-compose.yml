@@ -1,0 +1,61 @@
+# n8n + OpenAI network log triage lab (Network Technician, 2026-11-19)
+# Everything binds to 127.0.0.1 only. Secrets live in .env (chmod 600), never in this file.
+name: n8n-demo
+
+services:
+  n8n:
+    image: docker.n8n.io/n8nio/n8n:2.48.6
+    container_name: n8n-demo
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:5678:5678"
+    environment:
+      - N8N_ENCRYPTION_KEY=${N8N_ENCRYPTION_KEY}
+      - GENERIC_TIMEZONE=America/Los_Angeles
+      - TZ=America/Los_Angeles
+      - N8N_HOST=localhost
+      - N8N_PORT=5678
+      - N8N_PROTOCOL=http
+      - WEBHOOK_URL=http://localhost:5678/
+      - N8N_SECURE_COOKIE=false
+      - N8N_DIAGNOSTICS_ENABLED=false
+      - N8N_VERSION_NOTIFICATIONS_ENABLED=false
+      - N8N_PERSONALIZATION_ENABLED=false
+      - N8N_TEMPLATES_ENABLED=false
+      - N8N_HIRING_BANNER_ENABLED=false
+    volumes:
+      - n8n_data:/home/node/.n8n
+
+  # Mock NetOps system: incident tickets, a firewall blocklist and an event log, with a small web page.
+  netops-receiver:
+    image: python:3.12-alpine
+    container_name: netops-receiver
+    restart: unless-stopped
+    command: ["python", "-u", "/app/receiver.py"]
+    environment:
+      - TZ=PST8PDT
+    ports:
+      - "127.0.0.1:8090:8090"
+    volumes:
+      - ./receiver:/app:ro
+      - receiver_data:/data
+
+  # Real syslog in: listens on UDP 5514 and POSTs every line to the n8n webhook.
+  syslog-forwarder:
+    image: python:3.12-alpine
+    container_name: syslog-forwarder
+    restart: unless-stopped
+    command: ["python", "-u", "/app/forwarder.py"]
+    environment:
+      - N8N_WEBHOOK=http://n8n:5678/webhook/netlog
+      - TZ=PST8PDT
+    ports:
+      - "127.0.0.1:5514:5514/udp"
+    volumes:
+      - ./forwarder:/app:ro
+    depends_on:
+      - n8n
+
+volumes:
+  n8n_data:
+  receiver_data:
