@@ -1,0 +1,89 @@
+# Bifrost OSS LLM/MCP gateway lab (Network Technician, 2026-11-19)
+# Everything published to the host binds to 127.0.0.1 only.
+# Secrets live in .env (chmod 600), never in this file or in config.json.
+name: bifrost-demo
+
+services:
+  bifrost:
+    image: maximhq/bifrost:v2.6.0
+    container_name: bifrost-demo
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:8088:8080"
+    environment:
+      APP_HOST: "0.0.0.0"
+      APP_PORT: "8080"
+      APP_DIR: /app/data
+      LOG_LEVEL: info
+      LOG_STYLE: pretty
+      TZ: America/Los_Angeles
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      BIFROST_ENCRYPTION_KEY: ${BIFROST_ENCRYPTION_KEY}
+      VK_NETOPS: ${VK_NETOPS}
+      VK_LIMITED: ${VK_LIMITED}
+      VK_BUDGET: ${VK_BUDGET}
+      BIFROST_SETUP_TOKEN: ${BIFROST_SETUP_TOKEN}
+    volumes:
+      - ./config/config.json:/app/data/config.json:ro
+      - bifrost_data:/app/data
+    depends_on:
+      redis:
+        condition: service_healthy
+      ollama:
+        condition: service_started
+      mcp-netops:
+        condition: service_healthy
+    healthcheck:
+      disable: true
+
+  ollama:
+    image: ollama/ollama:0.12.10
+    container_name: bifrost-ollama
+    restart: unless-stopped
+    environment:
+      TZ: America/Los_Angeles
+    volumes:
+      - ollama_data:/root/.ollama
+    healthcheck:
+      test: ["CMD", "ollama", "list"]
+      interval: 10s
+      timeout: 10s
+      retries: 20
+      start_period: 10s
+
+  redis:
+    image: redis/redis-stack-server:7.4.0-v8
+    container_name: bifrost-redis
+    restart: unless-stopped
+    environment:
+      TZ: America/Los_Angeles
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  mcp-netops:
+    build:
+      context: ./mcp-netops
+    image: bifrost-demo-mcp-netops:local
+    container_name: bifrost-mcp-netops
+    restart: unless-stopped
+    environment:
+      TZ: America/Los_Angeles
+      DEMO_DATA_DIR: /demo-data
+    volumes:
+      - ./mcp-netops/demo-data:/demo-data:ro
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8765/health', timeout=3)"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 15s
+
+volumes:
+  bifrost_data:
+  ollama_data:
+  redis_data:

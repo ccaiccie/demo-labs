@@ -1,0 +1,211 @@
+{
+  "$schema": "https://www.getbifrost.ai/schema",
+  "encryption_key": "env.BIFROST_ENCRYPTION_KEY",
+  "client": {
+    "drop_excess_requests": false,
+    "enable_logging": true,
+    "disable_content_logging": false,
+    "log_retention_days": 30,
+    "enforce_auth_on_inference": true,
+    "mcp_agent_depth": 4,
+    "mcp_tool_execution_timeout": 30
+  },
+  "config_store": {
+    "enabled": true,
+    "type": "sqlite",
+    "config": {
+      "path": "./config.db"
+    }
+  },
+  "logs_store": {
+    "enabled": true,
+    "type": "sqlite",
+    "config": {
+      "path": "./logs.db"
+    }
+  },
+  "vector_store": {
+    "enabled": true,
+    "type": "redis",
+    "config": {
+      "addr": "redis:6379",
+      "db": 0,
+      "use_tls": false,
+      "cluster_mode": false
+    }
+  },
+  "plugins": [
+    {
+      "name": "semantic_cache",
+      "enabled": true,
+      "config": {
+        "provider": "openai",
+        "embedding_model": "text-embedding-3-small",
+        "dimension": 1536,
+        "threshold": 0.85,
+        "ttl": 1800,
+        "cache_by_model": true,
+        "cache_by_provider": true,
+        "default_cache_key": "netops-lab"
+      }
+    }
+  ],
+  "providers": {
+    "openai": {
+      "keys": [
+        {
+          "name": "openai-lab",
+          "value": "env.OPENAI_API_KEY",
+          "models": [
+            "gpt-4o-mini",
+            "text-embedding-3-small"
+          ],
+          "weight": 1.0
+        }
+      ],
+      "network_config": {
+        "default_request_timeout_in_seconds": 45,
+        "max_retries": 0
+      }
+    },
+    "ollama": {
+      "keys": [
+        {
+          "name": "ollama-local",
+          "value": "",
+          "models": [
+            "llama3.2:1b"
+          ],
+          "weight": 1.0,
+          "ollama_key_config": {
+            "url": "http://ollama:11434"
+          }
+        }
+      ],
+      "network_config": {
+        "allow_private_network": true,
+        "default_request_timeout_in_seconds": 120,
+        "max_retries": 0
+      }
+    }
+  },
+  "mcp": {
+    "client_configs": [
+      {
+        "name": "netops",
+        "connection_type": "http",
+        "connection_string": "http://mcp-netops:8765/mcp",
+        "auth_type": "none",
+        "tools_to_execute": [
+          "*"
+        ],
+        "tools_to_auto_execute": [
+          "list_demo_files",
+          "read_demo_file",
+          "get_interface_brief"
+        ]
+      }
+    ]
+  },
+  "governance": {
+    "virtual_keys": [
+      {
+        "id": "vk-netops",
+        "name": "netops-full",
+        "value": "env.VK_NETOPS",
+        "is_active": true,
+        "allow_all_providers": false,
+        "provider_configs": [
+          {
+            "provider": "openai",
+            "allowed_models": [
+              "gpt-4o-mini",
+              "text-embedding-3-small"
+            ],
+            "key_ids": [
+              "*"
+            ],
+            "weight": 1.0
+          },
+          {
+            "provider": "ollama",
+            "allowed_models": [
+              "*"
+            ],
+            "key_ids": [
+              "*"
+            ],
+            "weight": 0.5
+          }
+        ],
+        "mcp_configs": [
+          {
+            "mcp_client_name": "netops",
+            "tools_to_execute": [
+              "*"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "vk-limited",
+        "name": "netops-rate-limited",
+        "value": "env.VK_LIMITED",
+        "is_active": true,
+        "rate_limit_id": "rl-limited",
+        "provider_configs": [
+          {
+            "provider": "openai",
+            "allowed_models": [
+              "gpt-4o-mini"
+            ],
+            "key_ids": [
+              "*"
+            ],
+            "weight": 1.0
+          }
+        ]
+      },
+      {
+        "id": "vk-budget",
+        "name": "netops-tiny-budget",
+        "value": "env.VK_BUDGET",
+        "is_active": true,
+        "provider_configs": [
+          {
+            "provider": "openai",
+            "allowed_models": [
+              "gpt-4o-mini"
+            ],
+            "key_ids": [
+              "*"
+            ],
+            "weight": 1.0
+          }
+        ]
+      }
+    ],
+    "budgets": [
+      {
+        "id": "budget-tiny",
+        "virtual_key_id": "vk-budget",
+        "max_limit": 0.0001,
+        "reset_duration": "1h"
+      }
+    ],
+    "rate_limits": [
+      {
+        "id": "rl-limited",
+        "request_max_limit": 2,
+        "request_reset_duration": "1h"
+      }
+    ],
+    "auth_config": {
+      "is_enabled": false,
+      "admin_username": "env.BIFROST_ADMIN_USERNAME",
+      "admin_password": "env.BIFROST_ADMIN_PASSWORD",
+      "disable_auth_on_inference": true
+    }
+  },
+  "setup_token": "env.BIFROST_SETUP_TOKEN"
+}
