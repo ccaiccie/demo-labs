@@ -1,6 +1,8 @@
 # Colmena: stateless NixOS deployments for network engineers
 
 Lab for the Network Technician video of 2026-11-19. Three NixOS "network appliances" run as Docker containers
+
+Video: https://youtu.be/0NaAF9zZ0Co
 on an internal network, and [Colmena](https://github.com/zhaofengli/colmena) deploys them from one `hive.nix`:
 
 | Node | Address | Tag | What Colmena deploys |
