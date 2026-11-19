@@ -32,7 +32,7 @@ branch is merged and deployed with `colmena apply`. The AI never touches a serve
 | `ci/policy.py`, `ci/check.sh` | CI gate: policy check of the data change, then `colmena build --on <node>` |
 | `changebot/changebot.py` | Branch, commit, CI, merge and `colmena apply` for one AI intent (HTTP on port 8091) |
 | `n8n/colmena-change-request.json` | Separate n8n workflow: Chat Trigger, OpenAI "Message a model", HTTP Request, Reply |
-| `reset.sh` | Puts this lab back to its starting state (only these containers) |
+| `reset.sh` | Recreates the three nodes and resets the data files (only these containers) |
 
 ## Run it
 

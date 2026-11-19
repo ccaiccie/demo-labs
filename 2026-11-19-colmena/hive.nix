@@ -39,13 +39,20 @@ in
 
   router1 = { ... }: {
     deployment.tags = [ "edge" ];
+    # Dummy lab key: uploaded over SSH at deploy time, never put in the Nix store
+    deployment.keys."snmp-community" = {
+      keyFile = ./secrets/snmp-community.txt;
+      destDir = "/run/keys";
+      permissions = "0400";
+    };
+
     # Edge filter: drop anything from addresses in the blocklist set
     networking.nftables.tables.edge = {
       family = "inet";
       content = ''
         set blocklist {
           type ipv4_addr
-          elements = { 198.51.100.77 }
+          elements = { 198.51.100.77, 203.0.113.50 }
         }
         chain input {
           type filter hook input priority -10; policy accept;
@@ -61,6 +68,7 @@ in
       enable = true;
       settings.server = {
         interface = [ "0.0.0.0" ];
+        access-control = [ "10.88.0.0/24 allow" ];
         local-zone = [ ''"lab." static'' ];
         local-data = lib.mapAttrsToList (n: ip: ''"${n}.lab. A ${ip}"'') dnsRecords;
       };
@@ -69,6 +77,8 @@ in
 
   monitor1 = { lib, ... }: {
     deployment.tags = [ "monitoring" ];
+    # The unit asks for PrivateUsers, which this unprivileged container cannot set up
+    systemd.services.prometheus.serviceConfig.PrivateUsers = lib.mkForce false;
     services.prometheus = {
       enable = true;
       globalConfig.scrape_interval = "10s";

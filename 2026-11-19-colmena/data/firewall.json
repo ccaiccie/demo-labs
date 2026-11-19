@@ -1,5 +1,5 @@
 {
   "router1": { "tcp": [], "udp": [] },
-  "dns1": { "tcp": [], "udp": [] },
+  "dns1": { "tcp": [53], "udp": [53] },
   "monitor1": { "tcp": [9090], "udp": [] }
 }

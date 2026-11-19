@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# Resets ONLY this lab to its starting state: fresh nodes from the base image, starting data files.
-# Careful: removes hive.nix changes, secrets/ and the local git history of this folder copy.
+# Resets ONLY this lab: fresh nodes from the base image, data files as at the end of the video (no AI-added records).
+# Careful: deletes secrets/ and keys/known_hosts, and recreates the three lab containers.
 set -u
 cd "$(dirname "$0")"
 pkill -f changebot.py 2>/dev/null
@@ -16,7 +16,7 @@ J
 cat > data/firewall.json <<'J'
 {
   "router1": { "tcp": [], "udp": [] },
-  "dns1": { "tcp": [], "udp": [] },
+  "dns1": { "tcp": [53], "udp": [53] },
   "monitor1": { "tcp": [9090], "udp": [] }
 }
 J
