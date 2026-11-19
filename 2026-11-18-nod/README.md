@@ -1,5 +1,7 @@
 # Nod (n8n Labs personal AI agent): Windows desktop app + self-hosted Docker server
 
+Video: https://youtu.be/wLwix_CaK4k
+
 Hands-on lab for **[Nod](https://nod.n8n.io)**, the open-source (Apache 2.0) personal agent from n8n Labs, released as a
 research preview. Nod gets its own sandboxed computer (shell, files and a real browser), remembers what you tell it,
 runs scheduled jobs, and is designed to **ask before it sends, buys or deletes anything you didn't ask for**.
