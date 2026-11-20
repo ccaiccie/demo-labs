@@ -1,0 +1,86 @@
+# Uptime Kuma hands-on lab (2026-11-19)
+# Everything stays on a private Docker network. Only the Kuma UI is published, on 127.0.0.1:3301.
+name: uptime-kuma-lab
+
+services:
+  uptime-kuma:
+    image: louislam/uptime-kuma:2.5.12
+    container_name: kuma
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:3301:3001"
+    volumes:
+      - kuma-data:/app/data
+      # Read-only socket mount so Kuma can watch container state (Docker Container monitor)
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    environment:
+      - TZ=America/Los_Angeles
+    networks:
+      lab:
+        ipv4_address: 10.77.77.10
+
+  web:
+    image: nginx:1.27-alpine
+    container_name: lab-web
+    restart: unless-stopped
+    volumes:
+      - ./web:/usr/share/nginx/html:ro
+    networks:
+      lab:
+        ipv4_address: 10.77.77.20
+
+  whoami:
+    image: traefik/whoami:v1.10
+    container_name: lab-whoami
+    restart: unless-stopped
+    networks:
+      lab:
+        ipv4_address: 10.77.77.21
+
+  redis:
+    image: redis:7.4-alpine
+    container_name: lab-redis
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+    networks:
+      lab:
+        ipv4_address: 10.77.77.22
+
+  dns:
+    image: coredns/coredns:1.11.3
+    container_name: lab-dns
+    restart: unless-stopped
+    command: ["-conf", "/etc/coredns/Corefile"]
+    volumes:
+      - ./coredns:/etc/coredns:ro
+    networks:
+      lab:
+        ipv4_address: 10.77.77.53
+
+  webhook:
+    image: python:3.12-alpine
+    container_name: lab-webhook
+    restart: unless-stopped
+    command: ["python", "-u", "/app/receiver.py"]
+    environment:
+      # POSIX TZ string (the alpine image has no tzdata)
+      - TZ=PST8PDT,M3.2.0,M11.1.0
+    volumes:
+      - ./webhook:/app:ro
+    networks:
+      lab:
+        ipv4_address: 10.77.77.30
+
+networks:
+  lab:
+    name: uptime-kuma-lab
+    ipam:
+      config:
+        - subnet: 10.77.77.0/24
+
+volumes:
+  kuma-data:

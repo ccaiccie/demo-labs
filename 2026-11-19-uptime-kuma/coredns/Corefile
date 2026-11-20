@@ -1,0 +1,6 @@
+# Authoritative only for the lab zone. No forwarding to the internet.
+lab.local:53 {
+    file /etc/coredns/db.lab.local
+    log
+    errors
+}

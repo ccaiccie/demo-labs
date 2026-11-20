@@ -1,0 +1,16 @@
+$ORIGIN lab.local.
+$TTL 300
+@       IN SOA ns1.lab.local. admin.lab.local. (
+            2026111901 ; serial
+            7200       ; refresh
+            3600       ; retry
+            1209600    ; expire
+            300 )      ; minimum
+@       IN NS  ns1.lab.local.
+ns1     IN A   10.77.77.53
+kuma    IN A   10.77.77.10
+web     IN A   10.77.77.20
+whoami  IN A   10.77.77.21
+redis   IN A   10.77.77.22
+webhook IN A   10.77.77.30
+router1 IN A   10.10.0.1
