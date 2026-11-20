@@ -1,0 +1,5 @@
+[mariadbd]
+bind-address = 127.0.0.1
+innodb_file_per_table = 1
+lower_case_table_names = 0
+innodb_buffer_pool_size = 128M

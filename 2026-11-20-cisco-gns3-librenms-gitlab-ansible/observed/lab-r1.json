@@ -1,0 +1,10 @@
+{
+  "schema": 1,
+  "synthetic": true,
+  "environment": "lab",
+  "device": "lab-r1",
+  "platform": "iosv",
+  "interface": "GigabitEthernet0/2",
+  "description": "PRACTICE-LINK",
+  "source_sha256": "db298e3ea031832b8bda2e59bcfe337ed2b00ec9ee9b7f85b7f0a8c5b9c7a96b"
+}

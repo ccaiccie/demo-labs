@@ -1,0 +1,27 @@
+# Dedicated, isolated offline-guest runner only. No device access or deployment.
+stages: [validate, render]
+workflow:
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+    - if: '$CI_COMMIT_BRANCH && $CI_OPEN_MERGE_REQUESTS'
+      when: never
+    - if: '$CI_COMMIT_BRANCH'
+default:
+  tags: [offline-guest]
+  interruptible: true
+validate:
+  stage: validate
+  script:
+    - python3 -m compileall -q scripts tests
+    - python3 scripts/render.py --check
+    - python3 scripts/render.py --change --check
+    - python3 -m unittest discover -s tests -v
+    - ansible-playbook -i ansible/inventory.example.yml ansible/description.yml --syntax-check
+render:
+  stage: render
+  script:
+    - python3 scripts/render.py
+    - python3 scripts/render.py --change
+  artifacts:
+    paths: [build/adoption/, build/proposal/]
+    expire_in: 7 days

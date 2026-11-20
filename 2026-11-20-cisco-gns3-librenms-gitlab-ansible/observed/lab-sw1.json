@@ -1,0 +1,10 @@
+{
+  "schema": 1,
+  "synthetic": true,
+  "environment": "lab",
+  "device": "lab-sw1",
+  "platform": "iosvl2",
+  "interface": "GigabitEthernet0/2",
+  "description": "PRACTICE-SWITCH",
+  "source_sha256": "a018bac53dbbd18f68c5bdcd658a76cb6e0c5027140e032b8700923a3bf44fe7"
+}

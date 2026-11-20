@@ -1,0 +1,42 @@
+---
+# Copy outside repository as private config, then replace the credential and
+# verified usernames/addresses. Install only after reviewing the runbook.
+username: REPLACE_WITH_DEDICATED_LAB_USERNAME
+password: REPLACE_OFF_CAMERA_IN_PRIVATE_FILE
+model: ios
+interval: 300
+timeout: 15
+retries: 1
+threads: 2
+use_syslog: true
+pid: /var/lib/oxidized/oxidized.pid
+crash:
+  directory: /var/lib/oxidized/crashes
+vars:
+  remove_secret: true
+input:
+  default: ssh
+  ssh:
+    secure: true
+output:
+  # Raw-ish observations in a PRIVATE local repo only, not the GitLab repo.
+  default: git
+  git:
+    user: Oxidized Lab
+    email: oxidized@localhost.invalid
+    repo: /var/lib/oxidized/config-history.git
+source:
+  default: csv
+  csv:
+    file: /etc/oxidized/router.db
+    delimiter: !ruby/regexp /:/
+    map:
+      name: 0
+      model: 1
+extensions:
+  oxidized-web:
+    load: true
+    listen: 127.0.0.1
+    port: 8888
+    vhosts:
+      - 127.0.0.1

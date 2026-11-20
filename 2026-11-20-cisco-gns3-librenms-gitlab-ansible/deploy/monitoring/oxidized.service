@@ -1,0 +1,24 @@
+[Unit]
+Description=Guest-local lab device configuration backup
+After=network.target
+
+[Service]
+Type=simple
+User=oxidized
+Group=oxidized
+WorkingDirectory=/opt/oxidized
+Environment=OXIDIZED_HOME=/etc/oxidized
+Environment=OXIDIZED_LOGS=/var/lib/oxidized
+Environment=BUNDLE_GEMFILE=/opt/oxidized/Gemfile
+ExecStart=/usr/bin/bundle exec oxidized
+Restart=on-failure
+RestartSec=15s
+UMask=0077
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectHome=true
+ProtectSystem=strict
+ReadWritePaths=/var/lib/oxidized
+
+[Install]
+WantedBy=multi-user.target

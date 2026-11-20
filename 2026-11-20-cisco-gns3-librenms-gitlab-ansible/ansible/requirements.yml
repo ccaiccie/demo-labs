@@ -1,0 +1,6 @@
+---
+# Resolve/test and pin approved compatible versions inside the dedicated guest.
+# Unpinned here: no collection installation or compatibility claim made.
+collections:
+  - name: cisco.ios
+  - name: ansible.netcommon

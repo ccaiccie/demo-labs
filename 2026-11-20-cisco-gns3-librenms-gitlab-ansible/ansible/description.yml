@@ -1,0 +1,109 @@
+---
+# NOT called by CI. Dedicated Ubuntu guest controller and isolated IOSv only.
+- name: Reviewed lab-only Cisco IOSv description
+  hosts: description_demo
+  gather_facts: false
+  become: false
+  serial: 1
+  vars:
+    operation: adopt
+    allow_lab_read: false
+    execute_lab_change: false
+    dedicated_ubuntu_vm_confirmed: false
+    exact_interface_confirmed: false
+    device_specs:
+      lab-r1:
+        platform: iosv
+        before: PRACTICE-LINK
+        after: PRACTICE-LINK reviewed demo
+      lab-sw1:
+        platform: iosvl2
+        before: PRACTICE-SWITCH
+        after: PRACTICE-SWITCH reviewed demo
+    expected_before: "{{ device_specs[inventory_hostname].before }}"
+    desired_after: "{{ device_specs[inventory_hostname].after }}"
+  tasks:
+    - name: Require explicit isolated lab scope before any network operation
+      ansible.builtin.assert:
+        that:
+          - allow_lab_read | bool
+          - dedicated_ubuntu_vm_confirmed | bool
+          - exact_interface_confirmed | bool
+          - inventory_hostname in ['lab-r1', 'lab-sw1']
+          - ansible_play_hosts_all | length == 1
+          - ansible_network_os == 'cisco.ios.ios'
+          - demo_platform == device_specs[inventory_hostname].platform
+          - demo_interface == 'GigabitEthernet0/2'
+          - ansible_host not in ['192.0.2.10', '192.0.2.11']
+          - operation in ['adopt', 'review', 'apply', 'rollback']
+          - operation in ['adopt', 'review'] or (execute_lab_change | bool)
+          - expected_before == device_specs[inventory_hostname].before
+          - desired_after == device_specs[inventory_hostname].after
+        fail_msg: "Disabled until dedicated guest, isolated IOSv, exact practice port and scope are confirmed."
+    - name: Read only the selected interface configuration
+      cisco.ios.ios_command:
+        commands:
+          - show running-config interface GigabitEthernet0/2
+      register: running
+      check_mode: false
+      changed_when: false
+      no_log: true
+    - name: Extract exact interface stanza
+      ansible.builtin.set_fact:
+        stanzas: >-
+          {{ (running.stdout[0] | replace('\r', '')) | regex_findall('(?m)^interface GigabitEthernet0/2\n((?:[ \t].*\n)*)') }}
+      no_log: true
+    - name: Require unambiguous unchanged reviewed baseline
+      ansible.builtin.assert:
+        that:
+          - stanzas | length == 1
+          - "(' description ' ~ (desired_after if operation == 'rollback' else expected_before) ~ '\n') in stanzas[0]"
+          - "stanzas[0] | regex_findall('(?m)^ description ') | length == 1"
+        fail_msg: "Baseline changed or port ambiguous. Stop instead of overwriting."
+      no_log: true
+    - name: Review or apply only the fixed description using official Cisco module
+      cisco.ios.ios_config:
+        parents: interface GigabitEthernet0/2
+        lines:
+          - "{{ 'description ' ~ (expected_before if operation in ['adopt', 'rollback'] else desired_after) }}"
+        match: line
+        replace: line
+        save_when: never
+      check_mode: "{{ operation in ['adopt', 'review'] or ansible_check_mode }}"
+      register: proposal
+      no_log: true
+    - name: Adoption must produce no configuration changes
+      ansible.builtin.assert:
+        that:
+          - not proposal.changed
+        fail_msg: "Adoption is not no-op. Stop and review manually captured baseline."
+      when: operation == 'adopt'
+    - name: Show sanitized bounded review
+      ansible.builtin.debug:
+        msg:
+          interface: GigabitEthernet0/2
+          description: "{{ expected_before if operation in ['adopt', 'rollback'] else desired_after }}"
+          would_change_or_changed: "{{ proposal.changed }}"
+          mode: "{{ 'dry-run' if operation in ['adopt', 'review'] or ansible_check_mode else operation }}"
+    - name: Read back only after a real apply or rollback
+      cisco.ios.ios_command:
+        commands:
+          - show running-config interface GigabitEthernet0/2
+      register: verified
+      when: operation in ['apply', 'rollback'] and not ansible_check_mode
+      changed_when: false
+      no_log: true
+    - name: Extract verified stanza
+      ansible.builtin.set_fact:
+        verified_stanzas: >-
+          {{ (verified.stdout[0] | replace('\r', '')) | regex_findall('(?m)^interface GigabitEthernet0/2\n((?:[ \t].*\n)*)') }}
+      when: operation in ['apply', 'rollback'] and not ansible_check_mode
+      no_log: true
+    - name: Verify exact resulting description
+      ansible.builtin.assert:
+        that:
+          - verified_stanzas | length == 1
+          - "(' description ' ~ (expected_before if operation in ['adopt', 'rollback'] else desired_after) ~ '\n') in verified_stanzas[0]"
+          - "verified_stanzas[0] | regex_findall('(?m)^ description ') | length == 1"
+      when: operation in ['apply', 'rollback'] and not ansible_check_mode
+      no_log: true

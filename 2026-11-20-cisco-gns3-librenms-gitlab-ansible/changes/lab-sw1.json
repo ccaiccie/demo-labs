@@ -1,0 +1,9 @@
+{
+  "schema": 1,
+  "environment": "lab",
+  "device": "lab-sw1",
+  "platform": "iosvl2",
+  "interface": "GigabitEthernet0/2",
+  "description": "PRACTICE-SWITCH reviewed demo",
+  "baseline_sha256": "d4a6d72c8891579ec00ba9b28f03c1943612d73ad9ef9af4993a18d4ef2d9598"
+}

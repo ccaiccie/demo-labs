@@ -1,0 +1,19 @@
+# Documentation address only. Coordinate the exact IOSv interface before use.
+all:
+  children:
+    description_demo:
+      hosts:
+        lab-r1:
+          ansible_host: 192.0.2.10
+          ansible_user: lab_operator
+          ansible_connection: ansible.netcommon.network_cli
+          ansible_network_os: cisco.ios.ios
+          demo_platform: iosv
+          demo_interface: GigabitEthernet0/2
+        lab-sw1:
+          ansible_host: 192.0.2.11
+          ansible_user: lab_operator
+          ansible_connection: ansible.netcommon.network_cli
+          ansible_network_os: cisco.ios.ios
+          demo_platform: iosvl2
+          demo_interface: GigabitEthernet0/2

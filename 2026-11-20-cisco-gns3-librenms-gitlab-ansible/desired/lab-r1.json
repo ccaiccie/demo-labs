@@ -1,0 +1,9 @@
+{
+  "schema": 1,
+  "environment": "lab",
+  "device": "lab-r1",
+  "platform": "iosv",
+  "interface": "GigabitEthernet0/2",
+  "description": "PRACTICE-LINK",
+  "baseline_sha256": "95299431daf07e3075de94452a3b9e56d058e465036b41d94ebf3e9db50435c1"
+}
