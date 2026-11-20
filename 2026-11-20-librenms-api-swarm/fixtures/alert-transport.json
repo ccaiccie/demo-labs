@@ -1,0 +1,42 @@
+{
+  "description": "Local webhook alert transport fixture targeting the internal Docker webhook-receiver service.",
+  "api_v0_supported": false,
+  "provisioning_note": "Official LibreNMS REST API v0 (routes/api.php) does not expose an endpoint to create alert transports. Because App\\Models\\AlertTransport encrypts transport_config using Laravel application encryption, provision this transport via php artisan tinker (or a small PHP script using App\\Models\\AlertTransport::updateOrCreate) inside the LibreNMS container rather than raw SQL.",
+  "transport": {
+    "transport_name": "lab-local-webhook",
+    "transport_type": "api",
+    "is_default": true,
+    "transport_config": {
+      "api-method": "POST",
+      "api-as-form": false,
+      "api-url": "http://webhook-receiver:8080/alert",
+      "api-options": "",
+      "api-headers": "Content-Type=application/json",
+      "api-body": "{\"alert_id\":\"{{ $alert_id }}\",\"rule\":\"{{ $name }}\",\"hostname\":\"{{ $hostname }}\",\"sysName\":\"{{ $sysName }}\",\"severity\":\"{{ $severity }}\",\"state\":\"{{ $state }}\",\"title\":\"{{ $title }}\",\"timestamp\":\"{{ $timestamp }}\"}",
+      "api-auth-username": "",
+      "api-auth-password": ""
+    }
+  },
+  "operation": {
+    "name": "Lab Local Webhook Operation",
+    "default_operation_step_duration_seconds": 300,
+    "segments": [
+      {
+        "position": 0,
+        "operation_phase": "problem",
+        "escalation_step_from": 1,
+        "escalation_step_to": 1,
+        "start_in_seconds": 0,
+        "step_duration_seconds": 300
+      },
+      {
+        "position": 0,
+        "operation_phase": "recovery",
+        "escalation_step_from": 1,
+        "escalation_step_to": 1,
+        "start_in_seconds": 0,
+        "step_duration_seconds": 300
+      }
+    ]
+  }
+}

@@ -1,0 +1,26 @@
+$ docker exec -u librenms librenms-api-web lnms config:get nets
+[
+    "192.0.2.0/24",
+    "198.51.100.0/24",
+    "203.0.113.0/24"
+]
+
+$ docker exec -u librenms librenms-api-web lnms config:get discovery_by_ip
+true
+
+$ docker exec -u librenms librenms-api-web lnms scan:network 203.0.113.0/24
+
+   INFO  Scanning 203.0.113.0/24.  
+
+**---.........................................................................................................................................................................................................................................................
+
++---------------------+-----------+
+| Result              | Addresses |
++---------------------+-----------+
+| *  Known device     | 2         |
+| -  No reply to SNMP | 3         |
+| .  No reply to ping | 249       |
++---------------------+-----------+
+
+   INFO  Scanned 254 addresses in 15.5 seconds.  
+

@@ -1,0 +1,43 @@
+=== Outage & Recovery End-to-End Test (librenms-api-edge-fw-01 / 203.0.113.11) ===
+
+1. Pre-test repeat-notification check (after capping problem & recovery segments to steps 1..1)
+   - 2026-11-20T21:46:25Z: 246 lines in librenms-api-webhook:/tmp/alerts.jsonl
+   - 2026-11-20T21:47:41Z (after 21:47 dispatcher alert cycle): 246 lines (+0 repeat POSTs)
+
+2. Outage phase: stop librenms-api-edge-fw-01, poll 203.0.113.11, run alerts.php
+   - Command: docker stop librenms-api-edge-fw-01
+   - Poll output:
+     >>> Polled 203.0.113.11 (5) in 7.800 seconds <<<
+     Rule #1 (Lab: Device Down): Status: ALERT
+     Rule #4 (Lab: Deterministic Webhook Test): Status: OK
+     Device was down (icmp,snmp), unable to poll.
+   - alerts.php output (2026-11-20 21:48:36-37 UTC):
+     Issuing Alert-UID #7/1: :: Transport api => OK
+     Issuing Alert-UID #8/0: :: Transport api => OK
+   - GET /api/v0/devices/203.0.113.11:
+     id=5 hostname=203.0.113.11 sysName=edge-fw-01.lab.internal status=0 status_reason=icmp,snmp
+   - GET /api/v0/alerts:
+     alert_id=7 rule_id=1 device_id=5 state=1 severity=critical ts=2026-11-20 21:48:35
+   - Webhook receiver count: 246 -> 248 (+2)
+   - Delivered critical Device Down payload:
+     {"received_at": "2026-11-20T21:48:37.002115+00:00", "method": "POST", "path": "/alert", "client_ip": "192.168.16.5", "content_type": "application/json", "payload": {"alert_id": "17", "rule": "Lab: Device Down", "hostname": "203.0.113.11", "sysName": "edge-fw-01.lab.internal", "severity": "critical", "state": "1", "title": "Alert for device 203.0.113.11 - Lab: Device Down", "timestamp": "2026-11-20 21:48:35"}}
+
+3. Recovery phase: start librenms-api-edge-fw-01, poll 203.0.113.11, run alerts.php
+   - Command: docker start librenms-api-edge-fw-01
+   - SNMP ready after 1s: SNMPv2-MIB::sysName.0 = STRING: edge-fw-01.lab.internal
+   - Poll output:
+     INFO: device:poll 203.0.113.11 (5) polled in 4.496s
+     Rule #1 (Lab: Device Down): Status: OK
+     Rule #4 (Lab: Deterministic Webhook Test): Status: ALERT
+   - alerts.php output (2026-11-20 21:49:28 UTC):
+     Issuing Alert-UID #9/0: :: Transport api => OK
+     Issuing Alert-UID #10/1: :: Transport api => OK
+   - GET /api/v0/devices/203.0.113.11:
+     id=5 hostname=203.0.113.11 sysName=edge-fw-01.lab.internal status=1 status_reason='' last_polled=2026-11-20T21:49:27.000000Z
+   - Active 'Lab: Device Down' alerts: 0
+   - Webhook receiver count: 248 -> 250 (+2)
+   - Delivered Device Down recovery payload:
+     {"received_at": "2026-11-20T21:49:28.774304+00:00", "method": "POST", "path": "/alert", "client_ip": "192.168.16.5", "content_type": "application/json", "payload": {"alert_id": "17", "rule": "Lab: Device Down", "hostname": "203.0.113.11", "sysName": "edge-fw-01.lab.internal", "severity": "critical", "state": "0", "title": "Device 203.0.113.11 recovered from Lab: Device Down", "timestamp": "2026-11-20 21:49:27"}}
+
+4. Post-recovery stability check
+   - 2026-11-20T21:52:25Z (3 minutes later): 250 lines (+0 repeat POSTs), all 11/11 containers healthy.

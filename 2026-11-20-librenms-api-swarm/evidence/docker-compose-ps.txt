@@ -1,0 +1,12 @@
+NAME                       IMAGE                      COMMAND                  SERVICE            CREATED             STATUS                       PORTS
+librenms-api-br-rtr-01     librenms-api-snmpd:local   "snmpd -f -Lo -C -c …"   br-rtr-01          28 minutes ago      Up 28 minutes (healthy)      161/udp
+librenms-api-br-sw-01      librenms-api-snmpd:local   "snmpd -f -Lo -C -c …"   br-sw-01           28 minutes ago      Up 28 minutes (healthy)      161/udp
+librenms-api-core-rtr-01   librenms-api-snmpd:local   "snmpd -f -Lo -C -c …"   core-rtr-01        28 minutes ago      Up 28 minutes (healthy)      161/udp
+librenms-api-core-sw-01    librenms-api-snmpd:local   "snmpd -f -Lo -C -c …"   core-sw-01         28 minutes ago      Up 28 minutes (healthy)      161/udp
+librenms-api-db            mariadb:10.11              "docker-entrypoint.s…"   db                 About an hour ago   Up About an hour (healthy)   3306/tcp
+librenms-api-dispatcher    librenms/librenms:latest   "/init"                  dispatcher         About an hour ago   Up About an hour (healthy)   162/tcp, 162/udp, 514/tcp, 8000/tcp, 514/udp
+librenms-api-edge-ap-01    librenms-api-snmpd:local   "snmpd -f -Lo -C -c …"   edge-ap-01         28 minutes ago      Up 28 minutes (healthy)      161/udp
+librenms-api-edge-fw-01    librenms-api-snmpd:local   "snmpd -f -Lo -C -c …"   edge-fw-01         28 minutes ago      Up 3 minutes (healthy)       161/udp
+librenms-api-redis         redis:7-alpine             "docker-entrypoint.s…"   redis              About an hour ago   Up About an hour (healthy)   6379/tcp
+librenms-api-web           librenms/librenms:latest   "/init"                  librenms           About an hour ago   Up About an hour (healthy)   162/tcp, 162/udp, 514/tcp, 514/udp, 127.0.0.1:8012->8000/tcp
+librenms-api-webhook       python:3.12-alpine         "python3 /app/server…"   webhook-receiver   About an hour ago   Up About an hour (healthy)   

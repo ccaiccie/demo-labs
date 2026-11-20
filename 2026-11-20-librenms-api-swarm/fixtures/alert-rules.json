@@ -1,0 +1,179 @@
+{
+  "description": "NetOps alert rules pack for LibreNMS REST API v0 (POST /api/v0/rules). Each item in rules is a direct POST /api/v0/rules request body.",
+  "endpoint": "/api/v0/rules",
+  "method": "POST",
+  "rules": [
+    {
+      "name": "Lab: Device Down",
+      "devices": [
+        -1
+      ],
+      "severity": "critical",
+      "disabled": 0,
+      "notes": "Triggers when any monitored lab device is marked down and is neither disabled nor ignored.",
+      "builder": {
+        "condition": "AND",
+        "rules": [
+          {
+            "id": "devices.status",
+            "field": "devices.status",
+            "type": "integer",
+            "input": "select",
+            "operator": "equal",
+            "value": "0"
+          },
+          {
+            "id": "devices.disabled",
+            "field": "devices.disabled",
+            "type": "integer",
+            "input": "select",
+            "operator": "equal",
+            "value": "0"
+          },
+          {
+            "id": "devices.ignore",
+            "field": "devices.ignore",
+            "type": "integer",
+            "input": "select",
+            "operator": "equal",
+            "value": "0"
+          }
+        ],
+        "valid": true
+      },
+      "extra": {
+        "mute": false,
+        "count": "1",
+        "delay": "0",
+        "invert": false,
+        "interval": "300",
+        "recovery": true
+      }
+    },
+    {
+      "name": "Lab: High CPU Utilization",
+      "devices": [
+        -1
+      ],
+      "severity": "warning",
+      "disabled": 0,
+      "notes": "Triggers when a reachable device reports processor utilization at or above 85 percent.",
+      "builder": {
+        "condition": "AND",
+        "rules": [
+          {
+            "id": "devices.status",
+            "field": "devices.status",
+            "type": "integer",
+            "input": "select",
+            "operator": "equal",
+            "value": "1"
+          },
+          {
+            "id": "processors.processor_usage",
+            "field": "processors.processor_usage",
+            "type": "integer",
+            "input": "text",
+            "operator": "greater_or_equal",
+            "value": "85"
+          }
+        ],
+        "valid": true
+      },
+      "extra": {
+        "mute": false,
+        "count": "1",
+        "delay": "0",
+        "invert": false,
+        "interval": "300",
+        "recovery": true
+      }
+    },
+    {
+      "name": "Lab: Port Operational Down",
+      "devices": [
+        -1
+      ],
+      "severity": "warning",
+      "disabled": 0,
+      "notes": "Triggers when an administratively enabled port transitions to operationally down on an up device.",
+      "builder": {
+        "condition": "AND",
+        "rules": [
+          {
+            "id": "devices.status",
+            "field": "devices.status",
+            "type": "integer",
+            "input": "select",
+            "operator": "equal",
+            "value": "1"
+          },
+          {
+            "id": "ports.ifAdminStatus",
+            "field": "ports.ifAdminStatus",
+            "type": "string",
+            "input": "text",
+            "operator": "equal",
+            "value": "up"
+          },
+          {
+            "id": "ports.ifOperStatus",
+            "field": "ports.ifOperStatus",
+            "type": "string",
+            "input": "text",
+            "operator": "equal",
+            "value": "down"
+          }
+        ],
+        "valid": true
+      },
+      "extra": {
+        "mute": false,
+        "count": "1",
+        "delay": "0",
+        "invert": false,
+        "interval": "300",
+        "recovery": true
+      }
+    },
+    {
+      "name": "Lab: Deterministic Webhook Test",
+      "devices": [
+        -1
+      ],
+      "severity": "warning",
+      "disabled": 0,
+      "notes": "Deterministic lab verification rule matching any healthy polled device (status=1, uptime>=0) to safely prove end-to-end alert evaluation and local webhook delivery.",
+      "builder": {
+        "condition": "AND",
+        "rules": [
+          {
+            "id": "devices.status",
+            "field": "devices.status",
+            "type": "integer",
+            "input": "select",
+            "operator": "equal",
+            "value": "1"
+          },
+          {
+            "id": "devices.uptime",
+            "field": "devices.uptime",
+            "type": "integer",
+            "input": "text",
+            "operator": "greater_or_equal",
+            "value": "0"
+          }
+        ],
+        "valid": true
+      },
+      "extra": {
+        "mute": false,
+        "count": "1",
+        "delay": "0",
+        "invert": false,
+        "interval": "300",
+        "recovery": true
+      }
+    }
+  ]
+}

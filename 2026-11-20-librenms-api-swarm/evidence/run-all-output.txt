@@ -1,0 +1,261 @@
+=== [1/6] Validate and start Docker Compose stack (project: librenms-api) ===
+ Image librenms-api-snmpd:local Building 
+ Image librenms-api-snmpd:local Building 
+ Image librenms-api-snmpd:local Building 
+ Image librenms-api-snmpd:local Building 
+ Image librenms-api-snmpd:local Building 
+ Image librenms-api-snmpd:local Building 
+#1 [internal] load local bake definitions
+#1 reading from stdin 3.18kB done
+#1 DONE 0.0s
+
+#2 [edge-fw-01 internal] load build definition from Dockerfile
+#2 transferring dockerfile: 191B 0.0s done
+#2 DONE 0.0s
+
+#3 [br-sw-01 internal] load metadata for docker.io/library/alpine:3.20
+#3 DONE 0.0s
+
+#4 [core-sw-01 internal] load .dockerignore
+#4 transferring context:
+#4 transferring context: 2B 0.0s done
+#4 DONE 0.0s
+
+#5 [core-sw-01 1/2] FROM docker.io/library/alpine:3.20@sha256:d9e853e87e55526f6b2917df91a2115c36dd7c696a35be12163d44e6e2a4b6bc
+#5 resolve docker.io/library/alpine:3.20@sha256:d9e853e87e55526f6b2917df91a2115c36dd7c696a35be12163d44e6e2a4b6bc 0.0s done
+#5 DONE 0.1s
+
+#6 [core-rtr-01 2/2] RUN apk add --no-cache net-snmp net-snmp-tools
+#6 CACHED
+
+#7 [br-sw-01] exporting to image
+#7 exporting layers done
+#7 exporting manifest sha256:4c17a908dda567220c02349e5dd24432cbd8601c0af5236b141d636067c87986 0.0s done
+#7 exporting config sha256:c77c3b13edf437b1f2d618a64f1f63600d561939a3cba60fa6f110d542fccd8a 0.0s done
+#7 exporting attestation manifest sha256:3523d0d4abcff75294fca3e40cdf9d381ea92800fd5698ccc2574d73a5f6a906
+#7 exporting attestation manifest sha256:3523d0d4abcff75294fca3e40cdf9d381ea92800fd5698ccc2574d73a5f6a906 0.2s done
+#7 exporting manifest list sha256:744e0073cd54c10320d0b6edf0d1be3b908f470c259279bc2bf3a858e7655c01
+#7 exporting manifest list sha256:744e0073cd54c10320d0b6edf0d1be3b908f470c259279bc2bf3a858e7655c01 0.1s done
+#7 naming to docker.io/library/librenms-api-snmpd:local
+#7 naming to docker.io/library/librenms-api-snmpd:local 0.1s done
+#7 unpacking to docker.io/library/librenms-api-snmpd:local
+#7 unpacking to docker.io/library/librenms-api-snmpd:local 0.1s done
+#7 DONE 0.8s
+
+#8 [edge-fw-01] exporting to image
+#8 exporting layers done
+#8 exporting manifest sha256:4e4c9c37693cc6f799ae00eb06cf12b4f6820764263f20ed583ea3d0f03f9540 0.0s done
+#8 exporting config sha256:4e32910ec7aaf593faa1d89c5f41b1a22b8ee46c72c006a17dca0a19d0c5fdd0 0.1s done
+#8 exporting attestation manifest sha256:f0f3378f5c9bfdc21d3663eb8c8682cb87ba6d0b9713002756829e506ce0ee99 0.2s done
+#8 exporting manifest list sha256:9883979afcb003b0d92dc571fdc0ff4c9539e63b914780d41a5575eb3bddc123 0.2s done
+#8 naming to docker.io/library/librenms-api-snmpd:local 0.1s done
+#8 unpacking to docker.io/library/librenms-api-snmpd:local 0.0s done
+#8 DONE 0.8s
+
+#9 [core-sw-01] exporting to image
+#9 exporting layers done
+#9 exporting manifest sha256:e0510f7ce2b7c772ca0a75f10cf6d769aac372db835f381c227ad21f524eddd9 0.0s done
+#9 exporting config sha256:edb27cb76a8457da7eeb11110a205f80f9caea26934ae539c472f1f0f5fab68d 0.1s done
+#9 exporting attestation manifest sha256:829e4ac4a7fb571e25d69626cb1b52bab55b095e188ed853ecfbd28d712b4656 0.2s done
+#9 exporting manifest list sha256:76255fc463b4a0724dcb2733069968253aac999f38fb5654754c6f531adef524 0.2s done
+#9 naming to docker.io/library/librenms-api-snmpd:local 0.1s done
+#9 unpacking to docker.io/library/librenms-api-snmpd:local 0.1s done
+#9 DONE 0.8s
+
+#10 [edge-ap-01] exporting to image
+#10 exporting layers done
+#10 exporting manifest sha256:00fc94d6f112afdfab47ecf25369d7473db9fb22a4204df34bd5ddc3509523c1 0.0s done
+#10 exporting config sha256:08b3b9ce42199ceaed4d52185d70f05ee3d8a7dd8bb32235903c5ae0647b1a64 0.1s done
+#10 exporting attestation manifest sha256:31f31d8c473de8643e03ac40652d7c9c31eab85bb05642b9139d9bdb39cca519 0.2s done
+#10 exporting manifest list sha256:7e3101042118468b93b3af60f78d8c32f17a6a52763d94a7f9b5f2b1e0ee4065 0.2s done
+#10 naming to docker.io/library/librenms-api-snmpd:local 0.0s done
+#10 unpacking to docker.io/library/librenms-api-snmpd:local 0.1s done
+#10 DONE 0.8s
+
+#11 [br-rtr-01] exporting to image
+#11 exporting layers done
+#11 exporting manifest sha256:138ae657e4c0ae174528367d6f4712c1e9669f567c21f89e7047b74251906f70 0.0s done
+#11 exporting config sha256:9c020e936739d4b0fdaa6c4ebaf4070173836416b0f1ed44478c76a1c9544fbd 0.1s done
+#11 exporting attestation manifest sha256:41741ccd907d2d03fc9cbf8a942a56dd136783333fa97fafa17532699296832d 0.2s done
+#11 exporting manifest list sha256:6ee1d75894b169c04258fc8a0ba5b3d00b09ba963b82d33e4efe99760f39f89d 0.2s done
+#11 naming to docker.io/library/librenms-api-snmpd:local 0.0s done
+#11 unpacking to docker.io/library/librenms-api-snmpd:local 0.1s done
+#11 DONE 0.8s
+
+#12 [core-rtr-01] exporting to image
+#12 exporting layers done
+#12 exporting manifest sha256:fe431809b0cbde21a9540a15f3520d8f23f68033622aca33665b9fff13ae6864 0.0s done
+#12 exporting config sha256:35ca68fb36eca350b278ef4ebfbbccca14406a5f941bc486b55385842823ee9d 0.1s done
+#12 exporting attestation manifest sha256:2ecfca9b2e5208b4700ceb5d5a48268a4dba46676ea5e853210606284b6de402 0.2s done
+#12 exporting manifest list sha256:4e2b8ad46a94f295f35d66d70cd00839ae54507ab3218b8a01ce3aa31c48e70c 0.2s done
+#12 naming to docker.io/library/librenms-api-snmpd:local 0.0s done
+#12 unpacking to docker.io/library/librenms-api-snmpd:local 0.1s done
+#12 DONE 0.9s
+
+#13 [br-sw-01] resolving provenance for metadata file
+#13 DONE 0.4s
+
+#14 [br-rtr-01] resolving provenance for metadata file
+#14 DONE 0.2s
+
+#15 [edge-fw-01] resolving provenance for metadata file
+#15 DONE 0.4s
+
+#16 [edge-ap-01] resolving provenance for metadata file
+#16 DONE 0.3s
+
+#17 [core-rtr-01] resolving provenance for metadata file
+#17 DONE 0.1s
+
+#18 [core-sw-01] resolving provenance for metadata file
+#18 DONE 0.0s
+ Image librenms-api-snmpd:local Built 
+ Image librenms-api-snmpd:local Built 
+ Image librenms-api-snmpd:local Built 
+ Image librenms-api-snmpd:local Built 
+ Image librenms-api-snmpd:local Built 
+ Image librenms-api-snmpd:local Built 
+ Container librenms-api-dispatcher Running 
+ Container librenms-api-redis Running 
+ Container librenms-api-webhook Running 
+ Container librenms-api-web Running 
+ Container librenms-api-db Running 
+ Container librenms-api-core-sw-01 Recreate 
+ Container librenms-api-br-rtr-01 Recreate 
+ Container librenms-api-core-rtr-01 Recreate 
+ Container librenms-api-br-sw-01 Recreate 
+ Container librenms-api-edge-ap-01 Recreate 
+ Container librenms-api-edge-fw-01 Recreate 
+ Container librenms-api-edge-fw-01 Recreated 
+ Container librenms-api-br-sw-01 Recreated 
+ Container librenms-api-core-rtr-01 Recreated 
+ Container librenms-api-br-rtr-01 Recreated 
+ Container librenms-api-core-sw-01 Recreated 
+ Container librenms-api-edge-ap-01 Recreated 
+ Container librenms-api-br-rtr-01 Starting 
+ Container librenms-api-db Waiting 
+ Container librenms-api-redis Waiting 
+ Container librenms-api-edge-ap-01 Starting 
+ Container librenms-api-core-sw-01 Starting 
+ Container librenms-api-br-sw-01 Starting 
+ Container librenms-api-core-rtr-01 Starting 
+ Container librenms-api-edge-fw-01 Starting 
+ Container librenms-api-redis Healthy 
+ Container librenms-api-db Healthy 
+ Container librenms-api-web Waiting 
+ Container librenms-api-web Healthy 
+ Container librenms-api-br-rtr-01 Started 
+ Container librenms-api-edge-ap-01 Started 
+ Container librenms-api-core-sw-01 Started 
+ Container librenms-api-br-sw-01 Started 
+ Container librenms-api-core-rtr-01 Started 
+ Container librenms-api-edge-fw-01 Started 
+=== [2/6] Bootstrap LibreNMS admin user and API token ===
+[bootstrap-auth] Waiting for librenms-api-web and http://127.0.0.1:8012 to be ready (timeout=180s)...
+[bootstrap-auth] librenms-api-web is healthy and http://127.0.0.1:8012/ returned HTTP 302.
+[bootstrap-auth] Ensuring LibreNMS admin user 'labadmin' exists...
+[bootstrap-auth] Admin user 'labadmin' already exists (user_id=1).
+[bootstrap-auth] Provisioning Sanctum API token for 'labadmin'...
+[bootstrap-auth] Reusing existing valid token from /tmp/librenms-api.token (value=<REDACTED_TOKEN>).
+[bootstrap-auth] Verifying API token against http://127.0.0.1:8012/api/v0/system ...
+[bootstrap-auth] OK: Token saved to /tmp/librenms-api.token (value=<REDACTED_TOKEN>) and verified against /api/v0/system.
+=== [3/6] Bulk-add lab devices via REST API v0 ===
+[bulk-add-devices] Target: http://127.0.0.1:8012/api/v0/devices (auth=<REDACTED_TOKEN>)
+[bulk-add-devices] Loading 4 devices from devices.json...
+  = Already exists 192.0.2.11 (core-rtr-01.lab.internal): Device 192.0.2.11 already exists
+  = Already exists 192.0.2.12 (core-sw-01.lab.internal): Device 192.0.2.12 already exists
+  = Already exists 198.51.100.11 (br-rtr-01.lab.internal): Device 198.51.100.11 already exists
+  = Already exists 198.51.100.12 (br-sw-01.lab.internal): Device 198.51.100.12 already exists
+
+[bulk-add-devices] Verified GET /api/v0/devices (6 total device(s)):
+  - id=1 hostname=192.0.2.11 display=192.0.2.11 sysName=core-rtr-01.lab.internal os=linux status=1
+  - id=2 hostname=192.0.2.12 display=192.0.2.12 sysName=core-sw-01.lab.internal os=linux status=1
+  - id=3 hostname=198.51.100.11 display=198.51.100.11 sysName=br-rtr-01.lab.internal os=linux status=1
+  - id=4 hostname=198.51.100.12 display=198.51.100.12 sysName=br-sw-01.lab.internal os=linux status=1
+  - id=6 hostname=librenms-api-edge-ap-01.librenms-api_lab_edge display=librenms-api-edge-ap-01.librenms-api_lab_edge sysName=edge-ap-01.lab.internal os=linux status=1
+  - id=5 hostname=librenms-api-edge-fw-01.librenms-api_lab_edge display=librenms-api-edge-fw-01.librenms-api_lab_edge sysName=edge-fw-01.lab.internal os=linux status=1
+[bulk-add-devices] OK: All fixture devices verified via GET /api/v0/devices.
+=== [4/6] Configure auto-discovery and scan edge subnet ===
+[configure-discovery] Parsing /mnt/c/Users/superuser/ag-lab/librenms-api-swarm/fixtures/discovery.json...
+[configure-discovery] Configuring LibreNMS auto-discovery subnets and settings via lnms config:set...
+[configure-discovery] Registering SNMPv2c community credential(s) in LibreNMS Secrets store...
+[configure-discovery] Binding snmp.default_credentials to secret ID(s): [3]
+[configure-discovery] Current configured nets and snmp.default_credentials:
+[
+    "192.0.2.0/24",
+    "198.51.100.0/24",
+    "203.0.113.0/24"
+]
+[
+    3
+]
+[configure-discovery] Running lnms scan:network 203.0.113.0/24...
+
+   INFO  Scanning 203.0.113.0/24.  
+
+**---.........................................................................................................................................................................................................................................................
+
++---------------------+-----------+
+| Result              | Addresses |
++---------------------+-----------+
+| *  Known device     | 2         |
+| -  No reply to SNMP | 3         |
+| .  No reply to ping | 249       |
++---------------------+-----------+
+
+   INFO  Scanned 254 addresses in 15.5 seconds.  
+
+[configure-discovery] Running discovery and poller across all devices...
+[configure-discovery] Verifying auto-discovered devices via GET /api/v0/devices (auth=<REDACTED_TOKEN>)...
+[configure-discovery] Total devices in LibreNMS: 6
+  - id=1 hostname=192.0.2.11 ip=192.0.2.11 sysName=core-rtr-01.lab.internal status=1 uptime=688491 last_polled=2026-11-20T21:12:56.000000Z
+  - id=2 hostname=192.0.2.12 ip=192.0.2.12 sysName=core-sw-01.lab.internal status=1 uptime=688494 last_polled=2026-11-20T21:12:59.000000Z
+  - id=3 hostname=198.51.100.11 ip=198.51.100.11 sysName=br-rtr-01.lab.internal status=1 uptime=688497 last_polled=2026-11-20T21:13:02.000000Z
+  - id=4 hostname=198.51.100.12 ip=198.51.100.12 sysName=br-sw-01.lab.internal status=1 uptime=688499 last_polled=2026-11-20T21:13:05.000000Z
+  - id=6 hostname=librenms-api-edge-ap-01.librenms-api_lab_edge ip=203.0.113.12 sysName=edge-ap-01.lab.internal status=1 uptime=688506 last_polled=2026-11-20T21:13:12.000000Z
+  - id=5 hostname=librenms-api-edge-fw-01.librenms-api_lab_edge ip=203.0.113.11 sysName=edge-fw-01.lab.internal status=1 uptime=688502 last_polled=2026-11-20T21:13:08.000000Z
+[configure-discovery] OK: All expected edge devices were auto-discovered and polled.
+=== [5/6] Load NetOps alert rules pack via REST API v0 ===
+[load-alert-rules] Target: http://127.0.0.1:8012/api/v0/rules (auth=<REDACTED_TOKEN>)
+[load-alert-rules] Loading 4 alert rules from alert-rules.json...
+  = Already exists: Lab: Device Down
+  = Already exists: Lab: High CPU Utilization
+  = Already exists: Lab: Port Operational Down
+  = Already exists: Lab: Deterministic Webhook Test
+
+[load-alert-rules] Verified GET /api/v0/rules (4 total rule(s)):
+  - id=1 name='Lab: Device Down' severity=critical disabled=0
+  - id=2 name='Lab: High CPU Utilization' severity=warning disabled=0
+  - id=3 name='Lab: Port Operational Down' severity=warning disabled=0
+  - id=4 name='Lab: Deterministic Webhook Test' severity=warning disabled=0
+[load-alert-rules] OK: All fixture alert rules verified via GET /api/v0/rules.
+=== [6/6] Configure local webhook transport and verify alert delivery ===
+[configure-webhook] Provisioning alert transport and alert operation from /mnt/c/Users/superuser/ag-lab/librenms-api-swarm/fixtures/alert-transport.json...
+[configure-webhook] Provisioned 'lab-local-webhook': transport_id=1 operation_id=1 segment_id=1 rules_linked=0
+[configure-webhook] Polling 192.0.2.11 to evaluate alert rules, then running alerts.php...
+Start: Fri, 20 Nov 2026 21:13:18 +0000
+ClearStaleAlerts():
+RunAlerts():
+RunAcks():
+End  : Fri, 20 Nov 2026 21:13:19 +0000
+[configure-webhook] Checking webhook-receiver (/tmp/alerts.jsonl) for delivered alert payloads...
+[configure-webhook] OK: webhook-receiver captured 48 alert payload(s). Latest 3 entries:
+{"received_at": "2026-11-20T21:13:02.168464+00:00", "method": "POST", "path": "/alert", "client_ip": "192.168.16.6", "content_type": "application/json", "payload": {"alert_id": "16", "rule": "Lab: Deterministic Webhook Test", "hostname": "198.51.100.12", "sysName": "br-sw-01.lab.internal", "severity": "warning", "state": "1", "title": "Alert for device 198.51.100.12 - Lab: Deterministic Webhook Test", "timestamp": "2026-11-20 21:04:27"}}
+{"received_at": "2026-11-20T21:13:02.213842+00:00", "method": "POST", "path": "/alert", "client_ip": "192.168.16.6", "content_type": "application/json", "payload": {"alert_id": "20", "rule": "Lab: Deterministic Webhook Test", "hostname": "librenms-api-edge-fw-01.librenms-api_lab_edge", "sysName": "edge-fw-01.lab.internal", "severity": "warning", "state": "1", "title": "Alert for device librenms-api-edge-fw-01.librenms-api_lab_edge - Lab: Deterministic Webhook Test", "timestamp": "2026-11-20 21:04:32"}}
+{"received_at": "2026-11-20T21:13:02.260515+00:00", "method": "POST", "path": "/alert", "client_ip": "192.168.16.6", "content_type": "application/json", "payload": {"alert_id": "24", "rule": "Lab: Deterministic Webhook Test", "hostname": "librenms-api-edge-ap-01.librenms-api_lab_edge", "sysName": "edge-ap-01.lab.internal", "severity": "warning", "state": "1", "title": "Alert for device librenms-api-edge-ap-01.librenms-api_lab_edge - Lab: Deterministic Webhook Test", "timestamp": "2026-11-20 21:04:36"}}
+
+=== ALL LIBRENMS-API LAB TESTS PASSED ===
+NAME                       IMAGE                      COMMAND                  SERVICE            CREATED              STATUS                        PORTS
+librenms-api-br-rtr-01     librenms-api-snmpd:local   "snmpd -f -Lo -C -c …"   br-rtr-01          About a minute ago   Up About a minute (healthy)   161/udp
+librenms-api-br-sw-01      librenms-api-snmpd:local   "snmpd -f -Lo -C -c …"   br-sw-01           About a minute ago   Up About a minute (healthy)   161/udp
+librenms-api-core-rtr-01   librenms-api-snmpd:local   "snmpd -f -Lo -C -c …"   core-rtr-01        About a minute ago   Up About a minute (healthy)   161/udp
+librenms-api-core-sw-01    librenms-api-snmpd:local   "snmpd -f -Lo -C -c …"   core-sw-01         About a minute ago   Up About a minute (healthy)   161/udp
+librenms-api-db            mariadb:10.11              "docker-entrypoint.s…"   db                 26 minutes ago       Up 26 minutes (healthy)       3306/tcp
+librenms-api-dispatcher    librenms/librenms:latest   "/init"                  dispatcher         26 minutes ago       Up 25 minutes (healthy)       162/tcp, 162/udp, 514/tcp, 8000/tcp, 514/udp
+librenms-api-edge-ap-01    librenms-api-snmpd:local   "snmpd -f -Lo -C -c …"   edge-ap-01         About a minute ago   Up About a minute (healthy)   161/udp
+librenms-api-edge-fw-01    librenms-api-snmpd:local   "snmpd -f -Lo -C -c …"   edge-fw-01         About a minute ago   Up About a minute (healthy)   161/udp
+librenms-api-redis         redis:7-alpine             "docker-entrypoint.s…"   redis              26 minutes ago       Up 26 minutes (healthy)       6379/tcp
+librenms-api-web           librenms/librenms:latest   "/init"                  librenms           26 minutes ago       Up 26 minutes (healthy)       162/tcp, 162/udp, 514/tcp, 514/udp, 127.0.0.1:8012->8000/tcp
+librenms-api-webhook       python:3.12-alpine         "python3 /app/server…"   webhook-receiver   26 minutes ago       Up 26 minutes (healthy)       
+
+EXIT_CODE=0

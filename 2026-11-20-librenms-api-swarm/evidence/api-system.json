@@ -1,0 +1,18 @@
+{
+    "status": "ok",
+    "system": [
+        {
+            "local_ver": "26.11.0",
+            "local_sha": "",
+            "local_date": "2026-11-17T18:08:56+00:00",
+            "local_branch": "",
+            "db_schema": "2026_11_09_091308_migrate_callback_enabled_to_reporting_usage (435)",
+            "php_ver": "8.4.27",
+            "python_ver": "3.14.10",
+            "database_ver": "MariaDB 10.11.19-MariaDB-ubu2204",
+            "rrdtool_ver": "1.10.2",
+            "netsnmp_ver": "5.9.5.2"
+        }
+    ],
+    "count": 1
+}

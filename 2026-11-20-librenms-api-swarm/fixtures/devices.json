@@ -1,0 +1,39 @@
+{
+  "description": "Bulk-add device payloads for LibreNMS REST API v0 (POST /api/v0/devices). Uses RFC 5737 documentation IPs and synthetic *.lab.internal hostnames.",
+  "endpoint": "/api/v0/devices",
+  "method": "POST",
+  "devices": [
+    {
+      "hostname": "192.0.2.11",
+      "display": "core-rtr-01.lab.internal",
+      "snmpver": "v2c",
+      "community": "lab-ro-community",
+      "port": 161,
+      "transport": "udp"
+    },
+    {
+      "hostname": "192.0.2.12",
+      "display": "core-sw-01.lab.internal",
+      "snmpver": "v2c",
+      "community": "lab-ro-community",
+      "port": 161,
+      "transport": "udp"
+    },
+    {
+      "hostname": "198.51.100.11",
+      "display": "br-rtr-01.lab.internal",
+      "snmpver": "v2c",
+      "community": "lab-ro-community",
+      "port": 161,
+      "transport": "udp"
+    },
+    {
+      "hostname": "198.51.100.12",
+      "display": "br-sw-01.lab.internal",
+      "snmpver": "v2c",
+      "community": "lab-ro-community",
+      "port": 161,
+      "transport": "udp"
+    }
+  ]
+}

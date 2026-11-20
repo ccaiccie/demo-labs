@@ -1,0 +1,358 @@
+{
+  "status": "ok",
+  "rules": [
+    {
+      "id": 1,
+      "severity": "critical",
+      "extra": {
+        "options": {
+          "override_query": false
+        }
+      },
+      "disabled": 0,
+      "name": "Lab: Device Down",
+      "query": "SELECT * FROM devices WHERE (devices.device_id = ?) AND devices.status = 0 AND devices.disabled = 0 AND devices.ignore = 0",
+      "builder": {
+        "condition": "AND",
+        "rules": [
+          {
+            "id": "devices.status",
+            "field": "devices.status",
+            "type": "integer",
+            "input": "select",
+            "operator": "equal",
+            "value": "0"
+          },
+          {
+            "id": "devices.disabled",
+            "field": "devices.disabled",
+            "type": "integer",
+            "input": "select",
+            "operator": "equal",
+            "value": "0"
+          },
+          {
+            "id": "devices.ignore",
+            "field": "devices.ignore",
+            "type": "integer",
+            "input": "select",
+            "operator": "equal",
+            "value": "0"
+          }
+        ],
+        "valid": true
+      },
+      "proc": null,
+      "invert_map": 0,
+      "notify_per_entity": false,
+      "max_entities": null,
+      "notes": "Triggers when any monitored lab device is marked down and is neither disabled nor ignored.",
+      "alert_operation_id": 1,
+      "devices": [],
+      "groups": [],
+      "locations": [],
+      "alert_operation": {
+        "id": 1,
+        "default_operation_step_duration_seconds": 300
+      },
+      "default_operation_step_duration_seconds": 300,
+      "operations": [
+        {
+          "id": 1,
+          "position": 0,
+          "operation_phase": "problem",
+          "escalation_step_from": 1,
+          "escalation_step_to": 1,
+          "start_in_seconds": 0,
+          "step_duration_seconds": 300,
+          "transports": [
+            {
+              "id": "1",
+              "text": "Api: lab-local-webhook"
+            }
+          ],
+          "alert_operation_id": 1,
+          "name": "Lab Local Webhook Operation"
+        },
+        {
+          "id": 2,
+          "position": 0,
+          "operation_phase": "recovery",
+          "escalation_step_from": 1,
+          "escalation_step_to": 1,
+          "start_in_seconds": 0,
+          "step_duration_seconds": 300,
+          "transports": [
+            {
+              "id": "1",
+              "text": "Api: lab-local-webhook"
+            }
+          ],
+          "alert_operation_id": 1,
+          "name": "Lab Local Webhook Operation"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "severity": "warning",
+      "extra": {
+        "options": {
+          "override_query": false
+        }
+      },
+      "disabled": 0,
+      "name": "Lab: High CPU Utilization",
+      "query": "SELECT * FROM devices,processors WHERE (devices.device_id = ? AND devices.device_id = processors.device_id) AND devices.status = 1 AND processors.processor_usage >= 85",
+      "builder": {
+        "condition": "AND",
+        "rules": [
+          {
+            "id": "devices.status",
+            "field": "devices.status",
+            "type": "integer",
+            "input": "select",
+            "operator": "equal",
+            "value": "1"
+          },
+          {
+            "id": "processors.processor_usage",
+            "field": "processors.processor_usage",
+            "type": "integer",
+            "input": "text",
+            "operator": "greater_or_equal",
+            "value": "85"
+          }
+        ],
+        "valid": true
+      },
+      "proc": null,
+      "invert_map": 0,
+      "notify_per_entity": false,
+      "max_entities": null,
+      "notes": "Triggers when a reachable device reports processor utilization at or above 85 percent.",
+      "alert_operation_id": 1,
+      "devices": [],
+      "groups": [],
+      "locations": [],
+      "alert_operation": {
+        "id": 1,
+        "default_operation_step_duration_seconds": 300
+      },
+      "default_operation_step_duration_seconds": 300,
+      "operations": [
+        {
+          "id": 1,
+          "position": 0,
+          "operation_phase": "problem",
+          "escalation_step_from": 1,
+          "escalation_step_to": 1,
+          "start_in_seconds": 0,
+          "step_duration_seconds": 300,
+          "transports": [
+            {
+              "id": "1",
+              "text": "Api: lab-local-webhook"
+            }
+          ],
+          "alert_operation_id": 1,
+          "name": "Lab Local Webhook Operation"
+        },
+        {
+          "id": 2,
+          "position": 0,
+          "operation_phase": "recovery",
+          "escalation_step_from": 1,
+          "escalation_step_to": 1,
+          "start_in_seconds": 0,
+          "step_duration_seconds": 300,
+          "transports": [
+            {
+              "id": "1",
+              "text": "Api: lab-local-webhook"
+            }
+          ],
+          "alert_operation_id": 1,
+          "name": "Lab Local Webhook Operation"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "severity": "warning",
+      "extra": {
+        "options": {
+          "override_query": false
+        }
+      },
+      "disabled": 0,
+      "name": "Lab: Port Operational Down",
+      "query": "SELECT * FROM devices,ports WHERE (devices.device_id = ? AND devices.device_id = ports.device_id) AND devices.status = 1 AND ports.ifAdminStatus = \"up\" AND ports.ifOperStatus = \"down\"",
+      "builder": {
+        "condition": "AND",
+        "rules": [
+          {
+            "id": "devices.status",
+            "field": "devices.status",
+            "type": "integer",
+            "input": "select",
+            "operator": "equal",
+            "value": "1"
+          },
+          {
+            "id": "ports.ifAdminStatus",
+            "field": "ports.ifAdminStatus",
+            "type": "string",
+            "input": "text",
+            "operator": "equal",
+            "value": "up"
+          },
+          {
+            "id": "ports.ifOperStatus",
+            "field": "ports.ifOperStatus",
+            "type": "string",
+            "input": "text",
+            "operator": "equal",
+            "value": "down"
+          }
+        ],
+        "valid": true
+      },
+      "proc": null,
+      "invert_map": 0,
+      "notify_per_entity": false,
+      "max_entities": null,
+      "notes": "Triggers when an administratively enabled port transitions to operationally down on an up device.",
+      "alert_operation_id": 1,
+      "devices": [],
+      "groups": [],
+      "locations": [],
+      "alert_operation": {
+        "id": 1,
+        "default_operation_step_duration_seconds": 300
+      },
+      "default_operation_step_duration_seconds": 300,
+      "operations": [
+        {
+          "id": 1,
+          "position": 0,
+          "operation_phase": "problem",
+          "escalation_step_from": 1,
+          "escalation_step_to": 1,
+          "start_in_seconds": 0,
+          "step_duration_seconds": 300,
+          "transports": [
+            {
+              "id": "1",
+              "text": "Api: lab-local-webhook"
+            }
+          ],
+          "alert_operation_id": 1,
+          "name": "Lab Local Webhook Operation"
+        },
+        {
+          "id": 2,
+          "position": 0,
+          "operation_phase": "recovery",
+          "escalation_step_from": 1,
+          "escalation_step_to": 1,
+          "start_in_seconds": 0,
+          "step_duration_seconds": 300,
+          "transports": [
+            {
+              "id": "1",
+              "text": "Api: lab-local-webhook"
+            }
+          ],
+          "alert_operation_id": 1,
+          "name": "Lab Local Webhook Operation"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "severity": "warning",
+      "extra": {
+        "options": {
+          "override_query": false
+        }
+      },
+      "disabled": 0,
+      "name": "Lab: Deterministic Webhook Test",
+      "query": "SELECT * FROM devices WHERE (devices.device_id = ?) AND devices.status = 1 AND devices.uptime >= 0",
+      "builder": {
+        "condition": "AND",
+        "rules": [
+          {
+            "id": "devices.status",
+            "field": "devices.status",
+            "type": "integer",
+            "input": "select",
+            "operator": "equal",
+            "value": "1"
+          },
+          {
+            "id": "devices.uptime",
+            "field": "devices.uptime",
+            "type": "integer",
+            "input": "text",
+            "operator": "greater_or_equal",
+            "value": "0"
+          }
+        ],
+        "valid": true
+      },
+      "proc": null,
+      "invert_map": 0,
+      "notify_per_entity": false,
+      "max_entities": null,
+      "notes": "Deterministic lab verification rule matching any healthy polled device (status=1, uptime>=0) to safely prove end-to-end alert evaluation and local webhook delivery.",
+      "alert_operation_id": 1,
+      "devices": [],
+      "groups": [],
+      "locations": [],
+      "alert_operation": {
+        "id": 1,
+        "default_operation_step_duration_seconds": 300
+      },
+      "default_operation_step_duration_seconds": 300,
+      "operations": [
+        {
+          "id": 1,
+          "position": 0,
+          "operation_phase": "problem",
+          "escalation_step_from": 1,
+          "escalation_step_to": 1,
+          "start_in_seconds": 0,
+          "step_duration_seconds": 300,
+          "transports": [
+            {
+              "id": "1",
+              "text": "Api: lab-local-webhook"
+            }
+          ],
+          "alert_operation_id": 1,
+          "name": "Lab Local Webhook Operation"
+        },
+        {
+          "id": 2,
+          "position": 0,
+          "operation_phase": "recovery",
+          "escalation_step_from": 1,
+          "escalation_step_to": 1,
+          "start_in_seconds": 0,
+          "step_duration_seconds": 300,
+          "transports": [
+            {
+              "id": "1",
+              "text": "Api: lab-local-webhook"
+            }
+          ],
+          "alert_operation_id": 1,
+          "name": "Lab Local Webhook Operation"
+        }
+      ]
+    }
+  ],
+  "count": 4
+}

@@ -1,0 +1,35 @@
+{
+  "description": "LibreNMS auto-discovery configuration fixture using RFC 5737 lab subnets and synthetic *.lab.internal devices.",
+  "provisioning_method": "lnms config:set",
+  "nets": [
+    "192.0.2.0/24",
+    "198.51.100.0/24",
+    "203.0.113.0/24"
+  ],
+  "snmp": {
+    "version": "v2c",
+    "community": [
+      "lab-ro-community"
+    ]
+  },
+  "settings": {
+    "discovery_by_ip": true,
+    "normalize_discovered_hostname_to_ip": true,
+    "autodiscovery.nets-exclude": []
+  },
+  "scan_subnets": [
+    "203.0.113.0/24"
+  ],
+  "expected_discovered_devices": [
+    {
+      "ip": "203.0.113.11",
+      "sysName": "edge-fw-01.lab.internal",
+      "subnet": "203.0.113.0/24"
+    },
+    {
+      "ip": "203.0.113.12",
+      "sysName": "edge-ap-01.lab.internal",
+      "subnet": "203.0.113.0/24"
+    }
+  ]
+}
