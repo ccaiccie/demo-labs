@@ -1,0 +1,19 @@
+<189>Nov 19 09:14:02 core-sw1 %LINK-3-UPDOWN: Interface GigabitEthernet1/0/24, changed state to down
+<189>Nov 19 09:14:03 core-sw1 %LINEPROTO-5-UPDOWN: Line protocol on Interface GigabitEthernet1/0/24, changed state to down
+<187>Nov 19 09:15:41 edge-rtr1 %BGP-5-ADJCHANGE: neighbor 198.51.100.2 Down BGP Notification sent
+<190>Nov 19 09:15:42 edge-rtr1 %SYS-6-LOGGINGHOST_STARTSTOP: Logging to host 10.20.0.50 port 514 started - CLI initiated
+<185>Nov 19 09:16:10 core-sw1 %SPANTREE-2-BLOCK_BPDUGUARD: Received BPDU on port Gi1/0/7 with BPDU Guard enabled. Disabling port.
+<189>Nov 19 09:16:11 core-sw1 %PM-4-ERR_DISABLE: bpduguard error detected on Gi1/0/7, putting Gi1/0/7 in err-disable state
+<189>Nov 19 09:17:30 core-sw1 %LINK-3-UPDOWN: Interface GigabitEthernet1/0/24, changed state to up
+<187>Nov 19 09:18:05 edge-rtr1 %BGP-5-ADJCHANGE: neighbor 198.51.100.2 Up
+<186>Nov 19 09:19:44 fw1 %ASA-6-302013: Built inbound TCP connection 41 for outside:203.0.113.9/51515 to inside:10.20.0.15/22
+<188>Nov 19 09:19:45 fw1 %ASA-4-106023: Deny tcp src outside:203.0.113.9/51516 dst inside:10.20.0.15/23 by access-group "OUTSIDE_IN"
+<188>Nov 19 09:19:46 fw1 %ASA-4-106023: Deny tcp src outside:203.0.113.9/51517 dst inside:10.20.0.15/3389 by access-group "OUTSIDE_IN"
+<189>Nov 19 09:21:00 core-sw1 %SYS-5-CONFIG_I: Configured from console by netadmin on vty0 (10.20.0.99)
+<187>Nov 19 09:22:13 dist-sw2 %OSPF-5-ADJCHG: Process 1, Nbr 10.0.0.3 on Vlan20 from FULL to DOWN, Neighbor Down: Dead timer expired
+<187>Nov 19 09:23:01 dist-sw2 %OSPF-5-ADJCHG: Process 1, Nbr 10.0.0.3 on Vlan20 from LOADING to FULL, Loading Done
+<186>Nov 19 09:24:30 edge-rtr1 %SEC_LOGIN-5-LOGIN_SUCCESS: Login Success [user: netadmin] [Source: 10.20.0.99] [localport: 22]
+<188>Nov 19 09:24:52 edge-rtr1 %SEC_LOGIN-4-LOGIN_FAILED: Login failed [user: admin] [Source: 203.0.113.9] [localport: 22] [Reason: Login Authentication Failed]
+<188>Nov 19 09:24:55 edge-rtr1 %SEC_LOGIN-4-LOGIN_FAILED: Login failed [user: root] [Source: 203.0.113.9] [localport: 22] [Reason: Login Authentication Failed]
+<185>Nov 19 09:26:00 core-sw1 %PLATFORM_ENV-1-FAN: Fan 2 failure detected
+garbage line without a priority that should be counted as unparsed

@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NetAudit Report - edge-rtr1</title>
+  <style>
+:root {
+  --bg: #f8fafc;
+  --surface: #ffffff;
+  --border: #e2e8f0;
+  --text: #0f172a;
+  --muted: #475569;
+  --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+  --sans: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  padding: 24px;
+  font-family: var(--sans);
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.5;
+}
+.container {
+  max-width: 1120px;
+  margin: 0 auto;
+}
+.report-header {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 20px 24px;
+  margin-bottom: 20px;
+}
+.report-header h1 {
+  margin: 0 0 12px 0;
+  font-size: 1.5rem;
+}
+.meta-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 8px 20px;
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+.meta-item strong { color: var(--text); }
+code {
+  font-family: var(--mono);
+  font-size: 0.85em;
+  background: #f1f5f9;
+  padding: 1px 5px;
+  border-radius: 4px;
+}
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 12px;
+  margin-bottom: 24px;
+}
+.kpi-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 14px 16px;
+}
+.kpi-label {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+  margin-bottom: 4px;
+}
+.kpi-value {
+  font-size: 1.4rem;
+  font-weight: 700;
+}
+.kpi-add { color: #15803d; }
+.kpi-del { color: #b91c1c; }
+.kpi-critical { color: #b91c1c; }
+.kpi-high { color: #c2410c; }
+.kpi-medium { color: #b45309; }
+.kpi-low { color: #1d4ed8; }
+.section-block {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 20px 24px;
+  margin-bottom: 20px;
+}
+.section-block h2 {
+  margin: 0 0 16px 0;
+  font-size: 1.2rem;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 8px;
+}
+.banner {
+  padding: 14px 16px;
+  border-radius: 8px;
+  font-weight: 600;
+}
+.banner-pass {
+  background: #dcfce7;
+  color: #166534;
+  border: 1px solid #86efac;
+}
+.banner-neutral {
+  background: #f1f5f9;
+  color: #334155;
+  border: 1px solid #cbd5e1;
+}
+.finding-card {
+  border: 1px solid var(--border);
+  border-left-width: 4px;
+  border-radius: 8px;
+  padding: 14px 16px;
+  margin-bottom: 12px;
+  background: #ffffff;
+}
+.finding-sev-critical { border-left-color: #dc2626; }
+.finding-sev-high { border-left-color: #ea580c; }
+.finding-sev-medium { border-left-color: #d97706; }
+.finding-sev-low { border-left-color: #2563eb; }
+.finding-sev-unknown { border-left-color: #64748b; }
+.finding-top {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+.finding-badges {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+.finding-location {
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+.rule-id {
+  font-family: var(--mono);
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--muted);
+}
+.finding-title {
+  margin: 4px 0 8px 0;
+  font-size: 1rem;
+}
+.evidence-block {
+  margin: 0 0 8px 0;
+  padding: 8px 10px;
+  background: #0f172a;
+  color: #f8fafc;
+  border-radius: 6px;
+  overflow-x: auto;
+  font-family: var(--mono);
+  font-size: 0.85rem;
+}
+.evidence-block code {
+  background: transparent;
+  padding: 0;
+  color: inherit;
+}
+.finding-desc {
+  margin: 0 0 6px 0;
+  font-size: 0.92rem;
+}
+.finding-remediation {
+  margin: 0;
+  font-size: 0.9rem;
+  color: #334155;
+}
+.badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+.badge-sev-critical { background: #fee2e2; color: #991b1b; }
+.badge-sev-high { background: #ffedd5; color: #9a3412; }
+.badge-sev-medium { background: #fef3c7; color: #92400e; }
+.badge-sev-low { background: #dbeafe; color: #1e40af; }
+.badge-sev-unknown { background: #e2e8f0; color: #334155; }
+.badge-new { background: #dc2626; color: #ffffff; }
+.badge-existing { background: #e2e8f0; color: #334155; }
+.badge-resolved { background: #16a34a; color: #ffffff; }
+.badge-status-added { background: #dcfce7; color: #166534; }
+.badge-status-removed { background: #fee2e2; color: #991b1b; }
+.badge-status-modified { background: #dbeafe; color: #1e40af; }
+.resolved-block {
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px dashed var(--border);
+}
+.resolved-block h3 {
+  margin: 0 0 12px 0;
+  font-size: 1.05rem;
+  color: #166534;
+}
+.diff-category {
+  margin-bottom: 18px;
+}
+.category-heading {
+  margin: 0 0 10px 0;
+  font-size: 1rem;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.diff-card {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  margin-bottom: 10px;
+  overflow: hidden;
+}
+.diff-card-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  background: #f8fafc;
+  border-bottom: 1px solid var(--border);
+}
+.section-name {
+  font-weight: 600;
+  background: transparent;
+}
+.diff-lines {
+  font-family: var(--mono);
+  font-size: 0.84rem;
+  background: #0f172a;
+  color: #e2e8f0;
+  overflow-x: auto;
+}
+.diff-line {
+  display: block;
+  padding: 1px 12px;
+  white-space: pre;
+}
+.diff-add {
+  background: #052e16;
+  color: #86efac;
+}
+.diff-del {
+  background: #450a0a;
+  color: #fca5a5;
+}
+.diff-ctx {
+  color: #cbd5e1;
+}
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header class="report-header">
+      <h1>Network Configuration Diff &amp; Security Audit Report</h1>
+      <div class="meta-grid">
+        <div class="meta-item"><strong>Hostname:</strong> edge-rtr1</div>
+        <div class="meta-item"><strong>Generated:</strong> 2026-11-20 02:56:57 UTC</div>
+        <div class="meta-item"><strong>Before:</strong> <code>samples/backups/edge-rtr1_2026-11-18.cfg</code></div>
+        <div class="meta-item"><strong>After:</strong> <code>samples/backups/edge-rtr1_2026-11-19.cfg</code></div>
+      </div>
+    </header>
+    <section class="kpi-grid" aria-label="Audit Summary Metrics">
+      <div class="kpi-card"><div class="kpi-label">Changed Sections</div><div class="kpi-value ">5</div></div>
+<div class="kpi-card"><div class="kpi-label">Lines Added</div><div class="kpi-value kpi-add">+7</div></div>
+<div class="kpi-card"><div class="kpi-label">Lines Removed</div><div class="kpi-value kpi-del">-3</div></div>
+<div class="kpi-card"><div class="kpi-label">Total Findings</div><div class="kpi-value ">4</div></div>
+<div class="kpi-card"><div class="kpi-label">CRITICAL</div><div class="kpi-value kpi-critical">1</div></div>
+<div class="kpi-card"><div class="kpi-label">HIGH</div><div class="kpi-value kpi-high">1</div></div>
+<div class="kpi-card"><div class="kpi-label">MEDIUM</div><div class="kpi-value kpi-medium">2</div></div>
+<div class="kpi-card"><div class="kpi-label">LOW</div><div class="kpi-value kpi-low">0</div></div>
+<div class="kpi-card"><div class="kpi-label">New Findings</div><div class="kpi-value kpi-critical">2</div></div>
+<div class="kpi-card"><div class="kpi-label">Pre-Existing</div><div class="kpi-value ">2</div></div>
+<div class="kpi-card"><div class="kpi-label">Resolved</div><div class="kpi-value kpi-add">0</div></div>
+    </section>
+    <section class="section-block" aria-label="Security Audit Findings">
+      <h2>Security Audit Findings</h2>
+      <article class="finding-card finding-sev-critical">
+  <div class="finding-top">
+    <div class="finding-badges">
+      <span class="badge badge-sev badge-sev-critical">CRITICAL</span>
+      <span class="badge badge-new">NEW</span>
+      <span class="rule-id">SNMP_DEFAULT_COMMUNITY</span>
+    </div>
+    <div class="finding-location">Line 26 &middot; Section: <code>global</code></div>
+  </div>
+  <h3 class="finding-title">Default SNMP community string configured</h3>
+  <pre class="evidence-block"><code>snmp-server community public RW</code></pre>
+  <p class="finding-desc">Default SNMP community &#x27;public&#x27; is configured with read-write (RW) privileges, exposing the device via well-known credentials.</p>
+  <p class="finding-remediation"><strong>Remediation:</strong> Remove the default community with &#x27;no snmp-server community public&#x27; and migrate to SNMPv3 with authentication and encryption.</p>
+</article>
+<article class="finding-card finding-sev-high">
+  <div class="finding-top">
+    <div class="finding-badges">
+      <span class="badge badge-sev badge-sev-high">HIGH</span>
+      <span class="badge badge-new">NEW</span>
+      <span class="rule-id">TELNET_ENABLED</span>
+    </div>
+    <div class="finding-location">Line 30 &middot; Section: <code>line vty 0 4</code></div>
+  </div>
+  <h3 class="finding-title">Telnet enabled on line</h3>
+  <pre class="evidence-block"><code>transport input telnet ssh</code></pre>
+  <p class="finding-desc">Unencrypted Telnet input transport is permitted on &#x27;line vty 0 4&#x27; (transport input telnet ssh), exposing credentials and management sessions to interception.</p>
+  <p class="finding-remediation"><strong>Remediation:</strong> Restrict line transport to SSH only using &#x27;transport input ssh&#x27; (or &#x27;transport input none&#x27; if unused).</p>
+</article>
+<article class="finding-card finding-sev-medium">
+  <div class="finding-top">
+    <div class="finding-badges">
+      <span class="badge badge-sev badge-sev-medium">MEDIUM</span>
+      <span class="badge badge-existing">PRE-EXISTING</span>
+      <span class="rule-id">MISSING_EXEC_TIMEOUT</span>
+    </div>
+    <div class="finding-location">Line 29 &middot; Section: <code>line vty 0 4</code></div>
+  </div>
+  <h3 class="finding-title">EXEC session timeout missing or disabled</h3>
+  <pre class="evidence-block"><code>line vty 0 4 (no exec-timeout configured)</code></pre>
+  <p class="finding-desc">No EXEC session timeout is configured on &#x27;line vty 0 4&#x27;, leaving idle sessions without an explicit timeout.</p>
+  <p class="finding-remediation"><strong>Remediation:</strong> Configure a non-zero EXEC idle timeout on the line (for example, &#x27;exec-timeout 10 0&#x27;).</p>
+</article>
+<article class="finding-card finding-sev-medium">
+  <div class="finding-top">
+    <div class="finding-badges">
+      <span class="badge badge-sev badge-sev-medium">MEDIUM</span>
+      <span class="badge badge-existing">PRE-EXISTING</span>
+      <span class="rule-id">NO_PASSWORD_ENCRYPTION</span>
+    </div>
+    <div class="finding-location">Line N/A &middot; Section: <code>global</code></div>
+  </div>
+  <h3 class="finding-title">Password encryption disabled</h3>
+  <pre class="evidence-block"><code>service password-encryption is not configured</code></pre>
+  <p class="finding-desc">Global password encryption (&#x27;service password-encryption&#x27;) is not configured, leaving local or line passwords potentially stored in cleartext.</p>
+  <p class="finding-remediation"><strong>Remediation:</strong> Enable password encryption globally with &#x27;service password-encryption&#x27;.</p>
+</article>
+    </section>
+    <section class="section-block" aria-label="Configuration Diff">
+      <h2>Configuration Diff</h2>
+      <div class="diff-category">
+  <h3 class="category-heading">global</h3>
+  <div class="diff-card">
+  <div class="diff-card-header">
+    <span class="badge badge-status badge-status-modified">MODIFIED</span>
+    <code class="section-name">global</code>
+  </div>
+  <div class="diff-lines"><span class="diff-line diff-del">- snmp-server community netops-ro RO</span><span class="diff-line diff-add">+ snmp-server community public RW</span></div>
+</div>
+</div>
+<div class="diff-category">
+  <h3 class="category-heading">router</h3>
+  <div class="diff-card">
+  <div class="diff-card-header">
+    <span class="badge badge-status badge-status-modified">MODIFIED</span>
+    <code class="section-name">router bgp 65010</code>
+  </div>
+  <div class="diff-lines"><span class="diff-line diff-add">+ neighbor 198.51.100.2 password 7 0822455D0A16</span></div>
+</div>
+</div>
+<div class="diff-category">
+  <h3 class="category-heading">access-list</h3>
+  <div class="diff-card">
+  <div class="diff-card-header">
+    <span class="badge badge-status badge-status-modified">MODIFIED</span>
+    <code class="section-name">ip access-list extended MGMT</code>
+  </div>
+  <div class="diff-lines"><span class="diff-line diff-del">- permit tcp 10.20.0.0 0.0.0.255 any eq 22</span><span class="diff-line diff-add">+ permit tcp any any eq 22</span></div>
+</div>
+</div>
+<div class="diff-category">
+  <h3 class="category-heading">line</h3>
+  <div class="diff-card">
+  <div class="diff-card-header">
+    <span class="badge badge-status badge-status-modified">MODIFIED</span>
+    <code class="section-name">line vty 0 4</code>
+  </div>
+  <div class="diff-lines"><span class="diff-line diff-del">- transport input ssh</span><span class="diff-line diff-add">+ transport input telnet ssh</span></div>
+</div>
+</div>
+<div class="diff-category">
+  <h3 class="category-heading">interface</h3>
+  <div class="diff-card">
+  <div class="diff-card-header">
+    <span class="badge badge-status badge-status-added">ADDED</span>
+    <code class="section-name">interface GigabitEthernet0/2</code>
+  </div>
+  <div class="diff-lines"><span class="diff-line diff-add">+ description TEMP vendor access</span><span class="diff-line diff-add">+ ip address 192.0.2.1 255.255.255.0</span><span class="diff-line diff-add">+ no shutdown</span></div>
+</div>
+</div>
+    </section>
+  </div>
+</body>
+</html>

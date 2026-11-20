@@ -1,0 +1,4 @@
+playwright
+kokoro-onnx
+soundfile
+numpy
