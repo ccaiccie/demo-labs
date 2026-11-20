@@ -1,0 +1,20 @@
+# Sample Cisco IOS syslog traffic for NetOps incident bot lab (RFC 5737 IPs only)
+<190>Nov 20 12:00:01 lab-edge-rtr-01 1001: %SYS-5-CONFIG_I: Configured from console by labops on vty0 (192.0.2.10)
+<189>Nov 20 12:00:05 lab-edge-rtr-01 1002: %LINK-3-UPDOWN: Interface GigabitEthernet0/2, changed state to up
+
+# Interface flap sequence on lab-edge-rtr-01 GigabitEthernet0/1 (4 events within 40s -> OPEN INTERFACE_FLAP)
+<187>Nov 20 12:00:10 lab-edge-rtr-01 1003: %LINK-3-UPDOWN: Interface GigabitEthernet0/1, changed state to down
+<189>Nov 20 12:00:22 lab-edge-rtr-01 1004: %LINK-3-UPDOWN: Interface GigabitEthernet0/1, changed state to up
+<187>Nov 20 12:00:35 lab-edge-rtr-01 1005: %LINK-3-UPDOWN: Interface GigabitEthernet0/1, changed state to down
+<189>Nov 20 12:00:48 lab-edge-rtr-01 1006: %LINEPROTO-5-UPDOWN: Line protocol on Interface GigabitEthernet0/1, changed state to up
+
+# Transient BGP flap on lab-edge-rtr-02 that recovers (auto-resolves)
+<189>Nov 20 12:01:00 lab-edge-rtr-02 2001: %BGP-5-ADJCHANGE: neighbor 198.51.100.2 Down Hold time expired
+<189>Nov 20 12:01:25 lab-edge-rtr-02 2002: %BGP-5-ADJCHANGE: neighbor 198.51.100.2 Up
+
+# Persistent BGP neighbor outage on lab-edge-rtr-01 (no Up event -> remains OPEN BGP_NEIGHBOR_DOWN)
+<189>Nov 20 12:01:40 lab-edge-rtr-01 1007: %BGP-5-ADJCHANGE: neighbor 198.51.100.1 Down Peer closed the session
+
+# Occasional failed SSH login attempts (below brute-force threshold)
+<188>Nov 20 12:02:05 lab-edge-rtr-01 1008: %SEC_LOGIN-4-LOGIN_FAILED: Login failed [user: netadmin] [Source: 192.0.2.88] [localport: 22] [Reason: Login Authentication Failed]
+<188>Nov 20 12:02:18 lab-edge-rtr-01 1009: %SEC_LOGIN-4-LOGIN_FAILED: Login failed [user: netadmin] [Source: 192.0.2.88] [localport: 22] [Reason: Login Authentication Failed]

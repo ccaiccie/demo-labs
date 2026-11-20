@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NetOps Incident Bot — Status Dashboard</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <div class="topbar-brand">
+        <div class="brand-mark" aria-hidden="true">NB</div>
+        <div>
+          <h1 class="brand-title">NetOps Incident Bot</h1>
+          <p class="brand-subtitle">Real-time Syslog Correlation &amp; Incident Triage</p>
+        </div>
+      </div>
+
+      <div class="topbar-meta">
+        <div class="status-pill status-connecting" id="health-badge" role="status" aria-live="polite">
+          <span class="status-dot" aria-hidden="true"></span>
+          <span id="health-status-text">Connecting...</span>
+        </div>
+
+        <div class="meta-stat">
+          <span class="meta-label">Total Events</span>
+          <span class="meta-value" id="total-events-count">0</span>
+        </div>
+
+        <div class="meta-stat">
+          <span class="meta-label">Open Incidents</span>
+          <span class="meta-value" id="open-incidents-count">0</span>
+        </div>
+
+        <div class="meta-stat">
+          <span class="meta-label">Last Updated</span>
+          <span class="meta-value mono" id="last-updated">--</span>
+        </div>
+      </div>
+    </header>
+
+    <main class="main-content">
+      <div class="alert-banner hidden" id="error-banner" role="alert">
+        <span id="error-banner-text"></span>
+        <button type="button" class="btn-icon" id="error-banner-close" aria-label="Dismiss error">&times;</button>
+      </div>
+
+      <section class="severity-grid" aria-label="Open incidents by severity">
+        <button type="button" class="severity-card severity-critical" data-severity="critical" aria-pressed="false">
+          <div class="severity-card-header">
+            <span class="severity-card-label">Critical</span>
+            <span class="severity-indicator" aria-hidden="true"></span>
+          </div>
+          <div class="severity-card-count" id="count-critical">0</div>
+          <div class="severity-card-hint">Click to filter</div>
+        </button>
+
+        <button type="button" class="severity-card severity-high" data-severity="high" aria-pressed="false">
+          <div class="severity-card-header">
+            <span class="severity-card-label">High</span>
+            <span class="severity-indicator" aria-hidden="true"></span>
+          </div>
+          <div class="severity-card-count" id="count-high">0</div>
+          <div class="severity-card-hint">Click to filter</div>
+        </button>
+
+        <button type="button" class="severity-card severity-medium" data-severity="medium" aria-pressed="false">
+          <div class="severity-card-header">
+            <span class="severity-card-label">Medium</span>
+            <span class="severity-indicator" aria-hidden="true"></span>
+          </div>
+          <div class="severity-card-count" id="count-medium">0</div>
+          <div class="severity-card-hint">Click to filter</div>
+        </button>
+
+        <button type="button" class="severity-card severity-low" data-severity="low" aria-pressed="false">
+          <div class="severity-card-header">
+            <span class="severity-card-label">Low</span>
+            <span class="severity-indicator" aria-hidden="true"></span>
+          </div>
+          <div class="severity-card-count" id="count-low">0</div>
+          <div class="severity-card-hint">Click to filter</div>
+        </button>
+      </section>
+
+      <section class="panel" aria-labelledby="incidents-heading">
+        <div class="panel-header">
+          <div class="panel-title-group">
+            <h2 id="incidents-heading">Open Incidents</h2>
+            <span class="filter-chip hidden" id="active-filter-chip">
+              <span id="active-filter-text"></span>
+              <button type="button" class="chip-clear" id="clear-filter-btn" aria-label="Clear severity filter">&times;</button>
+            </span>
+          </div>
+          <div class="panel-actions">
+            <span class="poll-note">Auto-refresh: 5s</span>
+            <button type="button" class="btn btn-secondary" id="refresh-btn">Refresh</button>
+          </div>
+        </div>
+
+        <div class="table-wrap">
+          <table class="data-table" id="incidents-table">
+            <thead>
+              <tr>
+                <th scope="col">Severity</th>
+                <th scope="col">Type</th>
+                <th scope="col">Host</th>
+                <th scope="col">Key / Summary</th>
+                <th scope="col" class="num-col">Count</th>
+                <th scope="col">Last Seen</th>
+              </tr>
+            </thead>
+            <tbody id="incidents-tbody">
+              <tr class="empty-row">
+                <td colspan="6">Loading open incidents...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div class="modal-backdrop hidden" id="detail-modal" role="dialog" aria-modal="true" aria-labelledby="detail-title">
+    <div class="modal-panel">
+      <div class="modal-header">
+        <div class="modal-title-row">
+          <span class="severity-badge" id="detail-severity-badge"></span>
+          <h2 class="modal-title" id="detail-title">Incident Details</h2>
+        </div>
+        <div class="modal-header-actions">
+          <button type="button" class="btn btn-resolve" id="resolve-incident-btn">Resolve</button>
+          <button type="button" class="btn btn-secondary" id="close-modal-btn" aria-label="Close detail view">Close</button>
+        </div>
+      </div>
+
+      <div class="modal-body">
+        <div class="detail-alert hidden" id="detail-error" role="alert"></div>
+
+        <section class="detail-section" aria-label="Incident metadata">
+          <p class="detail-summary" id="detail-summary"></p>
+          <dl class="meta-grid" id="detail-meta-grid"></dl>
+        </section>
+
+        <section class="detail-section" aria-labelledby="detail-events-heading">
+          <div class="section-header">
+            <h3 id="detail-events-heading">Correlated Events</h3>
+            <span class="event-count-pill" id="detail-events-count">0 events</span>
+          </div>
+          <div class="table-wrap events-table-wrap">
+            <table class="data-table events-table" id="detail-events-table">
+              <thead>
+                <tr>
+                  <th scope="col">Timestamp</th>
+                  <th scope="col">Host</th>
+                  <th scope="col">Vendor</th>
+                  <th scope="col">Kind</th>
+                  <th scope="col">Severity</th>
+                  <th scope="col">Context</th>
+                  <th scope="col">Raw Syslog</th>
+                </tr>
+              </thead>
+              <tbody id="detail-events-tbody"></tbody>
+            </table>
+          </div>
+        </section>
+      </div>
+    </div>
+  </div>
+
+  <script src="/static/app.js" defer></script>
+</body>
+</html>
