@@ -2,9 +2,9 @@
 
 Dated lab folder for the Network Technician channel: `2026-11-19-antigravity-agents-swarm`.
 
-Video: link will be added after upload.
+Video: coming soon.
 
-This is a long, hands-on course (about 85 minutes) recorded live on a Windows 11 workstation with **Google Antigravity 2.33.0** signed in to a Google AI Pro account. Everything on screen really happened: the prompts, the waiting, the failures and the fixes. It covers:
+This is a long, hands-on course (about 85 minutes) done live on a Windows 11 workstation with **Google Antigravity 2.33.0** signed in to a Google AI Pro account. Everything on screen really happened: the prompts, the waiting, the failures and the fixes. It covers:
 
 - First launch, onboarding and the interface (conversations, projects, Automations, Customizations)
 - Settings: permissions, models and usage, browser, conversations and the customization token budget
@@ -12,12 +12,9 @@ This is a long, hands-on course (about 85 minutes) recorded live on a Windows 11
 - Project 1: a Cisco syslog triage tool built with Neon High, verified in the terminal, then fixed with Neon Low
 - The Review tab, a `.gitignore` and a clean commit made by the agent
 - **Orchestrator with four parallel subagents** building a config-backup auditor (diff + security audit + HTML report + tests, 74 tests pass)
-- **`/swarm` with nine members** building a reusable narrated demo-video pipeline (Docker lab app, Playwright driver, ffmpeg recorder, Kokoro narration, loudness/RMS checker, HTML player)
-- A live end-to-end run of that pipeline: a sandbox `Wsl/E_ACCESSDENIED` failure, `gdigrab` error 5, swarm feedback on the Board, and a working narrated video
 - The built-in browser and the browser subagent (with the URL permission prompt)
 - Project rules, reusable skills, Automations and MCP
 - What the whole session actually used from the weekly and five-hour quota
-- A recipe for using Antigravity to make demo videos like the ones on this channel
 
 No paid add-ons were used. **Enable AI Credit Overages was left OFF** for the entire session.
 
@@ -32,19 +29,7 @@ No paid add-ons were used. **Enable AI Credit Overages was left OFF** for the en
 | `netops-tools/netaudit.py` | CLI that combines both and writes a self-contained HTML report (NetAudit CLI Developer subagent) |
 | `netops-tools/tests/` | 74 unittest cases (Unit Test Developer subagent + the original syslog tests) |
 | `netops-tools/samples/` | `sample.log` and two dated backups of `edge-rtr1` (made-up lab data) |
-| `netops-tools/reports/` | The HTML report generated during the recording |
-| `demo-pipeline/` | The pipeline the 9-member swarm built, plus the live-run fixes (no `out/` binaries) |
-| `demo-pipeline/lab/` | Flask "NetOps Status" app, `Dockerfile`, `docker-compose.yml` (published on `127.0.0.1:8099` only) |
-| `demo-pipeline/driver/drive.py` | Playwright driver, writes `steps.json`; holds each step for its narration length; Playwright 1080p video fallback |
-| `demo-pipeline/record/` | ffmpeg `gdigrab` recorder + its tests |
-| `demo-pipeline/tts/narrate.py` | Kokoro `am_michael` narration with the "eye pee" and "reed" pronunciation rules and a `--self-test` |
-| `demo-pipeline/assemble/assemble.py` | Mux, `loudnorm`, per-minute active-speech RMS report (pass = spread of 1.5 dB or less) |
-| `demo-pipeline/player/make_html.py` | HTML player with 1x / 1.5x / 2x buttons |
-| `demo-pipeline/run_all.ps1` | Runs all six steps (`-SkipDockerDown` keeps the lab running) |
-| `demo-pipeline/script.json` | The four-line narration script for the sample video |
-| `demo-pipeline/.agents/rules/demo-video-conventions.md` | Always-on workspace rule created in chapter 13 |
-| `demo-pipeline/.agents/skills/make-demo/SKILL.md` | Reusable `make-demo` skill created in chapter 13 |
-| `course-build/` | The scripts used to produce this course video (TTS, cards, privacy OCR scan, render with masks, RMS check) and `segments.json` (the full narration script) |
+| `netops-tools/reports/` | The HTML report generated during the session |
 
 ## Chapter guide
 
@@ -60,21 +45,15 @@ No paid add-ons were used. **Enable AI Credit Overages was left OFF** for the en
 | 24:28 | Verify like an engineer and fix with Neon Low |
 | 29:05 | Review tab, .gitignore and a clean commit |
 | 33:02 | Orchestrator and subagents |
-| 43:19 | /swarm: nine agents build a demo-video pipeline |
-| 52:04 | Live run: failures, swarm feedback, and a working video |
 | 1:01:11 | Built-in browser and browser subagent |
 | 1:07:08 | Project rules, reusable skills, Automations, and MCP |
 | 1:17:18 | What the session actually used: quotas |
-| 1:19:30 | Recipe: recording demo videos with Antigravity |
 | 1:24:42 | Outro |
 
 ## Requirements to reproduce
 
 - Windows 10/11 with Google Antigravity 2.x installed (user install) and a Google account. Free quota is enough for the small tasks; `/swarm` is marked "Preview & Quota Heavy".
 - Python 3.11+ on Windows (`python` on PATH), Git for Windows.
-- WSL 2 with Docker Engine (or Docker Desktop) for the pipeline lab container.
-- For narration: `pip install kokoro-onnx soundfile numpy` plus the Kokoro `kokoro-v1.0.onnx` and `voices-v1.0.bin` files. Pass the folder with `-ModelDir` (the default in the scripts is the path used on the recording machine; change it).
-- ffmpeg on PATH. Playwright for Python: `pip install playwright` then `python -m playwright install chromium`.
 
 ## Step-by-step lab
 
@@ -135,54 +114,17 @@ python -m unittest discover -s tests
 python netaudit.py samples\backups\edge-rtr1_2026-11-18.cfg samples\backups\edge-rtr1_2026-11-19.cfg
 ```
 
-### 6. /swarm builds the demo-video pipeline
+### 6. Built-in browser and browser subagent
 
-New Project `demo-pipeline` (empty folder), model **Gemini 4 Neon, Medium**, type `/swarm` and pick the built-in skill. Prompt (condensed):
+New Conversation, Neon Medium. Ask the agent to use the browser subagent and the built-in browser to test a small local web app on `127.0.0.1`: open it, read what is on the page, click a button, wait for the results, report them in a table and say if anything looks wrong in the UI, without editing any files.
 
-> Build a reusable narrated demo-video pipeline in this repo, one component per agent, in parallel. A) lab: tiny Flask "NetOps Status" app with a device table and a Run health check button, Dockerfile + compose, published only on 127.0.0.1:8099, started from Windows through WSL. B) Playwright driver that opens the app, waits, clicks the button and writes each step with a timestamp to steps.json. C) ffmpeg screen recorder. D) Kokoro narration with the am_michael voice; say IP as "eye pee" and present-tense "read" as "reed". E) assembly with loudness normalization and a per-minute speech RMS check within 1.5 dB. F) HTML player with speed buttons. Plus run_all.ps1 that ties it together.
+Antigravity asks "Allow executing actions on this URL?"; we allowed only that local URL, only in this conversation. The subagent drove the page, reported every result, found no console errors and pointed out one real UI issue (a value wrapping on narrow cards) with a CSS suggestion (`white-space: nowrap`).
 
-The swarm creates a roster (lab, driver, record, tts, assemble, player, integrator, verifier, monitor). Use **Open the Swarm UI** to see the **Board** (posts and @mentions), **Members** (who owns which directory) and **Graph** (who talked to whom, with replay). It finished in about six minutes and the verifier ran component checks, but **nobody ran the pipeline end to end**.
+### 7. Rules and skills
 
-### 7. Run it for real
+Neon Low, using the built-in `agy-customizations` skill: create an always-on workspace rule for the project's conventions (for example: never show API keys, secrets or emails in output) and a reusable skill, then show the files and where Antigravity loads them from.
 
-In the same swarm conversation:
-
-> Now actually run .\run_all.ps1 -SkipDockerDown end to end on this machine. Leave the lab container running so I can browse it. If any step fails, fix the code and re-run until out\demo.mp4 and out\player.html exist, then show me the per-minute RMS result and the step timestamps.
-
-What happened on camera:
-
-1. Run 1 (sandboxed terminal): `Wsl/E_ACCESSDENIED` calling `wsl.exe`.
-2. Run 2: Docker build OK, TTS OK, driver OK, then `gdigrab` "Failed to capture image (error 5)" because the agent's session cannot capture the interactive desktop.
-3. The coordinator posted "Live run feedback" to `@driver` and `@integrator` on the Board: add a Playwright 1920x1080 video fallback, pace each step from `out/tts/manifest.json`, and fix a PowerShell quoting bug.
-4. Run 3: `out/demo.mp4` (41.3 s), `out/player.html`, per-minute speech RMS -15.74 dBFS, spread 0.00 dB, PASS.
-
-Reproduce:
-
-```powershell
-cd demo-pipeline
-pip install -r requirements.txt
-python -m playwright install chromium
-.\run_all.ps1 -SkipDockerDown -ModelDir C:\path\to\kokoro
-start out\player.html
-# when finished
-wsl -e bash -lc "cd /mnt/c/path/to/demo-pipeline/lab && docker compose down"
-```
-
-### 8. Built-in browser and browser subagent
-
-New Conversation, Neon Medium:
-
-> Use the browser subagent and the built-in browser to test the local NetOps Status app at http://127.0.0.1:8099. Open it, read the device inventory, click Run health check, wait for the Health Check Results, and report every device with its status and health check result in a table. Also tell me if anything looks wrong in the UI. Do not edit any files.
-
-Antigravity asks "Allow executing actions on this URL?"; we picked **allow 127.0.0.1:8099 in this conversation**. Result: PASS 5, WARN 1, no console errors, and one real UI finding (the Loss percentage wraps on narrow cards, fixed by width; suggestion `white-space: nowrap`).
-
-### 9. Rules and skills
-
-Neon Low, prompt (condensed):
-
-> Use the agy-customizations skill. Create workspace customizations for our demo-video conventions: an always-on rule (Kokoro am_michael, say IP as "eye pee" and present-tense read as "reed", never show API keys, secrets, emails or desktop notifications on screen, per-minute speech RMS within 1.5 dB, video titles of 100 characters or fewer) and a reusable skill `make-demo` that runs .\run_all.ps1 -SkipDockerDown then checks the RMS report and the pronunciation in the TTS manifest. Do not run the pipeline now. Show the files and where Antigravity loads them from.
-
-Findings: rules live in `.agents/rules/*.md` (`trigger: always_on`), skills in `.agents/skills/NAME/SKILL.md`. Only the skill's name and description are injected up front; the full file loads on demand. A new skill appears as `/make-demo` only in a **new** conversation. In a rule check the model changed IP to "eye pee" but left "read" alone, which is why the pipeline has a pronunciation self-test: rules guide, tests enforce.
+Findings: rules live in `.agents/rules/*.md` (`trigger: always_on`), skills in `.agents/skills/NAME/SKILL.md`. Only the skill's name and description are injected up front; the full file loads on demand. A new skill appears as `/NAME` only in a **new** conversation. In a rule check the model followed one convention and missed another, so back important conventions with tests: rules guide, tests enforce.
 
 ## Orchestrator vs /swarm
 
@@ -192,12 +134,8 @@ Findings: rules live in `.agents/rules/*.md` (`trigger: always_on`), skills in `
 | Shape | One parent conversation with subagents nested under it | A coordinator plus members, each in its own conversation |
 | Coordination | Parent writes API contracts and file ownership, waits for subagents, integrates and reviews | A shared Board with @mentions, a Members list with exclusive directories, a Graph with replay, a dedicated verifier and a stall monitor |
 | Best for | One codebase with 3-5 separable pieces | Multi-component systems with different tools per component |
-| Observed here | 4 subagents, about 17 minutes, 74 tests, no manual fixes | 9 members, about 6 minutes to build, then a live-run feedback loop to make it actually work |
+| Observed here | 4 subagents, about 17 minutes, 74 tests, no manual fixes | 9 members with a verifier and a stall monitor, about 6 minutes for a multi-component build |
 
 ## Quotas observed
 
-At the end of the session (Google AI Pro): Gemini models **weekly 90%** remaining and **five-hour 67%** remaining; Claude and GPT models and Gemini 4 Argon untouched at 100%. So Neon High/Low/Medium, the Orchestrator run, the 9-member swarm, the live pipeline runs, the browser subagent and the customizations together used about 10% of the weekly and 33% of the five-hour Gemini quota.
-
-## How the course video itself was made
-
-`course-build/` has the scripts used for this video: real continuous screen recordings with ffmpeg `gdigrab`, narration written after recording from what actually happened (`segments.json`), Kokoro `am_michael` TTS (`tts.py`), title cards (`cards.py`), an OCR privacy scan of every recording (`scan.py`) and of the final video (`fscan.py`), the renderer with privacy masks, cuts and speed-ups (`render.py`), and the per-minute RMS check (`check.py`). Long waits were cut and some silent stretches were sped up (at most 1.5x); the narration says when a wait was trimmed. The account name and email in Settings were masked, a desktop toast was blurred, and the Windows folder picker was cut.
+At the end of the session (Google AI Pro): Gemini models **weekly 90%** remaining and **five-hour 67%** remaining; Claude and GPT models and Gemini 4 Argon untouched at 100%. So Neon High/Low/Medium, the Orchestrator run, the 9-member swarm, the browser subagent and the customizations together used about 10% of the weekly and 33% of the five-hour Gemini quota.
