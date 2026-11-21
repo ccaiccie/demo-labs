@@ -1,0 +1,12 @@
+=== One-Shot Run 1 (Cold Load, llama3.1-64k:latest) ===
+Elapsed: 97.84s | Exit: 0
+Output: Model printed a raw JSON web_fetch block in plain text instead of answering directly.
+ollama ps: llama3.1-64k:latest | 13 GB | 56%/44% CPU/GPU | CONTEXT=64000 | llamacpp
+
+=== One-Shot Run 2 (Warm, Direct Prompt, llama3.1-64k:latest) ===
+Elapsed: 34.88s | Exit: 0
+Output:
+* 192.0.0.0/24 is reserved for future use and should not be assigned.
+* 192.0.0.0/29 is assigned for documentation and testing purposes.
+* 192.0.0.0/30 is reserved for the IETF protocol specialists' use.
+Verification: INCORRECT (hallucinated prefixes; real RFC 5737 prefixes are 192.0.2.0/24, 198.51.100.0/24, 203.0.113.0/24).

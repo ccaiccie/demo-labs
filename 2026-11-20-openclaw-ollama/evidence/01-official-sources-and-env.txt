@@ -1,0 +1,21 @@
+=== Official OpenClaw Source Verification ===
+GET https://docs.openclaw.ai -> HTTP/1.1 200 OK
+GET https://openclaw.ai/install.sh -> HTTP/1.1 200 OK (Content-Disposition: inline; filename="install.sh")
+GET https://api.github.com/repos/openclaw/openclaw ->
+  full_name: openclaw/openclaw
+  html_url: https://github.com/openclaw/openclaw
+  default_branch: main
+  license: MIT
+  stargazers_count: 394931
+Official Container Image: ghcr.io/openclaw/openclaw:latest
+
+=== Port Check (netstat -ano) ===
+TCP 127.0.0.1:11434 LISTENING (PID 13180 - Ollama)
+Port 18789: FREE (no listener)
+
+=== Ollama Check (Windows + WSL2 mirrored networking) ===
+ollama list:
+  llama3.1-64k:latest  7e5afdd0a176  4.9 GB  (8.0B Q4_K_M, num_ctx=64000, capabilities: completion, tools)
+  llama3.1:8b          46e0c10c039e  4.9 GB  (8.0B Q4_K_M, capabilities: completion, tools)
+  qwen3:8b             500a1f067a9f  5.2 GB  (8.2B Q4_K_M, capabilities: completion, tools, thinking)
+WSL curl http://127.0.0.1:11434/api/tags -> HTTP 200 OK (all 3 models returned)

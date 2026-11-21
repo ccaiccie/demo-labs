@@ -1,0 +1,12 @@
+=== Syslog Agent Task — Model 2: ollama/qwen3:8b ===
+Elapsed: 238.56s | Exit: 0
+ollama ps: qwen3:8b | 10 GB | 39%/61% CPU/GPU | CONTEXT=32768 | llamacpp
+Result: SUCCEEDED end-to-end (called read, write, exec tools; created parse_syslog.py and summary.json).
+
+=== Independent Ground-Truth Verification ===
+GT_TOTAL: 24
+GT_DEVICES: {'core-rtr-01.lab.internal': 7, 'edge-fw-01.lab.internal': 6, 'dist-sw-01.lab.internal': 5, 'dist-sw-02.lab.internal': 3, 'wan-rtr-02.lab.internal': 3}
+GT_SEVERITY: {'CRIT': 4, 'ERR': 8, 'WARN': 8, 'INFO': 4}
+GT_SSH_TOTAL: 5
+GT_SSH_BY_DEV: {'edge-fw-01.lab.internal': 3, 'dist-sw-01.lab.internal': 1, 'wan-rtr-02.lab.internal': 1}
+Verification: 100% MATCH on all device counts, severity counts, and SSH_AUTH_FAIL counts (minor schema note: total_ssh_auth_fail written as per-device dict rather than scalar 5).

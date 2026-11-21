@@ -1,0 +1,25 @@
+{
+    "total_events_per_device": {
+        "core-rtr-01.lab.internal": 7,
+        "edge-fw-01.lab.internal": 6,
+        "dist-sw-01.lab.internal": 5,
+        "dist-sw-02.lab.internal": 3,
+        "wan-rtr-02.lab.internal": 3
+    },
+    "events_per_severity": {
+        "CRIT": 4,
+        "ERR": 8,
+        "WARN": 8,
+        "INFO": 4
+    },
+    "total_ssh_auth_fail": {
+        "edge-fw-01.lab.internal": 3,
+        "dist-sw-01.lab.internal": 1,
+        "wan-rtr-02.lab.internal": 1
+    },
+    "ssh_auth_fail_per_device": {
+        "edge-fw-01.lab.internal": 3,
+        "dist-sw-01.lab.internal": 1,
+        "wan-rtr-02.lab.internal": 1
+    }
+}

@@ -1,0 +1,20 @@
+=== openclaw --version ===
+OpenClaw 2026.11.6 (06afb10)
+
+=== openclaw gateway status ===
+Gateway: bind=loopback (127.0.0.1), port=18789 (env/config)
+Check target: ws://127.0.0.1:18789
+Dashboard: http://127.0.0.1:18789/
+CLI version: 2026.11.6
+Gateway version: 2026.11.6
+Connectivity check: ok
+Listening: 127.0.0.1:18789
+
+=== openclaw models list (local Ollama models) ===
+ollama/llama3.1-64k:latest   text   64k       Local=yes   Auth=yes   default
+ollama/llama3.1:8b           text   33k/131k  Local=yes   Auth=yes
+ollama/qwen3:8b              text   33k/41k   Local=yes   Auth=yes
+
+=== openclaw doctor --non-interactive ===
+Doctor complete. (Exit code 0)
+Advisory: Memory search provider defaults to openai (not configured; local-only lab)
