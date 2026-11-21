@@ -2,7 +2,7 @@
 
 One Python script takes an empty Firewall Management Center (FMCv 10.0.1) and two blank Secure Firewall Threat Defense virtual firewalls (FTDv 10.0.0 for KVM) and turns them into a working two-site setup that passes real traffic to the internet. All of it runs through the FMC REST API: licensing, zones and objects, device registration, interfaces, routing, access control, NAT, deployment, and a live traffic test. Every step is idempotent, so you can safely run the script again.
 
-Video: [Watch on YouTube](https://youtu.be/idqv28mOKuU)
+Video: [Cisco FTD through FMC: Full Automated Build with Python and the REST API (Explained)](https://youtu.be/idqv28mOKuU)
 
 ## Lab topology (GNS3)
 
