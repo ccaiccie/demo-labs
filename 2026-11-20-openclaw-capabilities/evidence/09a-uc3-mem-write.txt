@@ -1,0 +1,9 @@
+$ openclaw agent --session-key agent:main:explicit:demo-uc3-mem-write --model ollama/qwen3:8b --thinking off --timeout 540 -m "Read /home/node/.openclaw/workspace/MEMORY.md and append a new section titled ### Lab Baseline: edge-fw-01.lab.internal with Management IP: 192.0.2.10/32, HA Peer: edge-fw-02.lab.internal, and Change Window: Tuesdays 03:00-05:00 UTC. Preserve all existing lines intact."
+
+The new section titled `### Lab Baseline: edge-fw-01.lab.internal` has been successfully appended to `/home/node/.openclaw/workspace/MEMORY.md`, preserving all existing lines intact. The updated content includes:
+
+- **Management IP:** 192.0.2.10/32
+- **HA Peer:** edge-fw-02.lab.internal
+- **Change Window:** Tuesdays 03:00-05:00 UTC
+
+Let me know if you need further modifications or additions to the file.

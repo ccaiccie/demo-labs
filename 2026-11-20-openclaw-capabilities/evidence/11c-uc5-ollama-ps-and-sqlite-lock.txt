@@ -1,0 +1,6 @@
+$ ollama ps && echo '' && openclaw memory status
+
+NAME        ID              SIZE     PROCESSOR          CONTEXT    RUNNER      UNTIL                   
+qwen3:8b    500a1f067a9f    10 GB    39%/61% CPU/GPU    32768      llamacpp    About a minute from now
+
+Cannot admit memory.cli for memory stores in state root /home/node/.openclaw: This operation requires exclusive offline state ownership. No local mutation was attempted. Inspect openclaw gateway status. This command is offline-only. To run offline, stop the Gateway through its service owner, wait for ownership to release, then rerun this exact command.

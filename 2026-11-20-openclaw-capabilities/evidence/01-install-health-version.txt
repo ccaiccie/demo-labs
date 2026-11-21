@@ -1,0 +1,23 @@
+$ cat docker-compose.yml && echo '' && curl -s http://127.0.0.1:18789/health && echo '' && docker exec openclaw-ollama-lab openclaw --version
+
+services:
+  openclaw-gateway:
+    image: ghcr.io/openclaw/openclaw:latest
+    container_name: openclaw-ollama-lab
+    network_mode: host
+    restart: "no"
+    environment:
+      - HOME=/home/node
+      - TERM=xterm-256color
+      - OPENCLAW_GATEWAY_TOKEN=${OPENCLAW_GATEWAY_TOKEN}
+      - OLLAMA_API_KEY=ollama-local
+    volumes:
+      - openclaw_lab_config:/home/node/.openclaw
+      - ./workspace:/home/node/.openclaw/workspace
+    command: ["node", "openclaw.mjs", "gateway", "--bind", "loopback", "--port", "18789"]
+
+volumes:
+  openclaw_lab_config:
+
+{"ok":true,"status":"live"}
+OpenClaw 2026.11.6 (06afb10)

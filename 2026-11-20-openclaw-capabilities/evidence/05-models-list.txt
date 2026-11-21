@@ -1,0 +1,14 @@
+$ docker exec openclaw-ollama-lab openclaw models list | head -n 12
+
+Model                                      Input      Ctx         Local Auth  Tags
+ollama/llama3.1-64k:latest                 text       64k         yes   yes   default,configured
+ollama/llama3.1:8b                         text       33k/131k    yes   yes   
+ollama/qwen3:8b                            text       33k/41k     yes   yes   
+ollama-cloud/deepseek-v4.1-flash           text+image 1049k       no    yes   
+ollama-cloud/mimo-v2.6-pro                 text+image 1049k       no    yes   
+ollama-cloud/glm-5.3                       text       1049k       no    yes   
+ollama-cloud/kimi-k3.1-pro                 text+image 1049k       no    yes   
+ollama-cloud/deepseek-v4-pro               text       1049k       no    yes   
+ollama-cloud/glm-5.3-flash                 text+image 1000k       no    yes   
+ollama-cloud/mistral-large-4               text+image 1049k       no    yes   
+ollama-cloud/minimax-m3                    text+image 524k        no    yes   

@@ -1,0 +1,46 @@
+$ openclaw agent --session-key agent:main:explicit:demo-uc1-triage --model ollama/qwen3:8b --thinking off --timeout 540 -m "Use the netops-triage skill to read /home/node/.openclaw/workspace/network_syslog.log and triage all critical routing/failover events and repeated SSH authentication failures into a Markdown table with columns Device, Event, Tier, and First Verification Command."
+
+I'll triage the network syslog log and classify the events by severity. Let me analyze the log entries:
+
+1. **P1 (Critical) Events:**
+   - `core-rtr-01.lab.internal CRIT BGP_ADJ_DOWN` (BGP adjacency down)
+   - `wan-rtr-02.lab.internal CRIT BGP_ADJ_DOWN` (BGP adjacency down)
+   - `core-rtr-01.lab.internal CRIT INTF_DOWN` (Interface down)
+
+2. **P2 (Security / Degraded) Events:**
+   - Multiple `SSH_AUTH_FAIL` attempts (3+)
+   - `HA_FAILOVER` (High availability failover)
+   - `TUNNEL_DOWN` (Tunnel down)
+   - `ACL_DENY` (Access control list deny)
+   - `OSPF_RETRANS_HIGH` (OSPF retransmission high)
+
+3. **P3 (Warning / Info) Events:**
+   - `LINK_DOWN`, `LINK_UP`, `LINK_FLAP` (Link status changes)
+   - `ENV_FAN_SLOW` (Environmental fan slow)
+   - `POE_BUDGET_HIGH` (Power over Ethernet budget high)
+   - `BGP_PREFIX_LIMIT` (BGP prefix limit)
+   - `INTF_ERR_CRC` (Interface error CRC)
+   - `CONFIG_SAVE`, `CONFIG_COMMIT` (Configuration save/commit)
+
+Let me create a Markdown table with the classification:
+
+| Device           | Event                          | Tier | First Verification Command                     |
+|------------------|-------------------------------|------|------------------------------------------------|
+| core-rtr-01      | BGP_ADJ_DOWN                   | P1   | `show bgp summary`                             |
+| edge-fw-01       | SSH_AUTH_FAIL (3+ attempts)   | P2   | `show logging`                                 |
+| dist-sw-01       | LINK_DOWN                     | P3   | `show environment fan`                        |
+| core-rtr-01      | OSPF_NBR_DOWN                 | P2   | `show ip ospf neighbor`                       |
+| wan-rtr-02       | BGP_ADJ_DOWN                  | P1   | `show bgp summary`                             |
+| core-rtr-01      | INTF_DOWN                     | P1   | `show interfaces`                             |
+| edge-fw-01       | SSH_AUTH_FAIL (3+ attempts)   | P2   | `show logging`                                 |
+| dist-sw-02       | LINK_FLAP                     | P3   | `show interfaces`                             |
+| core-rtr-01      | BGP_PREFIX_LIMIT              | P3   | `show bgp neighbor`                           |
+| edge-fw-01       | HA_FAILOVER                   | P2   | `show high availability`                      |
+| dist-sw-01       | POE_BUDGET_HIGH               | P3   | `show power-over-ethernet`                    |
+| wan-rtr-02       | SSH_AUTH_FAIL                 | P2   | `show logging`                                 |
+| core-rtr-01      | OSPF_RETRANS_HIGH             | P2   | `show ip ospf neighbor`                       |
+| dist-sw-01       | LINK_UP                       | P3   | `show interfaces`                             |
+| edge-fw-01       | CONFIG_COMMIT                 | P3   | `show configuration`                           |
+| dist-sw-02       | CONFIG_SAVE                   | P3   | `show configuration`                           |
+
+This table classifies the events by severity and provides the first verification commands to investigate each incident.

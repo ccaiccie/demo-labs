@@ -1,0 +1,56 @@
+$ openclaw security audit && echo '' && openclaw approvals get
+
+OpenClaw security audit
+Summary: 0 critical · 1 warn · 1 info
+Run deeper: openclaw security audit --deep
+
+WARN
+gateway.trusted_proxies_missing Reverse proxy headers are not trusted
+  gateway.bind is loopback and gateway.trustedProxies is empty. If you expose the Control UI through a reverse proxy, configure trusted proxies so local-client checks cannot be spoofed.
+  Fix: Set gateway.trustedProxies to your proxy IPs or keep the Control UI local-only.
+
+INFO
+summary.attack_surface Exposure summary
+  groups: open=0, allowlist=0
+direct messages: open=0
+tools.elevated: enabled
+hooks.webhooks: disabled
+hooks.internal: disabled
+browser control: enabled
+trust model: personal assistant (one trusted operator boundary), not hostile multi-tenant on one shared gateway. For mutually untrusted users or organizations, run separate Gateways with separate credentials, ideally under separate OS users or hosts: https://docs.openclaw.ai/gateway/security/trust-model
+
+Showing local approvals.
+
+Approvals
+┌─────────────────┬────────────────────────────────────────────────────────────────────────────────────────────────────┐
+│ Field           │ Value                                                                                              │
+├─────────────────┼────────────────────────────────────────────────────────────────────────────────────────────────────┤
+│ Target          │ local                                                                                              │
+│ Path            │ ~/.openclaw/state/openclaw.sqlite#exec_approvals_config                                            │
+│ State           │ defaults (no stored overrides)                                                                     │
+│ Hash            │ missing:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855                           │
+│ Version         │ 1                                                                                                  │
+│ Socket          │ default                                                                                            │
+│ Defaults        │ none                                                                                               │
+│ Agents          │ 0                                                                                                  │
+│ Allowlist       │ 0                                                                                                  │
+│ MCP tool grants │ 0                                                                                                  │
+└─────────────────┴────────────────────────────────────────────────────────────────────────────────────────────────────┘
+
+No allowlist entries.
+
+Effective Policy
+┌────────────┬──────────────────────────┬──────────────────────────┬────────────────────────┬──────────────────────────┐
+│ Scope      │ Requested                │ Host                     │ Effective              │ Notes                    │
+├────────────┼──────────────────────────┼──────────────────────────┼────────────────────────┼──────────────────────────┤
+│ tools.exec │ security=full (OpenClaw  │ security=full (inherits  │ security=full\nask=off │ requested security       │
+│            │ default                  │ requested tool           │                        │ applies; requested ask   │
+│            │ (full))\nask=off         │ policy)\nask=off         │                        │ applies                  │
+│            │ (OpenClaw default (off)) │ (inherits requested      │                        │                          │
+│            │                          │ tool                     │                        │                          │
+│            │                          │ policy)\naskFallback=den │                        │                          │
+│            │                          │ y (OpenClaw default      │                        │                          │
+│            │                          │ (deny))                  │                        │                          │
+└────────────┴──────────────────────────┴──────────────────────────┴────────────────────────┴──────────────────────────┘
+
+Precedence: Effective exec policy is the host approvals policy intersected with requested tools.exec policy. Per-session /exec overrides are not included; run /exec in the relevant session to inspect its current defaults.

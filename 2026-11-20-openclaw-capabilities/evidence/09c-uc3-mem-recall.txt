@@ -1,0 +1,12 @@
+$ openclaw agent --session-key agent:main:explicit:demo-uc3-mem-recall --model ollama/qwen3:8b --thinking off --timeout 540 -m "Read /home/node/.openclaw/workspace/MEMORY.md and report: (1) the BGP ASN and Loopback for core-rtr-01.lab.internal, and (2) the Management IP, HA Peer, and Change Window for edge-fw-01.lab.internal."
+
+### Results:
+
+**(1) For `core-rtr-01.lab.internal`:**
+- **BGP ASN:** 65001
+- **Loopback:** 192.0.2.1/32
+
+**(2) For `edge-fw-01.lab.internal`:**
+- **Management IP:** 192.0.2.10/32
+- **HA Peer:** edge-fw-02.lab.internal
+- **Change Window:** Tuesdays 03:00-05:00 UTC

@@ -1,0 +1,7 @@
+$ openclaw agent --session-key agent:main:explicit:demo-uc5-llama --model ollama/llama3.1-64k:latest --timeout 180 -m "Use your read tool to read /home/node/.openclaw/workspace/MEMORY.md and tell me the exact Loopback IP and Weekly Maintenance Window for core-rtr-01.lab.internal."
+
+To find the Loopback IP and Weekly Maintenance Window for core-rtr-01.lab.internal, I'll use the `memory_get` function to read the relevant information from the MEMORY.md file.
+
+Here is the function call with its proper arguments:
+
+{"name": "memory_get", "parameters": {"path": "/home/node/.openclaw/workspace/MEMORY.md", "query": "Loopback IP and Weekly Maintenance Window for core-rtr-01.lab.internal"}}

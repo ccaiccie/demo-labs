@@ -1,0 +1,16 @@
+$ openclaw audit --limit 12
+
+TIME	KIND	DIRECTION	CHANNEL	STATUS	AGENT	RUN	ACTION
+2026-11-21T04:51:22.218Z	agent_run	-	-	succeeded	main	ad270398-d421-4c1…	agent.run.finished
+2026-11-21T04:50:10.293Z	agent_run	-	-	started	main	ad270398-d421-4c1…	agent.run.started
+2026-11-21T04:50:49.077Z	tool_action	-	-	succeeded	main	ad270398-d421-4c1…	tool.action.finished:memory_search
+2026-11-21T04:50:49.058Z	tool_action	-	-	started	main	ad270398-d421-4c1…	tool.action.started:memory_search
+2026-11-21T04:50:37.838Z	tool_action	-	-	succeeded	main	ad270398-d421-4c1…	tool.action.finished:memory_search
+2026-11-21T04:50:37.738Z	tool_action	-	-	started	main	ad270398-d421-4c1…	tool.action.started:memory_search
+2026-11-21T04:49:43.896Z	agent_run	-	-	succeeded	main	419559f5-2ed1-42c…	agent.run.finished
+2026-11-21T04:48:42.557Z	agent_run	-	-	started	main	419559f5-2ed1-42c…	agent.run.started
+2026-11-21T04:49:16.677Z	tool_action	-	-	succeeded	main	419559f5-2ed1-42c…	tool.action.finished:edit
+2026-11-21T04:49:16.410Z	tool_action	-	-	started	main	419559f5-2ed1-42c…	tool.action.started:edit
+2026-11-21T04:47:24.238Z	agent_run	-	-	succeeded	main	3d607bb0-0af4-44a…	agent.run.finished
+2026-11-21T04:44:05.559Z	agent_run	-	-	started	main	3d607bb0-0af4-44a…	agent.run.started
+More records: --cursor 217

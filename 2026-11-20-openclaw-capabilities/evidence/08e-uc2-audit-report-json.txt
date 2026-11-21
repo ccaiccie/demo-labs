@@ -1,0 +1,19 @@
+$ cat /home/node/.openclaw/workspace/audit_report.json
+
+{
+    "total_events": 24,
+    "by_severity": {
+        "CRIT": 4,
+        "ERR": 8,
+        "WARN": 8,
+        "INFO": 4
+    },
+    "by_device": {
+        "core-rtr-01.lab.internal": 7,
+        "edge-fw-01.lab.internal": 6,
+        "dist-sw-01.lab.internal": 5,
+        "dist-sw-02.lab.internal": 3,
+        "wan-rtr-02.lab.internal": 3
+    },
+    "ssh_auth_fail_by_src": {}
+}

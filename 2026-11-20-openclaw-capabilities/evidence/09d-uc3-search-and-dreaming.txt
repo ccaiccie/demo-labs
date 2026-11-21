@@ -1,0 +1,43 @@
+$ openclaw memory search "edge-fw-01" && head -n 22 /home/node/.openclaw/workspace/memory/dreaming/light/2026-11-21.md
+
+=== Hybrid Memory Search ===
+0.894 MEMORY.md:1-4
+### Lab Baseline: core-rtr-01.lab.internal\r
+\r
+### Lab Baseline: edge-fw-01.lab.internal\r
+- Management IP: 192.0.2.10/32\r
+
+0.855 memory/dreaming/light/2026-11-21.md:34-43
+  - confidence: 0.58
+  - evidence: memory/.dreams/session-corpus/2026-11-21.txt:7-7
+  - recalls: 0
+  - status: staged
+- Candidate: Assistant: The script has completed successfully, and the results have been written to `summary.json`. Here are the exact counts from the summary: ### Total Events Per Device - `core-rtr-01.lab.internal`: 7 - `edge-fw-01.lab.internal`: 6 - `dist-sw-01.lab.internal`: 5 - `dist-sw-
+  - confidence: 0.58
+  - evidence: memory/.dreams/session-corpus/2026-11-21.txt:9-9
+  - recalls: 0
+  - status: staged
+
+=== Memory Dreaming (Light Sleep Staged Candidates) ===
+# Light Sleep
+
+- Candidate: User: Explain RFC 5737 documentation IPv4 prefixes in 3 concise bullet points for a network engineer.
+  - confidence: 0.58
+  - evidence: memory/.dreams/session-corpus/2026-11-21.txt:1-1
+  - recalls: 0
+  - status: staged
+- Candidate: Assistant: To answer the question, we will use the `web_fetch` function to fetch the RFC 5737 documentation and extract it as Markdown. Here is the function call: ```json { "name": "web_fetch", "parameters": { "url": "https://www.rfc-editor.org/rfc/rfc5737", "extractMode": "markd
+  - confidence: 0.58
+  - evidence: memory/.dreams/session-corpus/2026-11-21.txt:2-2
+  - recalls: 0
+  - status: staged
+- Candidate: User: Answer directly from your own knowledge without calling any tools: explain RFC 5737 documentation IPv4 prefixes in 3 concise bullet points for a network engineer.
+  - confidence: 0.58
+  - evidence: memory/.dreams/session-corpus/2026-11-21.txt:3-3
+  - recalls: 0
+  - status: staged
+- Candidate: Assistant: RFC 5737 documentation IPv4 prefixes can be summarized in 3 concise bullet points: * 192.0.0.0/24 is reserved for future use and should not be assigned. * 192.0.0.0/29 is assigned for documentation and testing purposes. * 192.0.0.0/30 is reserved for the IETF protocol
+  - confidence: 0.58
+  - evidence: memory/.dreams/session-corpus/2026-11-21.txt:4-4
+  - recalls: 0
+  - status: staged

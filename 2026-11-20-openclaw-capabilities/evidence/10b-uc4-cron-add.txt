@@ -1,0 +1,37 @@
+$ openclaw cron add --name "netops-crit-watchdog" --every 15m --command "grep -c CRIT /home/node/.openclaw/workspace/network_syslog.log" --no-deliver --json
+
+{
+  "id": "1495a5de-a305-4704-8c11-6fcc1a9e52b4",
+  "name": "netops-crit-watchdog",
+  "enabled": true,
+  "createdAtMs": 1795236772294,
+  "schedule": {
+    "kind": "every",
+    "everyMs": 900000,
+    "anchorMs": 1795236772294
+  },
+  "sessionTarget": "isolated",
+  "wakeMode": "now",
+  "payload": {
+    "kind": "command",
+    "argv": [
+      "sh",
+      "-lc",
+      "grep -c CRIT /home/node/.openclaw/workspace/network_syslog.log"
+    ]
+  },
+  "delivery": {
+    "mode": "none",
+    "channel": "last"
+  },
+  "state": {
+    "nextRunAtMs": 1795237672294
+  },
+  "updatedAtMs": 1795236772294,
+  "configRevision": "sha256:Qs6p6xThNK2lGuKt8ywPuowi-1B7CH7AxSTvh7i0EOw",
+  "nextRunAtMs": 1795237672294,
+  "deliveryPreview": {
+    "label": "not requested",
+    "detail": "not requested"
+  }
+}

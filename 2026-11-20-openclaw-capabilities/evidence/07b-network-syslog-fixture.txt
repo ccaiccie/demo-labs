@@ -1,0 +1,26 @@
+$ nl -ba /home/node/.openclaw/workspace/network_syslog.log
+
+     1	2026-11-20T08:01:12Z core-rtr-01.lab.internal CRIT BGP_ADJ_DOWN peer=198.51.100.2 as=65002 reason=hold_timer_expired
+     2	2026-11-20T08:01:19Z edge-fw-01.lab.internal ERR SSH_AUTH_FAIL src=203.0.113.44 user=admin method=password
+     3	2026-11-20T08:01:25Z dist-sw-01.lab.internal WARN LINK_DOWN intf=Gi1/0/24 peer=access-ap-07
+     4	2026-11-20T08:01:31Z core-rtr-01.lab.internal ERR OSPF_NBR_DOWN nbr=192.0.2.12 area=0.0.0.0 intf=Xe0/0/1
+     5	2026-11-20T08:01:44Z edge-fw-01.lab.internal ERR SSH_AUTH_FAIL src=203.0.113.44 user=root method=password
+     6	2026-11-20T08:01:58Z dist-sw-02.lab.internal WARN ENV_FAN_SLOW tray=2 rpm=1800
+     7	2026-11-20T08:02:05Z wan-rtr-02.lab.internal CRIT BGP_ADJ_DOWN peer=198.51.100.14 as=65100 reason=peer_reset
+     8	2026-11-20T08:02:11Z core-rtr-01.lab.internal WARN INTF_ERR_CRC intf=Xe0/0/1 count=42
+     9	2026-11-20T08:02:27Z edge-fw-01.lab.internal WARN ACL_DENY src=203.0.113.88 dst=192.0.2.25 dport=22 proto=tcp
+    10	2026-11-20T08:02:39Z dist-sw-01.lab.internal WARN STP_TCN vlan=110 port=Gi1/0/24
+    11	2026-11-20T08:02:51Z core-rtr-01.lab.internal CRIT INTF_DOWN intf=Xe0/0/1 reason=loss_of_signal
+    12	2026-11-20T08:03:04Z edge-fw-01.lab.internal ERR SSH_AUTH_FAIL src=203.0.113.44 user=netops method=password
+    13	2026-11-20T08:03:18Z dist-sw-01.lab.internal ERR SSH_AUTH_FAIL src=192.0.2.99 user=admin method=password
+    14	2026-11-20T08:03:29Z wan-rtr-02.lab.internal ERR TUNNEL_DOWN tunnel=Tu10 dst=198.51.100.20
+    15	2026-11-20T08:03:45Z dist-sw-02.lab.internal ERR LINK_FLAP intf=Gi2/0/11 count=5
+    16	2026-11-20T08:04:02Z core-rtr-01.lab.internal WARN BGP_PREFIX_LIMIT peer=198.51.100.6 pct=85
+    17	2026-11-20T08:04:15Z edge-fw-01.lab.internal CRIT HA_FAILOVER active=edge-fw-02.lab.internal reason=link_monitor
+    18	2026-11-20T08:04:33Z dist-sw-01.lab.internal WARN POE_BUDGET_HIGH slot=1 pct=91
+    19	2026-11-20T08:04:49Z wan-rtr-02.lab.internal WARN SSH_AUTH_FAIL src=203.0.113.51 user=operator method=publickey
+    20	2026-11-20T08:05:06Z core-rtr-01.lab.internal ERR OSPF_RETRANS_HIGH nbr=192.0.2.14 count=19
+    21	2026-11-20T08:05:21Z dist-sw-01.lab.internal INFO LINK_UP intf=Gi1/0/24 peer=access-ap-07
+    22	2026-11-20T08:05:38Z core-rtr-01.lab.internal INFO BGP_ADJ_UP peer=198.51.100.2 as=65002
+    23	2026-11-20T08:05:54Z edge-fw-01.lab.internal INFO CONFIG_COMMIT user=netops_lab
+    24	2026-11-20T08:06:10Z dist-sw-02.lab.internal INFO CONFIG_SAVE status=ok

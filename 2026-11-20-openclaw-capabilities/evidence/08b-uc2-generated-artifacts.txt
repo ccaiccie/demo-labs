@@ -1,0 +1,54 @@
+$ cat /home/node/.openclaw/workspace/audit_syslog.py && echo '--- audit_report.json ---' && cat /home/node/.openclaw/workspace/audit_report.json
+
+=== Generated audit_syslog.py ===
+import json
+import sys
+from collections import defaultdict
+
+# Read the syslog file
+with open('/home/node/.openclaw/workspace/network_syslog.log', 'r') as file:
+    lines = file.readlines()
+
+# Initialize counters
+total_events = 0
+by_severity = defaultdict(int)
+by_device = defaultdict(int)
+ssh_auth_fail_by_src = defaultdict(int)
+
+# Process each line
+for line in lines:
+    parts = line.strip().split()
+    if not parts:
+        continue
+
+    # Extract timestamp, device, severity, and event details
+    timestamp = parts[0]
+    device = parts[1]
+    severity = parts[2]
+    event_details = ' '.join(parts[3:])
+
+    # Update counters
+    total_events += 1
+    by_severity[severity] += 1
+    by_device[device] += 1
+
+    # Check for SSH authentication failure events
+    if 'ssh auth fail' in event_details.lower():
+        src_ip = event_details.split()[-2]
+        ssh_auth_fail_by_src[src_ip] += 1
+
+# Save the results to a JSON file
+audit_report = {
+    "total_events": total_events,
+    "by_severity": dict(by_severity),
+    "by_device": dict(by_device),
+    "ssh_auth_fail_by_src": dict(ssh_auth_fail_by, src_ip: count)
+}
+
+with open('/home/node/.openclaw/workspace/audit_report.json', 'w') as file:
+    json.dump(audit_report, file, indent=4)
+
+# Print the JSON output
+print(json.dumps(audit_report, indent=4))
+=== Generated audit_report.json ===
+cat: /home/node/.openclaw/workspace/audit_report.json: No such file or directory

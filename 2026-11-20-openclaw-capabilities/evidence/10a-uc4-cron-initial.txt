@@ -1,0 +1,4 @@
+$ openclaw cron list
+
+ID                                   Declaration              Name                     Schedule                         Next       Last       Status              Target    Delivery                                                         Agent ID   Owner                    Model               
+f9edd375-a840-4547-8de5-150cb705862f memory-core:memory-dr... Memory Dreaming Promo... cron 0 3 * * * (exact)           in 22h     2h ago     ok                  isolated  not requested (not requested)                                    main       -                        -

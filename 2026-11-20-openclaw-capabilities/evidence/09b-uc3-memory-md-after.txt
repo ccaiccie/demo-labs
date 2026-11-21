@@ -1,0 +1,31 @@
+$ cat /home/node/.openclaw/workspace/MEMORY.md
+
+### Lab Baseline: core-rtr-01.lab.internal
+
+### Lab Baseline: edge-fw-01.lab.internal
+- Management IP: 192.0.2.10/32
+- HA Peer: edge-fw-02.lab.internal
+- Change Window: Tuesdays 03:00-05:00 UTC
+- BGP ASN: 65001
+- Loopback: 192.0.2.1/32
+- Weekly Maintenance Window: Sundays 02:00-04:00 UTC
+
+### Runtime Context
+- Agent: main
+- Session: agent:main:explicit:prep-mem-write
+- Host: MYDELL2
+- Repository: /home/node/.openclaw/workspace
+- OS: Linux 6.6.87.2-microsoft-standard-WSL2 (x64)
+- Node: v24.22.1
+- Active Node: unknown
+- Active Node Identity: unknown
+- Model: ollama/qwen3:8b
+- Default Model: ollama/llama3.1-64k:latest
+
+### OpenClaw Runtime Context
+- Active Exec Sessions: None
+- Active Subagents: None
+- Temporal Context:
+  - Current Date: 2026-11-21
+  - Time Zone: UTC
+  - For the exact current time, use `session_status`.

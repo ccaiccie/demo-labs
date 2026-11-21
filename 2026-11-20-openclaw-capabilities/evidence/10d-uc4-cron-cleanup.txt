@@ -1,0 +1,61 @@
+$ openclaw cron disable 1495a5de-a305-4704-8c11-6fcc1a9e52b4 && openclaw cron rm 1495a5de-a305-4704-8c11-6fcc1a9e52b4
+
+{
+  "id": "1495a5de-a305-4704-8c11-6fcc1a9e52b4",
+  "name": "netops-crit-watchdog",
+  "enabled": false,
+  "createdAtMs": 1795236772294,
+  "schedule": {
+    "kind": "every",
+    "everyMs": 900000,
+    "anchorMs": 1795236772294
+  },
+  "sessionTarget": "isolated",
+  "wakeMode": "now",
+  "payload": {
+    "kind": "command",
+    "argv": [
+      "sh",
+      "-lc",
+      "grep -c CRIT /home/node/.openclaw/workspace/network_syslog.log"
+    ]
+  },
+  "delivery": {
+    "mode": "none",
+    "channel": "last"
+  },
+  "state": {
+    "lastRunAtMs": 1795236787934,
+    "lastRunStatus": "ok",
+    "lastStatus": "ok",
+    "lastDurationMs": 34,
+    "lastDiagnostics": {
+      "summary": "4",
+      "entries": [
+        {
+          "ts": 1795236787967,
+          "source": "exec",
+          "severity": "info",
+          "message": "command ok: \"sh\" \"-lc\" \"grep -c CRIT /home/node/.openclaw/workspace/network_syslog.log\"",
+          "exitCode": 0
+        }
+      ]
+    },
+    "lastDiagnosticSummary": "4",
+    "lastDeliveryStatus": "not-requested",
+    "lastFailureNotificationDeliveryStatus": "not-requested",
+    "consecutiveErrors": 0,
+    "consecutiveSkipped": 0,
+    "scheduleActivatedAtMs": 1795236807342
+  },
+  "updatedAtMs": 1795236807342,
+  "configRevision": "sha256:wIBm4odTFfz4AOOM0sSC0dBUYYm33Ba7EDwfVeTVge8",
+  "lastRunAtMs": 1795236787934,
+  "lastRunStatus": "ok",
+  "lastDeliveryStatus": "not-requested",
+  "lastFailureNotificationDeliveryStatus": "not-requested"
+}
+{
+  "ok": true,
+  "removed": true
+}

@@ -1,0 +1,57 @@
+$ openclaw cron list && openclaw cron run 1495a5de-a305-4704-8c11-6fcc1a9e52b4 && sleep 2 && openclaw cron runs --id 1495a5de-a305-4704-8c11-6fcc1a9e52b4
+
+ID                                   Declaration              Name                     Schedule                         Next       Last       Status              Target    Delivery                                                         Agent ID   Owner                    Model               
+1495a5de-a305-4704-8c11-6fcc1a9e52b4 -                        netops-crit-watchdog     every 15m                        in 15m     -          idle                isolated  not requested (not requested)                                    main       -                        -
+f9edd375-a840-4547-8de5-150cb705862f memory-core:memory-dr... Memory Dreaming Promo... cron 0 3 * * * (exact)           in 22h     2h ago     ok                  isolated  not requested (not requested)                                    main       -                        -
+
+{
+  "ok": true,
+  "enqueued": true,
+  "runId": "cron-request.2e6efaba-50d8-4699-9d46-8a05b58f9553",
+  "processInstanceId": "656e046b-fb5f-4aee-a9ed-e977a8b8a526"
+}
+
+{
+  "entries": [
+    {
+      "ts": 1795236787968,
+      "jobId": "1495a5de-a305-4704-8c11-6fcc1a9e52b4",
+      "action": "finished",
+      "status": "ok",
+      "completionStatus": "succeeded",
+      "summary": "4",
+      "runId": "cron-request.2e6efaba-50d8-4699-9d46-8a05b58f9553",
+      "diagnostics": {
+        "summary": "4",
+        "entries": [
+          {
+            "ts": 1795236787967,
+            "source": "exec",
+            "severity": "info",
+            "message": "command ok: \"sh\" \"-lc\" \"grep -c CRIT /home/node/.openclaw/workspace/network_syslog.log\"",
+            "exitCode": 0
+          }
+        ]
+      },
+      "runAtMs": 1795236787934,
+      "durationMs": 34,
+      "nextRunAtMs": 1795237672294,
+      "deliveryStatus": "not-requested",
+      "delivery": {
+        "intended": {
+          "channel": "last",
+          "source": "explicit"
+        }
+      },
+      "jobName": "netops-crit-watchdog",
+      "tsIso": "2026-11-21T04:53:07.968+00:00",
+      "runAtIso": "2026-11-21T04:53:07.934+00:00",
+      "nextRunAtIso": "2026-11-21T05:07:52.294+00:00"
+    }
+  ],
+  "total": 1,
+  "offset": 0,
+  "limit": 50,
+  "hasMore": false,
+  "nextOffset": null
+}

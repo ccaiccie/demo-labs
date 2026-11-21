@@ -1,0 +1,21 @@
+$ docker exec openclaw-ollama-lab openclaw skills list | grep -E 'Skills \(|Status|✓ ready'
+
+Skills (17/53 ready)
+│ Status        │ Skill                    │ Description                                          │ Source             │
+│ ✓ ready       │ browser-automation       │ Use when controlling web pages with the OpenClaw     │ openclaw-extra     │
+│ ✓ ready       │ 🖼️ canvas                │ Present hosted widget documents on a connected       │ openclaw-extra     │
+│ ✓ ready       │ clawhub                  │ Search ClawHub for plugins by default, or skills     │ openclaw-bundled   │
+│ ✓ ready       │ control-ui               │ Operate and troubleshoot the OpenClaw Control UI:    │ openclaw-bundled   │
+│ ✓ ready       │ create-template          │ Turn this agent into a shareable Template for a      │ openclaw-bundled   │
+│ ✓ ready       │ 🧭 diagram-maker         │ Create SVG/HTML or Excalidraw diagrams for           │ openclaw-bundled   │
+│ ✓ ready       │ healthcheck              │ Audit/harden OpenClaw hosts: SSH, firewall,          │ openclaw-bundled   │
+│ ✓ ready       │ 🖼️ meme-maker            │ Search meme templates, suggest formats, and          │ openclaw-bundled   │
+│ ✓ ready       │ netops-triage            │ Classify network syslog incidents into P1/P2/P3      │ openclaw-workspace │
+│ ✓ ready       │ node-connect             │ Diagnose OpenClaw Control UI browser and native      │ openclaw-bundled   │
+│ ✓ ready       │ 🪲 node-inspect-debugger │ Debug Node.js with node inspect, --inspect,          │ openclaw-bundled   │
+│ ✓ ready       │ 📝 notion                │ Notion CLI/API for pages, Markdown content, data     │ openclaw-bundled   │
+│ ✓ ready       │ python-debugpy           │ Debug Python with pdb, breakpoint(), post-mortem     │ openclaw-bundled   │
+│ ✓ ready       │ skill-creator            │ Author or review AgentSkills: create, repair,        │ openclaw-bundled   │
+│ ✓ ready       │ 🧪 spike                 │ Run throwaway prototypes to validate feasibility,    │ openclaw-bundled   │
+│ ✓ ready       │ visualize                │ Create inline visuals for code and explanations, or  │ openclaw-bundled   │
+│ ✓ ready       │ ☔ weather               │ Current weather and forecasts with web_fetch,        │ openclaw-bundled   │

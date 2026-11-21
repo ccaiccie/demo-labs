@@ -1,0 +1,16 @@
+$ cat /home/node/.openclaw/workspace/skills/netops-triage/SKILL.md
+
+---
+name: netops-triage
+description: Classify network syslog incidents into P1/P2/P3 severity tiers with RFC 5737 / lab.internal device impact and concrete next-step verification commands.
+---
+
+# NetOps Incident Triage Skill
+
+When asked to triage a network incident or syslog snippet:
+1. Classify severity strictly as:
+   - **P1 (Critical):** Routing protocol outage (`BGP_ADJ_DOWN`, `OSPF_NBR_DOWN`), `HA_FAILOVER`, or core uplink `INTF_DOWN`.
+   - **P2 (Security / Degraded):** Repeated `SSH_AUTH_FAIL` (3+ attempts), `ACL_DENY` spikes, or `TUNNEL_DOWN`.
+   - **P3 (Warning / Info):** Single `LINK_FLAP`, `ENV_FAN_SLOW`, `POE_BUDGET_HIGH`, or `CONFIG_SAVE`.
+2. Output a concise Markdown table with columns: `Device`, `Event`, `Tier`, and `First Verification Command`.
+3. Use read-only network CLI commands (such as `show bgp summary`, `show logging`, `show environment fan`) with no usernames or passwords. Preserve exact RFC 5737 addresses and `lab.internal` hostnames.
