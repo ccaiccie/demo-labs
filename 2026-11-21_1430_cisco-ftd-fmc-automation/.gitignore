@@ -1,0 +1,4 @@
+lab-secrets.env
+logs/
+__pycache__/
+*.cast

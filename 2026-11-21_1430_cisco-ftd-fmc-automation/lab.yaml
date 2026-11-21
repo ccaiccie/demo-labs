@@ -1,0 +1,31 @@
+# Lab definition - everything the automation builds comes from this file.
+fmc:
+  host: 192.168.100.10
+  username: admin            # password is read from /root/lab-secrets.env (LAB_ADMIN_PW)
+
+access_policy: Demo-ACP
+nat_policy: Demo-NAT
+
+zones:
+  - name: outside-zone
+  - name: inside-zone
+
+devices:
+  - name: ftd1
+    mgmt_ip: 192.168.100.11
+    nat_id: ftd1-natid
+    performance_tier: FTDv20
+    interfaces:
+      - {hw: Ethernet0/0, ifname: outside, zone: outside-zone, ip: 192.168.200.11, mask: 24}
+      - {hw: Ethernet0/1, ifname: inside,  zone: inside-zone,  ip: 10.1.1.1,       mask: 24}
+    inside_network: {name: FTD1-Inside-Net, value: 10.1.1.0/24}
+    default_gateway: 192.168.200.1
+  - name: ftd2
+    mgmt_ip: 192.168.100.12
+    nat_id: ftd2-natid
+    performance_tier: FTDv20
+    interfaces:
+      - {hw: Ethernet0/0, ifname: outside, zone: outside-zone, ip: 192.168.200.12, mask: 24}
+      - {hw: Ethernet0/1, ifname: inside,  zone: inside-zone,  ip: 10.2.2.1,       mask: 24}
+    inside_network: {name: FTD2-Inside-Net, value: 10.2.2.0/24}
+    default_gateway: 192.168.200.1
