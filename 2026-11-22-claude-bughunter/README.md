@@ -2,6 +2,8 @@
 
 An authorized, loopback-only hands-on lab demonstrating how **Claude-BugHunter** security skills and deterministic triage workflows operate inside **Google Antigravity** against a deliberately vulnerable local NetOps Inventory & Ticket Portal (`http://127.0.0.1:8765`).
 
+**Video:** [YouTube](https://youtu.be/GfdA_llXmc4)
+
 > **Authorized-Use Scope Notice:** This lab is strictly limited to `http://127.0.0.1:8765` using 100% synthetic RFC 5737 documentation IP addresses (`192.0.2.0/24`, `198.51.100.0/24`, `203.0.113.0/24`) and `.lab.internal` hostnames and emails. Never run security probes against third-party domains, public IPs, or production systems without explicit written authorization. Nothing in this lab is submitted to HackerOne or any external bug bounty platform.
 
 ---
@@ -64,9 +66,11 @@ The target is a self-contained Flask + SQLite **NetOps Inventory & Ticket Portal
 
 ## How to Run, Test, Patch, and Stop
 
+Run the `wsl` commands below from the root of your cloned [`ccaiccie/demo-labs`](https://github.com/ccaiccie/demo-labs) repository so they `cd` into the `2026-11-22-claude-bughunter` folder. The `python` commands are run from inside that folder.
+
 ### 1. Start in Vulnerable Mode
 ```powershell
-wsl -e bash -lc 'cd /mnt/c/Users/superuser/ag-lab/claude-bughunter-1122 && docker compose up -d --build'
+wsl -e bash -lc 'cd 2026-11-22-claude-bughunter && docker compose up -d --build'
 curl.exe -s http://127.0.0.1:8765/health
 ```
 
@@ -77,7 +81,7 @@ python tests\run_lab_tests.py --out-txt evidence\02-scan-before.txt --out-json e
 
 ### 3. Apply All Three Patches and Restart
 ```powershell
-wsl -e bash -lc 'cd /mnt/c/Users/superuser/ag-lab/claude-bughunter-1122 && PATCH_SQLI=1 PATCH_XSS=1 PATCH_IDOR=1 docker compose up -d --force-recreate'
+wsl -e bash -lc 'cd 2026-11-22-claude-bughunter && PATCH_SQLI=1 PATCH_XSS=1 PATCH_IDOR=1 docker compose up -d --force-recreate'
 curl.exe -s http://127.0.0.1:8765/health
 ```
 
@@ -89,12 +93,12 @@ python tests\generate_diff.py
 
 ### 5. Revert to Vulnerable Mode (Optional)
 ```powershell
-wsl -e bash -lc 'cd /mnt/c/Users/superuser/ag-lab/claude-bughunter-1122 && PATCH_SQLI=0 PATCH_XSS=0 PATCH_IDOR=0 docker compose up -d --force-recreate'
+wsl -e bash -lc 'cd 2026-11-22-claude-bughunter && PATCH_SQLI=0 PATCH_XSS=0 PATCH_IDOR=0 docker compose up -d --force-recreate'
 ```
 
 ### 6. Stop and Remove the Container
 ```powershell
-wsl -e bash -lc 'cd /mnt/c/Users/superuser/ag-lab/claude-bughunter-1122 && docker compose down'
+wsl -e bash -lc 'cd 2026-11-22-claude-bughunter && docker compose down'
 ```
 
 ---
