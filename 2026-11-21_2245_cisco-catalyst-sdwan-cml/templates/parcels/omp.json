@@ -1,0 +1,109 @@
+{
+ "gracefulRestart": {
+  "optionType": "default",
+  "value": true
+ },
+ "ecmpLimit": {
+  "optionType": "default",
+  "value": 4
+ },
+ "ompAdminDistanceIpv4": {
+  "optionType": "default",
+  "value": 251
+ },
+ "advertiseIpv4": {
+  "connected": {
+   "optionType": "default",
+   "value": true
+  },
+  "eigrp": {
+   "optionType": "default",
+   "value": false
+  },
+  "static": {
+   "optionType": "default",
+   "value": true
+  },
+  "ospfv3": {
+   "optionType": "default",
+   "value": false
+  },
+  "isis": {
+   "optionType": "default",
+   "value": false
+  },
+  "lisp": {
+   "optionType": "default",
+   "value": false
+  },
+  "bgp": {
+   "optionType": "default",
+   "value": false
+  },
+  "ospf": {
+   "optionType": "default",
+   "value": false
+  }
+ },
+ "advertiseIpv6": {
+  "connected": {
+   "optionType": "default",
+   "value": false
+  },
+  "eigrp": {
+   "optionType": "default",
+   "value": false
+  },
+  "static": {
+   "optionType": "default",
+   "value": false
+  },
+  "isis": {
+   "optionType": "default",
+   "value": false
+  },
+  "lisp": {
+   "optionType": "default",
+   "value": false
+  },
+  "bgp": {
+   "optionType": "default",
+   "value": false
+  },
+  "ospf": {
+   "optionType": "default",
+   "value": false
+  }
+ },
+ "sendPathLimit": {
+  "optionType": "default",
+  "value": 4
+ },
+ "ompAdminDistanceIpv6": {
+  "optionType": "default",
+  "value": 251
+ },
+ "gracefulRestartTimer": {
+  "optionType": "default",
+  "value": 43200
+ },
+ "advertisementInterval": {
+  "optionType": "default",
+  "value": 1
+ },
+ "overlayAs": {
+  "optionType": "default"
+ },
+ "holdtime": {
+  "optionType": "default",
+  "value": 60
+ },
+ "eorTimer": {
+  "optionType": "default",
+  "value": 300
+ },
+ "shutdown": {
+  "optionType": "default",
+  "value": false
+ }
+}

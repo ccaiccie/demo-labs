@@ -1,0 +1,40 @@
+{
+ "accountingGroup": {
+  "optionType": "default",
+  "value": false
+ },
+ "authorizationConsole": {
+  "optionType": "default",
+  "value": false
+ },
+ "authorizationConfigCommands": {
+  "optionType": "default",
+  "value": false
+ },
+ "serverAuthOrder": {
+  "optionType": "global",
+  "value": [
+   "local"
+  ]
+ },
+ "user": [
+  {
+   "password": {
+    "optionType": "variable",
+    "value": "{{aaa_password}}"
+   },
+   "name": {
+    "optionType": "global",
+    "value": "admin"
+   },
+   "privilege": {
+    "optionType": "default",
+    "value": "15"
+   }
+  }
+ ],
+ "authenticationGroup": {
+  "optionType": "default",
+  "value": false
+ }
+}

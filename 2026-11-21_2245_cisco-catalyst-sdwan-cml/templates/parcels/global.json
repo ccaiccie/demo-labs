@@ -1,0 +1,95 @@
+{
+ "services_global": {
+  "services_ip": {
+   "servicesGlobalServicesIpHttpServer": {
+    "optionType": "default",
+    "value": false
+   },
+   "servicesGlobalServicesIpLldp": {
+    "optionType": "default",
+    "value": true
+   },
+   "globalSettingsNat64TcpTimeout": {
+    "optionType": "default",
+    "value": 3600
+   },
+   "globalOtherSettingsVtyLineLogging": {
+    "optionType": "default",
+    "value": false
+   },
+   "servicesGlobalServicesIpHttpsServer": {
+    "optionType": "default",
+    "value": false
+   },
+   "globalOtherSettingsIPSourceRoute": {
+    "optionType": "default",
+    "value": false
+   },
+   "globalOtherSettingsUdpSmallServers": {
+    "optionType": "default",
+    "value": false
+   },
+   "globalOtherSettingsIgnoreBootp": {
+    "optionType": "default",
+    "value": true
+   },
+   "globalOtherSettingsTcpKeepalivesOut": {
+    "optionType": "default",
+    "value": true
+   },
+   "globalSettingsSSHVersion": {
+    "optionType": "default"
+   },
+   "globalSettingsHttpAuthentication": {
+    "optionType": "default"
+   },
+   "servicesGlobalServicesIpFtpPassive": {
+    "optionType": "default",
+    "value": false
+   },
+   "servicesGlobalServicesIpDomainLookup": {
+    "optionType": "global",
+    "value": true
+   },
+   "servicesGlobalServicesIpCdp": {
+    "optionType": "default",
+    "value": true
+   },
+   "globalOtherSettingsConsoleLogging": {
+    "optionType": "default",
+    "value": true
+   },
+   "servicesGlobalServicesIpRcmd": {
+    "optionType": "default",
+    "value": false
+   },
+   "servicesGlobalServicesIpArpProxy": {
+    "optionType": "default",
+    "value": false
+   },
+   "servicesGlobalServicesIpLineVty": {
+    "optionType": "default",
+    "value": false
+   },
+   "globalOtherSettingsTcpKeepalivesIn": {
+    "optionType": "default",
+    "value": true
+   },
+   "globalOtherSettingsTcpSmallServers": {
+    "optionType": "default",
+    "value": false
+   },
+   "globalOtherSettingsSnmpIfindexPersist": {
+    "optionType": "default",
+    "value": true
+   },
+   "servicesGlobalServicesIpSourceIntrf": {
+    "optionType": "default"
+   },
+   "globalSettingsNat64UdpTimeout": {
+    "optionType": "default",
+    "value": 300
+   }
+  }
+ }
+}

@@ -1,0 +1,110 @@
+! =====================================================================
+!  Gateway - one IOL router that simulates three networks with VRFs
+!    vrf vpn0 : the data centre where the SD-WAN controllers live
+!    vrf inet : the Internet provider  (biz-internet colour)
+!    vrf mpls : the MPLS provider      (mpls colour)
+!  Routes are leaked between VRFs with route-targets so that
+!    inet <-> vpn0  and  mpls <-> vpn0  work, but inet <-> mpls does NOT.
+!  Ethernet0/3 goes to the real Internet through CML's NAT connector.
+! =====================================================================
+hostname Gateway
+no ip domain lookup
+!
+vrf definition vpn0
+ rd 65000:10
+ route-target export 65000:10
+ route-target import 65000:10
+ route-target import 65000:20
+ route-target import 65000:30
+ address-family ipv4
+  import ipv4 unicast map RM_DEFAULT
+ exit-address-family
+!
+vrf definition inet
+ rd 65000:20
+ route-target export 65000:20
+ route-target import 65000:10
+ route-target import 65000:20
+ address-family ipv4
+  import ipv4 unicast map RM_DEFAULT
+ exit-address-family
+!
+vrf definition mpls
+ rd 65000:30
+ route-target export 65000:30
+ route-target import 65000:10
+ route-target import 65000:30
+ address-family ipv4
+ exit-address-family
+!
+! --- name resolution for the Validator, in every VRF -----------------
+ip host vrf vpn0 {{ validator_fqdn }} {{ validator_ip }}
+ip host vrf inet {{ validator_fqdn }} {{ validator_ip }}
+ip host vrf mpls {{ validator_fqdn }} {{ validator_ip }}
+ip dns view vrf vpn0 default
+ dns forwarder {{ m.dns }}
+ dns forwarding source-interface Ethernet0/3
+ip dns view vrf inet default
+ dns forwarder {{ m.dns }}
+ dns forwarding source-interface Ethernet0/3
+ip dns view vrf mpls default
+ip dns server
+!
+interface Ethernet0/0
+ description VPN0 - controllers
+ vrf forwarding vpn0
+ ip address {{ u.gw_vpn0 }} {{ u.controllers_net_mask }}
+ ip nat inside
+ no shutdown
+!
+interface Ethernet0/1
+ description INET provider
+ vrf forwarding inet
+ ip address {{ u.gw_inet }} {{ u.inet_net_mask }}
+ ip nat inside
+ no shutdown
+!
+interface Ethernet0/2
+ description MPLS provider
+ vrf forwarding mpls
+ ip address {{ u.gw_mpls }} {{ u.mpls_net_mask }}
+ no shutdown
+!
+interface Ethernet0/3
+ description Uplink to the real Internet (CML NAT)
+ ip address dhcp
+ ip nat outside
+ no shutdown
+!
+! --- BGP is only used locally to leak routes between the VRFs ---------
+router bgp 65000
+ bgp router-id {{ u.gw_vpn0 }}
+ address-family ipv4
+  network 0.0.0.0
+ exit-address-family
+ address-family ipv4 vrf vpn0
+  network {{ u.controllers_net.split('/')[0] }} mask {{ u.controllers_net_mask }}
+ exit-address-family
+ address-family ipv4 vrf inet
+  network {{ u.inet_net.split('/')[0] }} mask {{ u.inet_net_mask }}
+ exit-address-family
+ address-family ipv4 vrf mpls
+  network {{ u.mpls_net.split('/')[0] }} mask {{ u.mpls_net_mask }}
+ exit-address-family
+!
+ip prefix-list PL_DEFAULT seq 5 permit 0.0.0.0/0
+route-map RM_DEFAULT permit 10
+ match ip address prefix-list PL_DEFAULT
+!
+! --- NAT: the controllers and the INET provider reach the Internet ----
+ip access-list standard NAT_INSIDE
+ permit 172.16.0.0 0.0.255.255
+ permit 10.0.0.0 0.255.255.255
+ip nat inside source list NAT_INSIDE interface Ethernet0/3 vrf vpn0 overload
+ip nat inside source list NAT_INSIDE interface Ethernet0/3 vrf inet overload
+!
+line con 0
+ exec-timeout 0 0
+ logging synchronous
+!
+end

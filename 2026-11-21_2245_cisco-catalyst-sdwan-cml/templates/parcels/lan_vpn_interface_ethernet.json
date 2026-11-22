@@ -1,0 +1,122 @@
+{
+ "nat": {
+  "optionType": "default",
+  "value": false
+ },
+ "aclQos": {
+  "shapingRate": {
+   "optionType": "default"
+  }
+ },
+ "advanced": {
+  "icmpRedirectDisable": {
+   "optionType": "default",
+   "value": true
+  },
+  "ipDirectedBroadcast": {
+   "optionType": "default",
+   "value": false
+  },
+  "arpTimeout": {
+   "optionType": "default",
+   "value": 1200
+  },
+  "ipMtu": {
+   "optionType": "default",
+   "value": 1500
+  },
+  "loadInterval": {
+   "optionType": "default",
+   "value": 30
+  }
+ },
+ "vrrpIpv6": [],
+ "description": {
+  "optionType": "global",
+  "value": "LAN"
+ },
+ "vrrp": [],
+ "natAttributesIpv4": {
+  "natPool": {
+   "prefixLength": {
+    "optionType": "default"
+   },
+   "rangeStart": {
+    "optionType": "default"
+   },
+   "overload": {
+    "optionType": "default",
+    "value": true
+   },
+   "rangeEnd": {
+    "optionType": "default"
+   }
+  },
+  "natType": {
+   "optionType": "global",
+   "value": "pool"
+  },
+  "natLoopback": {
+   "optionType": "default"
+  },
+  "udpTimeout": {
+   "optionType": "default",
+   "value": 1
+  },
+  "tcpTimeout": {
+   "optionType": "default",
+   "value": 60
+  }
+ },
+ "natIpv6": {
+  "optionType": "default",
+  "value": false
+ },
+ "dhcpHelper": {
+  "optionType": "default"
+ },
+ "intfIpAddress": {
+  "static": {
+   "staticIpV4AddressPrimary": {
+    "ipAddress": {
+     "optionType": "variable",
+     "value": "{{vpn1_gi3_lan_ip}}"
+    },
+    "subnetMask": {
+     "optionType": "variable",
+     "default": "255.255.255.0",
+     "value": "{{vpn1_gi3_lan_mask}}"
+    }
+   },
+   "staticIpV4AddressSecondary": []
+  }
+ },
+ "trustsec": {
+  "propogate": {
+   "optionType": "default",
+   "value": true
+  },
+  "securityGroupTag": {
+   "optionType": "default"
+  },
+  "enableEnforcedPropogation": {
+   "optionType": "default"
+  },
+  "enforcedSecurityGroupTag": {
+   "optionType": "default"
+  },
+  "enableSGTPropogation": {
+   "optionType": "default",
+   "value": false
+  }
+ },
+ "interfaceName": {
+  "optionType": "global",
+  "value": "GigabitEthernet3"
+ },
+ "shutdown": {
+  "optionType": "global",
+  "value": false
+ },
+ "arp": []
+}

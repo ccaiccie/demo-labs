@@ -1,0 +1,29 @@
+{#- Shared part of the controllers' day-0 config (Viptela confd XML).
+    The file /etc/confd/init/zcloud.xml is read once at first boot.   #}
+      <system xmlns="http://viptela.com/system">
+        <personality>{{ personality }}</personality>
+        <device-model>{{ model }}</device-model>
+        <organization-name>{{ org }}</organization-name>
+        <sp-organization-name>{{ org }}</sp-organization-name>
+        <vbond>
+{%- if personality == 'vedge' %}
+          <local></local>
+          <remote>{{ validator_ip }}</remote>
+{%- else %}
+          <remote>{{ validator_fqdn }}</remote>
+{%- endif %}
+          <port>12346</port>
+        </vbond>
+        <site-id>{{ c.site_id }}</site-id>
+        <system-ip>{{ c.system_ip }}</system-ip>
+        <host-name>{{ c.label }}</host-name>
+        <domain-id>1</domain-id>
+        <aaa>
+          <user>
+            <name>admin</name>
+            <password>{{ pw_hash }}</password>
+            <last-password-change-time>{{ pw_time }}</last-password-change-time>
+            <group>netadmin</group>
+          </user>
+        </aaa>
+      </system>

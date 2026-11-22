@@ -1,0 +1,60 @@
+{
+ "dnsIpv4": {
+  "secondaryDnsAddressIpv4": {
+   "optionType": "global",
+   "value": "172.16.2.254"
+  },
+  "primaryDnsAddressIpv4": {
+   "optionType": "global",
+   "value": "172.16.1.254"
+  }
+ },
+ "enhanceEcmpKeying": {
+  "optionType": "global",
+  "value": true
+ },
+ "vpnId": {
+  "optionType": "global",
+  "value": 0
+ },
+ "ipv4Route": [
+  {
+   "nextHop": [
+    {
+     "address": {
+      "optionType": "global",
+      "value": "172.16.1.254"
+     },
+     "distance": {
+      "optionType": "default",
+      "value": 1
+     }
+    },
+    {
+     "address": {
+      "optionType": "global",
+      "value": "172.16.2.254"
+     },
+     "distance": {
+      "optionType": "default",
+      "value": 1
+     }
+    }
+   ],
+   "prefix": {
+    "ipAddress": {
+     "optionType": "global",
+     "value": "0.0.0.0"
+    },
+    "subnetMask": {
+     "optionType": "global",
+     "value": "0.0.0.0"
+    }
+   },
+   "gateway": {
+    "optionType": "global",
+    "value": "nextHop"
+   }
+  }
+ ]
+}

@@ -1,0 +1,9 @@
+# {{ h.label }} - a small Alpine Linux host ({{ h.vpn | upper }} LAN at {{ s.name }})
+# This file is sourced as a shell script when the node boots.
+hostname {{ h.label }}
+USERNAME=cisco
+PASSWORD=cisco
+ip link set eth0 up
+ip addr add {{ h.ip }}/{{ h.prefixlen }} dev eth0
+ip route add default via {{ h.gateway }}
+echo "nameserver 1.1.1.1" > /etc/resolv.conf

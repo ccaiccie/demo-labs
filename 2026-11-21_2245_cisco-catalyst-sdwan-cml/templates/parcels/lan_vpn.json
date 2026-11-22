@@ -1,0 +1,44 @@
+{
+ "enableSdra": {
+  "optionType": "global",
+  "value": false
+ },
+ "dnsIpv4": {
+  "secondaryDnsAddressIpv4": {
+   "optionType": "global",
+   "value": "1.1.1.1"
+  },
+  "primaryDnsAddressIpv4": {
+   "optionType": "global",
+   "value": "172.16.1.254"
+  }
+ },
+ "name": {
+  "optionType": "global",
+  "value": "VPN 1"
+ },
+ "vpnId": {
+  "optionType": "global",
+  "value": 1
+ },
+ "ipv4Route": [
+  {
+   "prefix": {
+    "ipAddress": {
+     "optionType": "global",
+     "value": "0.0.0.0"
+    },
+    "subnetMask": {
+     "optionType": "global",
+     "value": "0.0.0.0"
+    }
+   },
+   "oneOfIpRoute": {
+    "vpn": {
+     "optionType": "default",
+     "value": true
+    }
+   }
+  }
+ ]
+}

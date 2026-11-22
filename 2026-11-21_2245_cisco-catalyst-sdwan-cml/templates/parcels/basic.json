@@ -1,0 +1,83 @@
+{
+ "multiTenant": {
+  "optionType": "default",
+  "value": false
+ },
+ "portHop": {
+  "optionType": "default",
+  "value": true
+ },
+ "description": {
+  "optionType": "default"
+ },
+ "controllerGroupList": {
+  "optionType": "default"
+ },
+ "clock": {
+  "timezone": {
+   "optionType": "default",
+   "value": "UTC"
+  }
+ },
+ "controlSessionPps": {
+  "optionType": "default",
+  "value": 300
+ },
+ "adminTechOnFailure": {
+  "optionType": "default",
+  "value": true
+ },
+ "onDemand": {
+  "onDemandEnable": {
+   "optionType": "default",
+   "value": false
+  },
+  "onDemandIdleTimeout": {
+   "optionType": "default",
+   "value": 10
+  }
+ },
+ "gpsLocation": {
+  "latitude": {
+   "optionType": "default"
+  },
+  "longitude": {
+   "optionType": "default"
+  }
+ },
+ "trackDefaultGateway": {
+  "optionType": "default",
+  "value": true
+ },
+ "portOffset": {
+  "optionType": "default",
+  "value": 0
+ },
+ "maxOmpSessions": {
+  "optionType": "default"
+ },
+ "idleTimeout": {
+  "optionType": "default"
+ },
+ "consoleBaudRate": {
+  "optionType": "default",
+  "value": "9600"
+ },
+ "location": {
+  "optionType": "default"
+ },
+ "trackInterfaceTag": {
+  "optionType": "default"
+ },
+ "deviceGroups": {
+  "optionType": "default"
+ },
+ "trackTransport": {
+  "optionType": "default",
+  "value": true
+ },
+ "overlayId": {
+  "optionType": "default",
+  "value": 1
+ }
+}

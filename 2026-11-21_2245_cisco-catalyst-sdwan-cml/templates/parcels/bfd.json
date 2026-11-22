@@ -1,0 +1,14 @@
+{
+ "defaultDscp": {
+  "optionType": "default",
+  "value": 48
+ },
+ "pollInterval": {
+  "optionType": "default",
+  "value": 600000
+ },
+ "multiplier": {
+  "optionType": "default",
+  "value": 6
+ }
+}

@@ -1,0 +1,95 @@
+#cloud-config
+# =====================================================================
+#  Day-0 for an SD-WAN control component ({{ c.label }}).
+#  Used for the Manager, the Controller and the Validator alike; only
+#  the personality, interfaces and a few files differ.
+# =====================================================================
+{%- if personality == 'vmanage' %}
+# The Manager keeps its database on a second disk. Format and mount it.
+fs_setup:
+- device: /dev/vdb
+  partition: none
+  filesystem: ext4
+mounts:
+- [ vdb, /opt/data ]
+{%- endif %}
+write_files:
+{%- if personality != 'vedge' %}
+# which role this VM plays: vmanage = Manager, vsmart = Controller
+- path: /etc/default/personality
+  content: "{{ personality }}\n"
+{%- endif %}
+# tell the image that the first-boot wizard is already done
+- path: /etc/default/inited
+  content: "1\n"
+# trust OUR enterprise root CA (and nothing else)
+- path: /usr/share/viptela/symantec-root-ca.crt
+- path: /usr/share/viptela/root-ca.crt
+  content: |
+{{ root_ca | indent(4, true) }}
+# the actual configuration: identity + VPN 0 (transport) + VPN 512 (mgmt)
+- path: /etc/confd/init/zcloud.xml
+  content: |
+    <config xmlns="http://tail-f.com/ns/config/1.0">
+{% include '_zcloud_common.j2' %}
+      <vpn xmlns="http://viptela.com/vpn">
+        <vpn-instance>
+          <vpn-id>0</vpn-id>
+          <dns>
+            <dns-addr>{{ u.gw_vpn0 }}</dns-addr>
+          </dns>
+          <ip>
+            <route>
+              <prefix>0.0.0.0/0</prefix>
+              <next-hop>
+                <address>{{ u.gw_vpn0 }}</address>
+              </next-hop>
+            </route>
+          </ip>
+          <interface>
+            <if-name>{{ vpn0_if }}</if-name>
+            <ip>
+              <address>{{ c.ip }}/24</address>
+            </ip>
+            <tunnel-interface>
+              <encapsulation>
+                <encap>ipsec</encap>
+              </encapsulation>
+              <color>
+                <value>default</value>
+              </color>
+              <allow-service>
+                <sshd>true</sshd>
+                <netconf>true</netconf>
+              </allow-service>
+            </tunnel-interface>
+            <shutdown>false</shutdown>
+          </interface>
+        </vpn-instance>
+        <!-- VPN 512 = out-of-band management. Every control component must
+             have it (the Manager pushes settings that reference it), but
+             only the Manager has an address in it in this lab. -->
+        <vpn-instance>
+          <vpn-id>512</vpn-id>
+{%- if personality == 'vmanage' %}
+          <ip>
+            <route>
+              <prefix>0.0.0.0/0</prefix>
+              <next-hop>
+                <address>{{ m.gateway }}</address>
+              </next-hop>
+            </route>
+          </ip>
+{%- endif %}
+          <interface>
+            <if-name>eth0</if-name>
+{%- if personality == 'vmanage' %}
+            <ip>
+              <address>{{ m.manager_ip }}/{{ m.prefix }}</address>
+            </ip>
+{%- endif %}
+            <shutdown>false</shutdown>
+          </interface>
+        </vpn-instance>
+      </vpn>
+    </config>

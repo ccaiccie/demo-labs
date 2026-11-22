@@ -1,0 +1,142 @@
+# =====================================================================
+#  lab.yaml - the single source of truth for the whole SD-WAN lab
+# ---------------------------------------------------------------------
+#  Every script in this project reads this file. Nothing about the
+#  topology, addressing or sizing is hard-coded anywhere else, so if you
+#  want a different lab you change it here and rebuild.
+# =====================================================================
+
+lab:
+  title: sdwan-demo            # name of the lab in CML
+  version: "20.18.2.1"         # controller software (Manager/Controller/Validator)
+  edge_image: cat-sdwan-edge-17-18-02   # Catalyst 8000V in SD-WAN (controller) mode
+
+# Organisation name. It MUST match the org inside the signed serial file
+# (the "WAN Edge list" that tells the Manager which edges are allowed).
+# The lab serial file ships with org "cml-sdwan-lab-tool" and 30 virtual
+# C8000V chassis numbers. In production you download this file from the
+# Cisco Plug and Play portal for your own Smart Account.
+organization: cml-sdwan-lab-tool
+serial_file: data/serialFile.viptela
+
+# The Validator (formerly vBond) is found by name, never by IP.
+# Every device is given this FQDN and our Gateway router resolves it.
+validator_fqdn: validator.sdwan.local
+
+# ---------------------------------------------------------------------
+# Out-of-band management: the Manager GUI is reachable from mydell1
+# on the libvirt network 192.168.122.0/24 (VPN 512 on the Manager).
+# ---------------------------------------------------------------------
+management:
+  bridge: System Bridge        # CML external connector mode
+  manager_ip: 192.168.122.50
+  prefix: 24
+  gateway: 192.168.122.1
+  dns: 192.168.122.1
+
+# ---------------------------------------------------------------------
+# Underlay. One "Gateway" router plays three roles at once using VRFs:
+#   vrf vpn0 - the data-centre network where the controllers live
+#   vrf inet - the Internet provider (with NAT to the real Internet)
+#   vrf mpls - the private MPLS provider
+# INET and MPLS cannot reach each other (like real providers), but both
+# can reach the controllers. That is exactly what SD-WAN expects.
+# ---------------------------------------------------------------------
+underlay:
+  controllers_net: 172.16.0.0/24     # vpn0
+  inet_net: 172.16.1.0/24            # biz-internet colour
+  mpls_net: 172.16.2.0/24            # mpls colour
+  gateway_host: 254                  # gateway address on every segment
+
+controllers:
+  manager:    {label: Manager01,    system_ip: 10.255.255.1, ip: 172.16.0.1,   site_id: 100, cpus: 8, ram: 32768}
+  controller: {label: Controller01, system_ip: 10.255.255.2, ip: 172.16.0.101, site_id: 100, cpus: 2, ram: 4096}
+  validator:  {label: Validator01,  system_ip: 10.255.255.3, ip: 172.16.0.201, site_id: 100, cpus: 2, ram: 4096}
+
+# ---------------------------------------------------------------------
+# Service VPNs (VRFs) carried across the overlay
+# ---------------------------------------------------------------------
+vpns:
+  corp:  {id: 10, name: CORP}     # employees - full mesh, app-aware routing
+  guest: {id: 20, name: GUEST}    # guests - guest isolation (no site-to-site) + local Internet exit
+
+# ---------------------------------------------------------------------
+# Sites. Each edge has 4 ports:
+#   Gi1 = INET (biz-internet)   Gi2 = MPLS (mpls)
+#   Gi3 = VPN 10 LAN            Gi4 = VPN 20 LAN
+# Every LAN uses VRRP so the hosts' gateway is always .1, even at the
+# branch with two routers.  inet/mpls = host number on the transport nets.
+# ---------------------------------------------------------------------
+sites:
+  - name: DC
+    site_id: 10
+    role: hub
+    edges:
+      - {label: DC-E1,  system_ip: 10.255.0.10, inet: 10, mpls: 10, lan_host: 2, vrrp_priority: 110}
+    lans:
+      corp:  10.10.10.0/24
+      guest: 10.10.20.0/24
+    hosts:
+      - {label: DC-SRV, vpn: corp, host: 100}
+
+  - name: BR1
+    site_id: 20
+    role: spoke
+    edges:
+      - {label: BR1-E1, system_ip: 10.255.0.21, inet: 21, mpls: 21, lan_host: 2, vrrp_priority: 110}
+      - {label: BR1-E2, system_ip: 10.255.0.22, inet: 22, mpls: 22, lan_host: 3, vrrp_priority: 100}
+    lans:
+      corp:  10.20.10.0/24
+      guest: 10.20.20.0/24
+    hosts:
+      - {label: BR1-PC,    vpn: corp,  host: 100}
+      - {label: BR1-GUEST, vpn: guest, host: 100}
+
+  - name: BR2
+    site_id: 30
+    role: spoke
+    edges:
+      - {label: BR2-E1, system_ip: 10.255.0.30, inet: 30, mpls: 30, lan_host: 2, vrrp_priority: 110}
+    lans:
+      corp:  10.30.10.0/24
+      guest: 10.30.20.0/24
+    hosts:
+      - {label: BR2-PC,    vpn: corp,  host: 100}
+      - {label: BR2-GUEST, vpn: guest, host: 100}
+
+  - name: BR3
+    site_id: 40
+    role: spoke
+    edges:
+      - {label: BR3-E1, system_ip: 10.255.0.40, inet: 40, mpls: 40, lan_host: 2, vrrp_priority: 110}
+    lans:
+      corp:  10.40.10.0/24
+      guest: 10.40.20.0/24
+    hosts:
+      - {label: BR3-PC, vpn: corp, host: 100}
+
+# ---------------------------------------------------------------------
+# Overlay tuning used by the configuration group
+# ---------------------------------------------------------------------
+overlay:
+  colors: {inet: biz-internet, mpls: mpls}
+  # BFD app-route measurement. The default poll interval is 10 minutes,
+  # which is far too slow to watch in a demo. 30 s x 2 means an SLA
+  # change is noticed in about one minute.
+  bfd_poll_interval_ms: 30000
+  bfd_multiplier: 2
+
+# ---------------------------------------------------------------------
+# Policy (deployed with a Policy Group)
+# ---------------------------------------------------------------------
+policy:
+  sla:
+    name: CRITICAL-SLA
+    latency_ms: 150
+    loss_pct: 2
+    jitter_ms: 50
+  # Traffic we treat as "critical" in VPN 10: ICMP is used so you can see
+  # the path move with a simple ping.
+  critical_protocols: ["1"]
+  preferred_color: mpls
+  hub_site: DC
