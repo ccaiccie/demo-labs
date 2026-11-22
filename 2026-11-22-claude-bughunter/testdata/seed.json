@@ -1,0 +1,148 @@
+{
+  "metadata": {
+    "description": "100% synthetic NetOps lab seed data using RFC 5737 documentation IPs and .lab.internal hostnames only.",
+    "ip_ranges": [
+      "192.0.2.0/24",
+      "198.51.100.0/24",
+      "203.0.113.0/24"
+    ],
+    "domain": "lab.internal"
+  },
+  "users": [
+    {
+      "id": 1,
+      "username": "alice.netops",
+      "display_name": "Alice Rivera",
+      "email": "alice@lab.internal",
+      "role": "netops-engineer"
+    },
+    {
+      "id": 2,
+      "username": "bob.secops",
+      "display_name": "Bob Patel",
+      "email": "bob@lab.internal",
+      "role": "secops-analyst"
+    },
+    {
+      "id": 3,
+      "username": "carol.noc",
+      "display_name": "Carol Chen",
+      "email": "carol@lab.internal",
+      "role": "noc-operator"
+    }
+  ],
+  "devices": [
+    {
+      "id": 1,
+      "hostname": "core-rtr-01.lab.internal",
+      "ip_address": "192.0.2.10",
+      "role": "core-router",
+      "os_version": "LabIOS-XE 17.9",
+      "site": "dc-west-lab",
+      "status": "online",
+      "owner": "alice.netops"
+    },
+    {
+      "id": 2,
+      "hostname": "dist-sw-02.lab.internal",
+      "ip_address": "192.0.2.20",
+      "role": "distribution-switch",
+      "os_version": "LabNX-OS 10.3",
+      "site": "dc-west-lab",
+      "status": "online",
+      "owner": "alice.netops"
+    },
+    {
+      "id": 3,
+      "hostname": "edge-fw-03.lab.internal",
+      "ip_address": "198.51.100.1",
+      "role": "edge-firewall",
+      "os_version": "LabPAN-OS 11.1",
+      "site": "dc-east-lab",
+      "status": "online",
+      "owner": "bob.secops"
+    },
+    {
+      "id": 4,
+      "hostname": "wan-gw-04.lab.internal",
+      "ip_address": "203.0.113.1",
+      "role": "wan-gateway",
+      "os_version": "LabJunOS 23.4",
+      "site": "dc-east-lab",
+      "status": "maintenance",
+      "owner": "alice.netops"
+    },
+    {
+      "id": 5,
+      "hostname": "access-sw-05.lab.internal",
+      "ip_address": "198.51.100.25",
+      "role": "access-switch",
+      "os_version": "LabEOS 4.31",
+      "site": "branch-north-lab",
+      "status": "online",
+      "owner": "carol.noc"
+    },
+    {
+      "id": 6,
+      "hostname": "mgmt-jump-06.lab.internal",
+      "ip_address": "203.0.113.50",
+      "role": "management-bastion",
+      "os_version": "LabLinux 6.8",
+      "site": "dc-west-lab",
+      "status": "online",
+      "owner": "bob.secops"
+    }
+  ],
+  "tickets": [
+    {
+      "id": 101,
+      "owner": "alice.netops",
+      "device_hostname": "core-rtr-01.lab.internal",
+      "title": "BGP graceful restart timer audit on core-rtr-01",
+      "status": "open",
+      "priority": "high",
+      "summary": "Verify BGP hold and graceful restart timers ahead of weekend maintenance.",
+      "internal_note": "LAB-TICKET-NOTE-ONLY-192-0-2-10: Peer AS 65001 test window approved for Saturday 02:00 UTC."
+    },
+    {
+      "id": 102,
+      "owner": "bob.secops",
+      "device_hostname": "edge-fw-03.lab.internal",
+      "title": "Review egress ACL rules on edge-fw-03",
+      "status": "in_progress",
+      "priority": "high",
+      "summary": "Audit lab egress policy and remove stale RFC 5737 test entries.",
+      "internal_note": "LAB-TICKET-NOTE-ONLY-198-51-100-42: SecOps internal review marker for IDOR verification."
+    },
+    {
+      "id": 103,
+      "owner": "carol.noc",
+      "device_hostname": "access-sw-05.lab.internal",
+      "title": "Port flapping alert investigation on access-sw-05",
+      "status": "open",
+      "priority": "medium",
+      "summary": "Check SFP transceiver diagnostics on uplink port Gi1/0/48.",
+      "internal_note": "LAB-TICKET-NOTE-ONLY-198-51-100-25: Spare lab optic staged in rack B2."
+    },
+    {
+      "id": 104,
+      "owner": "alice.netops",
+      "device_hostname": "wan-gw-04.lab.internal",
+      "title": "Scheduled firmware upgrade on wan-gw-04",
+      "status": "scheduled",
+      "priority": "medium",
+      "summary": "Stage LabJunOS maintenance image and verify rollback snapshot.",
+      "internal_note": "LAB-TICKET-NOTE-ONLY-203-0-113-1: Console server port 4 verified reachable in lab."
+    },
+    {
+      "id": 105,
+      "owner": "bob.secops",
+      "device_hostname": "mgmt-jump-06.lab.internal",
+      "title": "Rotate lab SSH host certificate on mgmt-jump-06",
+      "status": "closed",
+      "priority": "low",
+      "summary": "Confirm lab-only SSH host certificate renewal in dc-west-lab.",
+      "internal_note": "LAB-TICKET-NOTE-ONLY-203-0-113-50: Synthetic lab cert test completed cleanly."
+    }
+  ]
+}

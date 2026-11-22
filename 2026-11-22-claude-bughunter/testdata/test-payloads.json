@@ -1,0 +1,185 @@
+{
+  "metadata": {
+    "target_base_url": "http://127.0.0.1:8765",
+    "scope": "authorized-local-lab-only",
+    "description": "Synthetic local-only test cases for the NetOps Inventory & Ticket Portal fixture. Never run against third-party or production targets."
+  },
+  "cases": [
+    {
+      "id": "BASE-001",
+      "category": "baseline",
+      "name": "Health check endpoint",
+      "method": "GET",
+      "path": "/health",
+      "params": {},
+      "headers": {},
+      "expected_classification": "baseline",
+      "expected_vulnerable": {
+        "status_code": 200,
+        "body_contains": "ok"
+      },
+      "expected_patched": {
+        "status_code": 200,
+        "body_contains": "ok"
+      },
+      "rationale": "Confirms local lab fixture is reachable on 127.0.0.1:8765."
+    },
+    {
+      "id": "BASE-002",
+      "category": "baseline",
+      "name": "Benign device lookup by hostname",
+      "method": "GET",
+      "path": "/api/devices",
+      "params": {
+        "hostname": "core-rtr-01.lab.internal"
+      },
+      "headers": {},
+      "expected_classification": "baseline",
+      "expected_vulnerable": {
+        "status_code": 200,
+        "expected_device_count": 1,
+        "body_contains": "192.0.2.10"
+      },
+      "expected_patched": {
+        "status_code": 200,
+        "expected_device_count": 1,
+        "body_contains": "192.0.2.10"
+      },
+      "rationale": "Establishes normal single-record API behavior before testing SQL injection."
+    },
+    {
+      "id": "BASE-003",
+      "category": "baseline",
+      "name": "Benign search query",
+      "method": "GET",
+      "path": "/search",
+      "params": {
+        "q": "core-rtr-01"
+      },
+      "headers": {},
+      "expected_classification": "baseline",
+      "expected_vulnerable": {
+        "status_code": 200,
+        "content_type_contains": "text/html",
+        "body_contains": "core-rtr-01"
+      },
+      "expected_patched": {
+        "status_code": 200,
+        "content_type_contains": "text/html",
+        "body_contains": "core-rtr-01"
+      },
+      "rationale": "Confirms normal HTML search rendering for a safe alphanumeric query."
+    },
+    {
+      "id": "BASE-004",
+      "category": "baseline",
+      "name": "Authorized owner ticket lookup",
+      "method": "GET",
+      "path": "/api/tickets/101",
+      "params": {},
+      "headers": {
+        "X-Lab-User": "alice.netops"
+      },
+      "expected_classification": "baseline",
+      "expected_vulnerable": {
+        "status_code": 200,
+        "body_contains": "LAB-TICKET-NOTE-ONLY-192-0-2-10"
+      },
+      "expected_patched": {
+        "status_code": 200,
+        "body_contains": "LAB-TICKET-NOTE-ONLY-192-0-2-10"
+      },
+      "rationale": "Confirms ticket owner alice.netops can read her own ticket 101 in both modes."
+    },
+    {
+      "id": "XSS-001",
+      "category": "xss",
+      "name": "Reflected XSS probe on /search",
+      "method": "GET",
+      "path": "/search",
+      "params": {
+        "q": "<script>alert('LAB-XSS-PROOF')</script>"
+      },
+      "headers": {},
+      "expected_classification": "TP",
+      "expected_vulnerable": {
+        "status_code": 200,
+        "content_type_contains": "text/html",
+        "unescaped_marker": "<script>alert('LAB-XSS-PROOF')</script>"
+      },
+      "expected_patched": {
+        "status_code": 200,
+        "content_type_contains": "text/html",
+        "escaped_marker": "&lt;script&gt;",
+        "must_not_contain": "<script>alert('LAB-XSS-PROOF')</script>"
+      },
+      "rationale": "True Positive when PATCH_XSS!=1: raw script tag is reflected unescaped inside text/html. Patched when PATCH_XSS=1 via HTML escaping."
+    },
+    {
+      "id": "SQLI-001",
+      "category": "sqli",
+      "name": "Boolean-tautology SQL injection probe on /api/devices",
+      "method": "GET",
+      "path": "/api/devices",
+      "params": {
+        "hostname": "' OR '1'='1"
+      },
+      "headers": {},
+      "expected_classification": "TP",
+      "expected_vulnerable": {
+        "status_code": 200,
+        "min_device_count": 6,
+        "body_contains": "mgmt-jump-06.lab.internal"
+      },
+      "expected_patched": {
+        "status_code": 200,
+        "expected_device_count": 0
+      },
+      "rationale": "True Positive when PATCH_SQLI!=1: string-formatted SQLite WHERE clause dumps all 6 synthetic devices. Patched when PATCH_SQLI=1 via parameterized query returning 0 rows."
+    },
+    {
+      "id": "IDOR-001",
+      "category": "idor",
+      "name": "Horizontal IDOR probe reading another user's ticket",
+      "method": "GET",
+      "path": "/api/tickets/102",
+      "params": {},
+      "headers": {
+        "X-Lab-User": "carol.noc"
+      },
+      "expected_classification": "TP",
+      "expected_vulnerable": {
+        "status_code": 200,
+        "body_contains": "LAB-TICKET-NOTE-ONLY-198-51-100-42"
+      },
+      "expected_patched": {
+        "status_code": 403,
+        "must_not_contain": "LAB-TICKET-NOTE-ONLY-198-51-100-42"
+      },
+      "rationale": "True Positive when PATCH_IDOR!=1: carol.noc retrieves bob.secops's ticket 102 including internal_note. Patched when PATCH_IDOR=1 enforces X-Lab-User ownership check and returns 403."
+    },
+    {
+      "id": "FP-001",
+      "category": "false_positive",
+      "name": "Benign JSON status endpoint with HTML-like query input",
+      "method": "GET",
+      "path": "/api/status",
+      "params": {
+        "check": "<script>alert('FP-CHECK')</script>"
+      },
+      "headers": {},
+      "expected_classification": "FP",
+      "expected_vulnerable": {
+        "status_code": 200,
+        "content_type_contains": "application/json",
+        "not_executable_html": true
+      },
+      "expected_patched": {
+        "status_code": 200,
+        "content_type_contains": "application/json",
+        "not_executable_html": true
+      },
+      "rationale": "False Positive demonstration: even if a naive pattern matcher flags echoed angle brackets or server metadata on /api/status, the response is served strictly as application/json (not text/html) and does not execute script or expose sensitive data."
+    }
+  ]
+}

@@ -1,0 +1,67 @@
+==========================================================================================
+Before vs After Remediation Comparison (http://127.0.0.1:8765)
+==========================================================================================
+BEFORE: mode=vulnerable patches={"idor": false, "sqli": false, "xss": false} summary={"total_cases": 8, "passed": 8, "failed": 0, "tp_confirmed": 3, "patched_verified": 0, "fp_confirmed": 1, "baselines_passed": 4}
+AFTER:  mode=patched  patches={"idor": true, "sqli": true, "xss": true}  summary={"total_cases": 8, "passed": 8, "failed": 0, "tp_confirmed": 0, "patched_verified": 3, "fp_confirmed": 1, "baselines_passed": 4}
+
+Patch Command Applied:
+  wsl -e bash -lc 'cd /mnt/c/Users/superuser/ag-lab/claude-bughunter-1122 && PATCH_SQLI=1 PATCH_XSS=1 PATCH_IDOR=1 docker compose up -d --force-recreate'
+
+Case ID    | Skill              | BEFORE Verdict   | AFTER Verdict    | HTTP       | Key Change
+----------------------------------------------------------------------------------------------------------------------
+BASE-001   | bb-methodology     | BASELINE_PASS    | BASELINE_PASS    | 200 -> 200 | Baseline unchanged (zero functional regression)
+BASE-002   | bb-methodology     | BASELINE_PASS    | BASELINE_PASS    | 200 -> 200 | Baseline unchanged (zero functional regression)
+BASE-003   | bb-methodology     | BASELINE_PASS    | BASELINE_PASS    | 200 -> 200 | Baseline unchanged (zero functional regression)
+BASE-004   | bb-methodology     | BASELINE_PASS    | BASELINE_PASS    | 200 -> 200 | Baseline unchanged (zero functional regression)
+XSS-001    | hunt-xss           | TP_CONFIRMED     | PATCHED_VERIFIED | 200 -> 200 | Unescaped <script> (dialog fired) -> HTML-escaped &lt;script&gt; (0 dialogs)
+SQLI-001   | hunt-sqli          | TP_CONFIRMED     | PATCHED_VERIFIED | 200 -> 200 | count=6 (all 6 devices dumped) -> count=0 (parameterized SQLite query)
+IDOR-001   | hunt-idor          | TP_CONFIRMED     | PATCHED_VERIFIED | 200 -> 403 | HTTP 200 leaked ticket 102 internal_note -> HTTP 403 forbidden
+FP-001     | triage-validation  | FP_CONFIRMED     | FP_CONFIRMED     | 200 -> 200 | Remains FP_CONFIRMED (application/json + X-Content-Type-Options: nosniff)
+
+=== Detailed Response Snippets (BEFORE vs AFTER) ===
+
+--- XSS-001: Reflected XSS probe on /search ---
+BEFORE (HTTP 200):
+<main>
+    <div class="card">
+      <h2>Results for: <script>alert('LAB-XSS-PROOF')</script></h2>
+      <table>
+        <thead>
+          <tr><th>ID</th><th>Hostname</th><th>IP Address</th><th>Role</th><th>Site</th><th>Status</th></tr>
+        </thead>
+        <tbody><tr><td colspan='6' class='meta'>No matching devices found.</td></tr></tbody>
+      </table>
+    </div>
+  </main>
+</body>
+</html>
+AFTER  (HTTP 200):
+<main>
+    <div class="card">
+      <h2>Results for: &lt;script&gt;alert(&#x27;LAB-XSS-PROOF&#x27;)&lt;/script&gt;</h2>
+      <table>
+        <thead>
+          <tr><th>ID</th><th>Hostname</th><th>IP Address</th><th>Role</th><th>Site</th><th>Status</th></tr>
+        </thead>
+        <tbody><tr><td colspan='6' class='meta'>No matching devices found.</td></tr></tbody>
+      </table>
+    </div>
+  </ma
+
+--- SQLI-001: Boolean-tautology SQL injection probe on /api/devices ---
+BEFORE (HTTP 200):
+{"count":6,"devices":[{"hostname":"core-rtr-01.lab.internal","id":1,"ip_address":"192.0.2.10","os_version":"LabIOS-XE 17.9","owner":"alice.netops","role":"core-router","site":"dc-west-lab","status":"online"},{"hostname":"dist-sw-02.lab.internal","id":2,"ip_address":"192.0.2.20","os_version":"LabNX-OS 10.3","owner":"alice.netops","role":"distribution-switch","site":"dc-west-lab","status":"online"},
+AFTER  (HTTP 200):
+{"count":0,"devices":[]}
+
+--- IDOR-001: Horizontal IDOR probe reading another user's ticket ---
+BEFORE (HTTP 200):
+{"device_hostname":"edge-fw-03.lab.internal","id":102,"internal_note":"LAB-TICKET-NOTE-ONLY-198-51-100-42: SecOps internal review marker for IDOR verification.","owner":"bob.secops","priority":"high","status":"in_progress","summary":"Audit lab egress policy and remove stale RFC 5737 test entries.","title":"Review egress ACL rules on edge-fw-03"}
+AFTER  (HTTP 403):
+{"error":"forbidden","message":"Access denied: X-Lab-User does not match ticket owner."}
+
+--- FP-001: Benign JSON status endpoint with HTML-like query input ---
+BEFORE (HTTP 200):
+{"echo_check":"<script>alert('FP-CHECK')</script>","mode":"vulnerable","note":"Benign JSON diagnostic endpoint; served strictly as application/json.","service":"netops-portal-lab","status":"ok"}
+AFTER  (HTTP 200):
+{"echo_check":"<script>alert('FP-CHECK')</script>","mode":"patched","note":"Benign JSON diagnostic endpoint; served strictly as application/json.","service":"netops-portal-lab","status":"ok"}

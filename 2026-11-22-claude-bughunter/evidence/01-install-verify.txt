@@ -1,0 +1,59 @@
+=== Antigravity Skills Verification ===
+Date: 2026-11-22
+Skills Directory: %USERPROFILE%\.gemini\config\skills
+Total installed skill directories: 85
+Installed hunt-* skill directories: 58
+Upstream Claude-BugHunter skills count: 83
+Upstream Claude-BugHunter commands count: 15 (Claude-Code-only slash commands)
+
+=== Key Installed Claude-BugHunter SKILL.md Files ===
+OK  bb-methodology\SKILL.md (29608 bytes)
+OK  hunt-sqli\SKILL.md (22173 bytes)
+OK  hunt-xss\SKILL.md (29647 bytes)
+OK  hunt-idor\SKILL.md (21457 bytes)
+OK  triage-validation\SKILL.md (22210 bytes)
+OK  report-writing\SKILL.md (21033 bytes)
+OK  security-arsenal\SKILL.md (29017 bytes)
+
+=== Pre-existing Non-CBH Skills Preserved ===
+OK  make-video\SKILL.md
+OK  swarm-demo\SKILL.md
+
+=== cbh CLI Verification (offline / curl-only, no Anthropic API key required) ===
+Command: python upstream-claude-bughunter\scripts\cbh.py --help
+Exit Code: 0
+
+usage: cbh [-h] {recon,surface,classify,triage,report} ...
+
+claude-bughunter CLI — terminal-native deterministic runner.
+SECONDARY interface; slash commands (/hunt, /recon, /triage, /report) in Claude Code are PRIMARY. Use cbh for CI/CD, scripted runs, deterministic verification, or when not in a Claude Code session.
+
+positional arguments:
+  {recon,surface,classify,triage,report}
+    recon               passive recon + live-host probe + summary
+    surface             rank a target's attack surface from its recon manifest
+    classify            pattern-match URL to hunt-* skills
+    triage              run 7-Question Gate on a finding
+    report              emit a report draft
+
+Note on Claude Code vs Google Antigravity:
+- The 83 SKILL.md knowledge modules install cleanly into Google Antigravity (%USERPROFILE%\.gemini\config\skills\) via `scripts/install.ps1 -AntiGravity -NoProfile`.
+- The `cbh` CLI (scripts/cbh.py) is Python stdlib-only and runs deterministically offline/curl-only without an Anthropic API key.
+- Slash commands (/hunt, /recon, /triage, /report, /validate, /chain, /autopilot) and the LLM-driven /hunt engine remain Claude-Code-only by upstream design.
+
+=== Sample cbh classify Output Against Local Lab Fixture (127.0.0.1:8765) ===
+1) python upstream-claude-bughunter\scripts\cbh.py classify "http://127.0.0.1:8765/search?q=core-rtr-01"
+   Matched skills:
+   - hunt-sqli (URL matches /search?)
+   - hunt-xss  (URL matches /search? and [?&]q=)
+
+2) python upstream-claude-bughunter\scripts\cbh.py classify "http://127.0.0.1:8765/api/devices?hostname=core-rtr-01.lab.internal"
+   Matched skills:
+   - hunt-api-misconfig (URL matches /(api|rest|v[0-9])/)
+   - hunt-auth-bypass   (URL matches internal)
+   - hunt-idor          (URL matches /(api|rest|v[0-9])/)
+
+3) python upstream-claude-bughunter\scripts\cbh.py classify "http://127.0.0.1:8765/api/tickets/102"
+   Matched skills:
+   - hunt-api-misconfig (URL matches /(api|rest|v[0-9])/)
+   - hunt-idor          (URL matches /(api|rest|v[0-9])/)

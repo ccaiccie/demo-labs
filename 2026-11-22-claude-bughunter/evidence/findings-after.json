@@ -1,0 +1,406 @@
+{
+  "timestamp_utc": "2026-11-22T15:56:36Z",
+  "target_base_url": "http://127.0.0.1:8765",
+  "fixture_mode": "patched",
+  "fixture_patches": {
+    "idor": true,
+    "sqli": true,
+    "xss": true
+  },
+  "security_headers": {
+    "url": "http://127.0.0.1:8765/",
+    "status_code": 200,
+    "present": {},
+    "missing": [
+      "Content-Security-Policy",
+      "X-Frame-Options",
+      "X-Content-Type-Options",
+      "Referrer-Policy",
+      "Strict-Transport-Security"
+    ],
+    "note": "Per triage-validation skill, missing security headers alone are Informational/Low unless chained to a concrete exploit."
+  },
+  "summary": {
+    "total_cases": 8,
+    "passed": 8,
+    "failed": 0,
+    "tp_confirmed": 0,
+    "patched_verified": 3,
+    "fp_confirmed": 1,
+    "baselines_passed": 4
+  },
+  "results": [
+    {
+      "id": "BASE-001",
+      "category": "baseline",
+      "skill": "bb-methodology",
+      "name": "Health check endpoint",
+      "expected_classification": "baseline",
+      "verdict": "BASELINE_PASS",
+      "passed": true,
+      "request": {
+        "method": "GET",
+        "url": "http://127.0.0.1:8765/health",
+        "headers": {}
+      },
+      "response": {
+        "status_code": 200,
+        "content_type": "application/json",
+        "headers": {
+          "Server": "gunicorn",
+          "Date": "Sun, 22 Nov 2026 15:56:36 GMT",
+          "Connection": "close",
+          "Content-Type": "application/json",
+          "Content-Length": "80"
+        },
+        "body_preview": "{\"mode\":\"patched\",\"patches\":{\"idor\":true,\"sqli\":true,\"xss\":true},\"status\":\"ok\"}\n",
+        "body_length": 80
+      },
+      "checks": [
+        {
+          "check": "status_code",
+          "expected": 200,
+          "observed": 200,
+          "passed": true
+        },
+        {
+          "check": "body_contains",
+          "expected": "ok",
+          "observed": true,
+          "passed": true
+        }
+      ],
+      "rationale": "Confirms local lab fixture is reachable on 127.0.0.1:8765."
+    },
+    {
+      "id": "BASE-002",
+      "category": "baseline",
+      "skill": "bb-methodology",
+      "name": "Benign device lookup by hostname",
+      "expected_classification": "baseline",
+      "verdict": "BASELINE_PASS",
+      "passed": true,
+      "request": {
+        "method": "GET",
+        "url": "http://127.0.0.1:8765/api/devices?hostname=core-rtr-01.lab.internal",
+        "headers": {}
+      },
+      "response": {
+        "status_code": 200,
+        "content_type": "application/json",
+        "headers": {
+          "Server": "gunicorn",
+          "Date": "Sun, 22 Nov 2026 15:56:36 GMT",
+          "Connection": "close",
+          "Content-Type": "application/json",
+          "Content-Length": "210"
+        },
+        "body_preview": "{\"count\":1,\"devices\":[{\"hostname\":\"core-rtr-01.lab.internal\",\"id\":1,\"ip_address\":\"192.0.2.10\",\"os_version\":\"LabIOS-XE 17.9\",\"owner\":\"alice.netops\",\"role\":\"core-router\",\"site\":\"dc-west-lab\",\"status\":\"online\"}]}\n",
+        "body_length": 210
+      },
+      "checks": [
+        {
+          "check": "status_code",
+          "expected": 200,
+          "observed": 200,
+          "passed": true
+        },
+        {
+          "check": "body_contains",
+          "expected": "192.0.2.10",
+          "observed": true,
+          "passed": true
+        },
+        {
+          "check": "expected_device_count",
+          "expected": 1,
+          "observed": 1,
+          "passed": true
+        }
+      ],
+      "rationale": "Establishes normal single-record API behavior before testing SQL injection."
+    },
+    {
+      "id": "BASE-003",
+      "category": "baseline",
+      "skill": "bb-methodology",
+      "name": "Benign search query",
+      "expected_classification": "baseline",
+      "verdict": "BASELINE_PASS",
+      "passed": true,
+      "request": {
+        "method": "GET",
+        "url": "http://127.0.0.1:8765/search?q=core-rtr-01",
+        "headers": {}
+      },
+      "response": {
+        "status_code": 200,
+        "content_type": "text/html; charset=utf-8",
+        "headers": {
+          "Server": "gunicorn",
+          "Date": "Sun, 22 Nov 2026 15:56:36 GMT",
+          "Connection": "close",
+          "Content-Type": "text/html; charset=utf-8",
+          "Content-Length": "2962"
+        },
+        "body_preview": "<main>\n    <div class=\"card\">\n      <h2>Results for: core-rtr-01</h2>\n      <table>\n        <thead>\n          <tr><th>ID</th><th>Hostname</th><th>IP Address</th><th>Role</th><th>Site</th><th>Status</th></tr>\n        </thead>\n        <tbody><tr><td>1</td><td><code>core-rtr-01.lab.internal</code></td><td>192.0.2.10</td><td>core-router</td><td>dc-west-lab</td><td>online</td></tr></tbody>\n      </table>\n    </div>\n  </main>\n</body>\n</html>",
+        "body_length": 2962
+      },
+      "checks": [
+        {
+          "check": "status_code",
+          "expected": 200,
+          "observed": 200,
+          "passed": true
+        },
+        {
+          "check": "content_type_contains",
+          "expected": "text/html",
+          "observed": "text/html; charset=utf-8",
+          "passed": true
+        },
+        {
+          "check": "body_contains",
+          "expected": "core-rtr-01",
+          "observed": true,
+          "passed": true
+        }
+      ],
+      "rationale": "Confirms normal HTML search rendering for a safe alphanumeric query."
+    },
+    {
+      "id": "BASE-004",
+      "category": "baseline",
+      "skill": "bb-methodology",
+      "name": "Authorized owner ticket lookup",
+      "expected_classification": "baseline",
+      "verdict": "BASELINE_PASS",
+      "passed": true,
+      "request": {
+        "method": "GET",
+        "url": "http://127.0.0.1:8765/api/tickets/101",
+        "headers": {
+          "X-Lab-User": "alice.netops"
+        }
+      },
+      "response": {
+        "status_code": 200,
+        "content_type": "application/json",
+        "headers": {
+          "Server": "gunicorn",
+          "Date": "Sun, 22 Nov 2026 15:56:36 GMT",
+          "Connection": "close",
+          "Content-Type": "application/json",
+          "Content-Length": "367"
+        },
+        "body_preview": "{\"device_hostname\":\"core-rtr-01.lab.internal\",\"id\":101,\"internal_note\":\"LAB-TICKET-NOTE-ONLY-192-0-2-10: Peer AS 65001 test window approved for Saturday 02:00 UTC.\",\"owner\":\"alice.netops\",\"priority\":\"high\",\"status\":\"open\",\"summary\":\"Verify BGP hold and graceful restart timers ahead of weekend maintenance.\",\"title\":\"BGP graceful restart timer audit on core-rtr-01\"}\n",
+        "body_length": 367
+      },
+      "checks": [
+        {
+          "check": "status_code",
+          "expected": 200,
+          "observed": 200,
+          "passed": true
+        },
+        {
+          "check": "body_contains",
+          "expected": "LAB-TICKET-NOTE-ONLY-192-0-2-10",
+          "observed": true,
+          "passed": true
+        }
+      ],
+      "rationale": "Confirms ticket owner alice.netops can read her own ticket 101 in both modes."
+    },
+    {
+      "id": "XSS-001",
+      "category": "xss",
+      "skill": "hunt-xss",
+      "name": "Reflected XSS probe on /search",
+      "expected_classification": "TP",
+      "verdict": "PATCHED_VERIFIED",
+      "passed": true,
+      "request": {
+        "method": "GET",
+        "url": "http://127.0.0.1:8765/search?q=%3Cscript%3Ealert%28%27LAB-XSS-PROOF%27%29%3C%2Fscript%3E",
+        "headers": {}
+      },
+      "response": {
+        "status_code": 200,
+        "content_type": "text/html; charset=utf-8",
+        "headers": {
+          "Server": "gunicorn",
+          "Date": "Sun, 22 Nov 2026 15:56:36 GMT",
+          "Connection": "close",
+          "Content-Type": "text/html; charset=utf-8",
+          "Content-Length": "2942"
+        },
+        "body_preview": "<main>\n    <div class=\"card\">\n      <h2>Results for: &lt;script&gt;alert(&#x27;LAB-XSS-PROOF&#x27;)&lt;/script&gt;</h2>\n      <table>\n        <thead>\n          <tr><th>ID</th><th>Hostname</th><th>IP Address</th><th>Role</th><th>Site</th><th>Status</th></tr>\n        </thead>\n        <tbody><tr><td colspan='6' class='meta'>No matching devices found.</td></tr></tbody>\n      </table>\n    </div>\n  </main>\n</body>\n</html>",
+        "body_length": 2942
+      },
+      "checks": [
+        {
+          "check": "status_code",
+          "expected": 200,
+          "observed": 200,
+          "passed": true
+        },
+        {
+          "check": "content_type_contains",
+          "expected": "text/html",
+          "observed": "text/html; charset=utf-8",
+          "passed": true
+        },
+        {
+          "check": "must_not_contain",
+          "expected": "absent:<script>alert('LAB-XSS-PROOF')</script>",
+          "observed": "absent",
+          "passed": true
+        },
+        {
+          "check": "escaped_marker",
+          "expected": "&lt;script&gt;",
+          "observed": true,
+          "passed": true
+        }
+      ],
+      "rationale": "True Positive when PATCH_XSS!=1: raw script tag is reflected unescaped inside text/html. Patched when PATCH_XSS=1 via HTML escaping."
+    },
+    {
+      "id": "SQLI-001",
+      "category": "sqli",
+      "skill": "hunt-sqli",
+      "name": "Boolean-tautology SQL injection probe on /api/devices",
+      "expected_classification": "TP",
+      "verdict": "PATCHED_VERIFIED",
+      "passed": true,
+      "request": {
+        "method": "GET",
+        "url": "http://127.0.0.1:8765/api/devices?hostname=%27+OR+%271%27%3D%271",
+        "headers": {}
+      },
+      "response": {
+        "status_code": 200,
+        "content_type": "application/json",
+        "headers": {
+          "Server": "gunicorn",
+          "Date": "Sun, 22 Nov 2026 15:56:36 GMT",
+          "Connection": "close",
+          "Content-Type": "application/json",
+          "Content-Length": "25"
+        },
+        "body_preview": "{\"count\":0,\"devices\":[]}\n",
+        "body_length": 25
+      },
+      "checks": [
+        {
+          "check": "status_code",
+          "expected": 200,
+          "observed": 200,
+          "passed": true
+        },
+        {
+          "check": "expected_device_count",
+          "expected": 0,
+          "observed": 0,
+          "passed": true
+        }
+      ],
+      "rationale": "True Positive when PATCH_SQLI!=1: string-formatted SQLite WHERE clause dumps all 6 synthetic devices. Patched when PATCH_SQLI=1 via parameterized query returning 0 rows."
+    },
+    {
+      "id": "IDOR-001",
+      "category": "idor",
+      "skill": "hunt-idor",
+      "name": "Horizontal IDOR probe reading another user's ticket",
+      "expected_classification": "TP",
+      "verdict": "PATCHED_VERIFIED",
+      "passed": true,
+      "request": {
+        "method": "GET",
+        "url": "http://127.0.0.1:8765/api/tickets/102",
+        "headers": {
+          "X-Lab-User": "carol.noc"
+        }
+      },
+      "response": {
+        "status_code": 403,
+        "content_type": "application/json",
+        "headers": {
+          "Server": "gunicorn",
+          "Date": "Sun, 22 Nov 2026 15:56:36 GMT",
+          "Connection": "close",
+          "Content-Type": "application/json",
+          "Content-Length": "89"
+        },
+        "body_preview": "{\"error\":\"forbidden\",\"message\":\"Access denied: X-Lab-User does not match ticket owner.\"}\n",
+        "body_length": 89
+      },
+      "checks": [
+        {
+          "check": "status_code",
+          "expected": 403,
+          "observed": 403,
+          "passed": true
+        },
+        {
+          "check": "must_not_contain",
+          "expected": "absent:LAB-TICKET-NOTE-ONLY-198-51-100-42",
+          "observed": "absent",
+          "passed": true
+        }
+      ],
+      "rationale": "True Positive when PATCH_IDOR!=1: carol.noc retrieves bob.secops's ticket 102 including internal_note. Patched when PATCH_IDOR=1 enforces X-Lab-User ownership check and returns 403."
+    },
+    {
+      "id": "FP-001",
+      "category": "false_positive",
+      "skill": "triage-validation",
+      "name": "Benign JSON status endpoint with HTML-like query input",
+      "expected_classification": "FP",
+      "verdict": "FP_CONFIRMED",
+      "passed": true,
+      "request": {
+        "method": "GET",
+        "url": "http://127.0.0.1:8765/api/status?check=%3Cscript%3Ealert%28%27FP-CHECK%27%29%3C%2Fscript%3E",
+        "headers": {}
+      },
+      "response": {
+        "status_code": 200,
+        "content_type": "application/json",
+        "headers": {
+          "Server": "gunicorn",
+          "Date": "Sun, 22 Nov 2026 15:56:36 GMT",
+          "Connection": "close",
+          "Content-Type": "application/json",
+          "Content-Length": "192",
+          "X-Content-Type-Options": "nosniff",
+          "X-Lab-Service": "netops-portal-lab"
+        },
+        "body_preview": "{\"echo_check\":\"<script>alert('FP-CHECK')</script>\",\"mode\":\"patched\",\"note\":\"Benign JSON diagnostic endpoint; served strictly as application/json.\",\"service\":\"netops-portal-lab\",\"status\":\"ok\"}\n",
+        "body_length": 192
+      },
+      "checks": [
+        {
+          "check": "status_code",
+          "expected": 200,
+          "observed": 200,
+          "passed": true
+        },
+        {
+          "check": "content_type_contains",
+          "expected": "application/json",
+          "observed": "application/json",
+          "passed": true
+        },
+        {
+          "check": "not_executable_html",
+          "expected": "application/json (non-HTML)",
+          "observed": "Content-Type=application/json; X-Content-Type-Options=nosniff",
+          "passed": true
+        }
+      ],
+      "rationale": "False Positive demonstration: even if a naive pattern matcher flags echoed angle brackets or server metadata on /api/status, the response is served strictly as application/json (not text/html) and does not execute script or expose sensitive data."
+    }
+  ]
+}
