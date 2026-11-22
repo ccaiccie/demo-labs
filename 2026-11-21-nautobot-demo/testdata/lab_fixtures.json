@@ -1,0 +1,614 @@
+{
+  "metadata": {
+    "description": "Synthetic NetOps lab fixtures for Nautobot 3.2.9 demo lab",
+    "ip_standard": "RFC 5737 TEST-NET-1/2/3 only (192.0.2.0/24, 198.51.100.0/24, 203.0.113.0/24)",
+    "asn_standard": "RFC 6996 private ASNs only (64512-65534)",
+    "domain": "lab.internal"
+  },
+  "location_types": [
+    {
+      "name": "Region",
+      "description": "Geographic region grouping sites",
+      "nestable": true,
+      "parent": null,
+      "content_types": []
+    },
+    {
+      "name": "Site",
+      "description": "Physical data center or branch site",
+      "nestable": false,
+      "parent": "Region",
+      "content_types": [
+        "dcim.device",
+        "ipam.prefix",
+        "ipam.vlan",
+        "circuits.circuittermination"
+      ]
+    }
+  ],
+  "locations": [
+    {
+      "name": "US-West",
+      "location_type": "Region",
+      "parent": null,
+      "status": "Active",
+      "description": "US West synthetic lab region"
+    },
+    {
+      "name": "dc-west-01",
+      "location_type": "Site",
+      "parent": "US-West",
+      "status": "Active",
+      "facility": "LAB-DCW1",
+      "description": "Primary synthetic lab data center"
+    },
+    {
+      "name": "branch-sea-01",
+      "location_type": "Site",
+      "parent": "US-West",
+      "status": "Active",
+      "facility": "LAB-SEA1",
+      "description": "Synthetic Seattle branch office"
+    }
+  ],
+  "manufacturers": [
+    {
+      "name": "Arista",
+      "description": "Arista Networks"
+    },
+    {
+      "name": "Cisco",
+      "description": "Cisco Systems"
+    },
+    {
+      "name": "Juniper",
+      "description": "Juniper Networks"
+    }
+  ],
+  "platforms": [
+    {
+      "name": "arista_eos",
+      "manufacturer": "Arista",
+      "network_driver": "arista_eos",
+      "description": "Arista EOS network operating system"
+    },
+    {
+      "name": "cisco_ios",
+      "manufacturer": "Cisco",
+      "network_driver": "cisco_ios",
+      "description": "Cisco IOS-XE / IOS network operating system"
+    },
+    {
+      "name": "juniper_junos",
+      "manufacturer": "Juniper",
+      "network_driver": "juniper_junos",
+      "description": "Juniper Junos OS"
+    }
+  ],
+  "device_types": [
+    {
+      "model": "DCS-7050SX3-48YC8",
+      "manufacturer": "Arista",
+      "u_height": 1,
+      "is_full_depth": true,
+      "part_number": "DCS-7050SX3-48YC8-F",
+      "comments": "48x25G SFP28 + 8x100G QSFP28 core/leaf switch"
+    },
+    {
+      "model": "C9300-48P",
+      "manufacturer": "Cisco",
+      "u_height": 1,
+      "is_full_depth": false,
+      "part_number": "C9300-48P-A",
+      "comments": "48-port PoE+ access switch"
+    },
+    {
+      "model": "EX4300-48T",
+      "manufacturer": "Juniper",
+      "u_height": 1,
+      "is_full_depth": false,
+      "part_number": "EX4300-48T-AFI",
+      "comments": "48-port 1G edge/distribution platform"
+    }
+  ],
+  "roles": [
+    {
+      "name": "Core Switch",
+      "color": "2196f3",
+      "description": "Data center core switching tier",
+      "content_types": [
+        "dcim.device",
+        "ipam.prefix",
+        "ipam.vlan"
+      ]
+    },
+    {
+      "name": "Access Switch",
+      "color": "4caf50",
+      "description": "Branch and edge access switching tier",
+      "content_types": [
+        "dcim.device",
+        "ipam.prefix",
+        "ipam.vlan"
+      ]
+    },
+    {
+      "name": "Edge Router",
+      "color": "ff9800",
+      "description": "WAN and transit edge routing tier",
+      "content_types": [
+        "dcim.device",
+        "ipam.prefix",
+        "ipam.vlan"
+      ]
+    }
+  ],
+  "tags": [
+    {
+      "name": "lab-core",
+      "color": "1565c0",
+      "description": "Core lab infrastructure",
+      "content_types": [
+        "dcim.device",
+        "ipam.prefix",
+        "ipam.ipaddress",
+        "ipam.vlan",
+        "circuits.circuit"
+      ]
+    },
+    {
+      "name": "lab-access",
+      "color": "2e7d32",
+      "description": "Branch access lab infrastructure",
+      "content_types": [
+        "dcim.device",
+        "ipam.prefix",
+        "ipam.ipaddress",
+        "ipam.vlan",
+        "circuits.circuit"
+      ]
+    },
+    {
+      "name": "lab-edge",
+      "color": "ef6c00",
+      "description": "Edge and transit lab infrastructure",
+      "content_types": [
+        "dcim.device",
+        "ipam.prefix",
+        "ipam.ipaddress",
+        "ipam.vlan",
+        "circuits.circuit"
+      ]
+    },
+    {
+      "name": "managed-by-nautobot",
+      "color": "6a1b9a",
+      "description": "Authoritative source of truth is Nautobot",
+      "content_types": [
+        "dcim.device",
+        "ipam.prefix",
+        "ipam.ipaddress",
+        "ipam.vlan",
+        "circuits.circuit"
+      ]
+    }
+  ],
+  "custom_fields": [
+    {
+      "key": "asset_tag",
+      "label": "Asset Tag",
+      "type": "text",
+      "description": "Synthetic hardware asset identifier",
+      "required": false,
+      "content_types": [
+        "dcim.device"
+      ]
+    },
+    {
+      "key": "maintenance_window",
+      "label": "Maintenance Window",
+      "type": "select",
+      "description": "Approved change window for the device",
+      "required": false,
+      "content_types": [
+        "dcim.device"
+      ],
+      "choices": [
+        "Sunday 02:00 UTC",
+        "Wednesday 04:00 UTC",
+        "Change-Freeze"
+      ]
+    },
+    {
+      "key": "cost_center",
+      "label": "Cost Center",
+      "type": "text",
+      "description": "Internal lab billing/cost center code for prefix allocation",
+      "required": false,
+      "content_types": [
+        "ipam.prefix"
+      ]
+    }
+  ],
+  "vlans": [
+    {
+      "vid": 100,
+      "name": "MGMT-DC-WEST",
+      "location": "dc-west-01",
+      "role": "Core Switch",
+      "status": "Active",
+      "description": "DC West out-of-band and management VLAN",
+      "tags": [
+        "lab-core",
+        "managed-by-nautobot"
+      ]
+    },
+    {
+      "vid": 200,
+      "name": "TRANSIT-CORE",
+      "location": "dc-west-01",
+      "role": "Edge Router",
+      "status": "Active",
+      "description": "DC West core transit VLAN",
+      "tags": [
+        "lab-edge",
+        "managed-by-nautobot"
+      ]
+    },
+    {
+      "vid": 300,
+      "name": "BRANCH-ACCESS",
+      "location": "branch-sea-01",
+      "role": "Access Switch",
+      "status": "Active",
+      "description": "Seattle branch user and device access VLAN",
+      "tags": [
+        "lab-access",
+        "managed-by-nautobot"
+      ]
+    }
+  ],
+  "prefixes": [
+    {
+      "prefix": "192.0.2.0/24",
+      "namespace": "Global",
+      "type": "network",
+      "status": "Active",
+      "role": "Core Switch",
+      "location": "dc-west-01",
+      "vlan": "MGMT-DC-WEST",
+      "description": "DC West Management (RFC 5737 TEST-NET-1)",
+      "custom_fields": {
+        "cost_center": "CC-1001-DCWEST"
+      },
+      "tags": [
+        "lab-core",
+        "managed-by-nautobot"
+      ]
+    },
+    {
+      "prefix": "198.51.100.0/24",
+      "namespace": "Global",
+      "type": "network",
+      "status": "Active",
+      "role": "Edge Router",
+      "location": "dc-west-01",
+      "vlan": "TRANSIT-CORE",
+      "description": "DC West Transit/Loopbacks (RFC 5737 TEST-NET-2)",
+      "custom_fields": {
+        "cost_center": "CC-1002-TRANSIT"
+      },
+      "tags": [
+        "lab-edge",
+        "managed-by-nautobot"
+      ]
+    },
+    {
+      "prefix": "203.0.113.0/24",
+      "namespace": "Global",
+      "type": "network",
+      "status": "Active",
+      "role": "Access Switch",
+      "location": "branch-sea-01",
+      "vlan": "BRANCH-ACCESS",
+      "description": "Branch Seattle Access (RFC 5737 TEST-NET-3)",
+      "custom_fields": {
+        "cost_center": "CC-2001-BRANCH"
+      },
+      "tags": [
+        "lab-access",
+        "managed-by-nautobot"
+      ]
+    }
+  ],
+  "devices": [
+    {
+      "name": "core-sw-01.lab.internal",
+      "device_type": "DCS-7050SX3-48YC8",
+      "role": "Core Switch",
+      "platform": "arista_eos",
+      "location": "dc-west-01",
+      "status": "Active",
+      "serial": "LAB-ARI-0001",
+      "comments": "Primary core switch in dc-west-01",
+      "custom_fields": {
+        "asset_tag": "LAB-AST-0001",
+        "maintenance_window": "Sunday 02:00 UTC"
+      },
+      "tags": [
+        "lab-core",
+        "managed-by-nautobot"
+      ],
+      "interfaces": [
+        {
+          "name": "Ethernet1",
+          "type": "25gbase-x-sfp28",
+          "status": "Active",
+          "enabled": true,
+          "description": "Management uplink to DC West mgmt fabric",
+          "ip_address": "192.0.2.10/24",
+          "is_primary_ip4": true
+        },
+        {
+          "name": "Ethernet2",
+          "type": "25gbase-x-sfp28",
+          "status": "Active",
+          "enabled": true,
+          "description": "Core interconnect to core-sw-02.lab.internal"
+        },
+        {
+          "name": "Loopback0",
+          "type": "virtual",
+          "status": "Active",
+          "enabled": true,
+          "description": "BGP router-id loopback",
+          "ip_address": "198.51.100.1/32",
+          "is_primary_ip4": false
+        }
+      ]
+    },
+    {
+      "name": "core-sw-02.lab.internal",
+      "device_type": "DCS-7050SX3-48YC8",
+      "role": "Core Switch",
+      "platform": "arista_eos",
+      "location": "dc-west-01",
+      "status": "Active",
+      "serial": "LAB-ARI-0002",
+      "comments": "Secondary core switch in dc-west-01",
+      "custom_fields": {
+        "asset_tag": "LAB-AST-0002",
+        "maintenance_window": "Sunday 02:00 UTC"
+      },
+      "tags": [
+        "lab-core",
+        "managed-by-nautobot"
+      ],
+      "interfaces": [
+        {
+          "name": "Ethernet1",
+          "type": "25gbase-x-sfp28",
+          "status": "Active",
+          "enabled": true,
+          "description": "Management uplink to DC West mgmt fabric",
+          "ip_address": "192.0.2.11/24",
+          "is_primary_ip4": true
+        },
+        {
+          "name": "Ethernet2",
+          "type": "25gbase-x-sfp28",
+          "status": "Active",
+          "enabled": true,
+          "description": "Core interconnect to core-sw-01.lab.internal"
+        },
+        {
+          "name": "Loopback0",
+          "type": "virtual",
+          "status": "Active",
+          "enabled": true,
+          "description": "BGP router-id loopback",
+          "ip_address": "198.51.100.2/32",
+          "is_primary_ip4": false
+        }
+      ]
+    },
+    {
+      "name": "edge-rtr-01.lab.internal",
+      "device_type": "EX4300-48T",
+      "role": "Edge Router",
+      "platform": "juniper_junos",
+      "location": "dc-west-01",
+      "status": "Active",
+      "serial": "LAB-JNP-0003",
+      "comments": "WAN edge router in dc-west-01",
+      "custom_fields": {
+        "asset_tag": "LAB-AST-0003",
+        "maintenance_window": "Wednesday 04:00 UTC"
+      },
+      "tags": [
+        "lab-edge",
+        "managed-by-nautobot"
+      ],
+      "interfaces": [
+        {
+          "name": "ge-0/0/0",
+          "type": "1000base-t",
+          "status": "Active",
+          "enabled": true,
+          "description": "Management interface on DC West mgmt subnet",
+          "ip_address": "192.0.2.12/24",
+          "is_primary_ip4": false
+        },
+        {
+          "name": "ge-0/0/1",
+          "type": "1000base-t",
+          "status": "Active",
+          "enabled": true,
+          "description": "WAN handoff to LabTel Transit LAB-CKT-0001"
+        },
+        {
+          "name": "Loopback0",
+          "type": "virtual",
+          "status": "Active",
+          "enabled": true,
+          "description": "Edge BGP router-id loopback",
+          "ip_address": "198.51.100.3/32",
+          "is_primary_ip4": true
+        }
+      ]
+    },
+    {
+      "name": "acc-sw-01.lab.internal",
+      "device_type": "C9300-48P",
+      "role": "Access Switch",
+      "platform": "cisco_ios",
+      "location": "branch-sea-01",
+      "status": "Active",
+      "serial": "LAB-CIS-0004",
+      "comments": "Primary access switch in branch-sea-01",
+      "custom_fields": {
+        "asset_tag": "LAB-AST-0004",
+        "maintenance_window": "Wednesday 04:00 UTC"
+      },
+      "tags": [
+        "lab-access",
+        "managed-by-nautobot"
+      ],
+      "interfaces": [
+        {
+          "name": "GigabitEthernet1/0/1",
+          "type": "1000base-t",
+          "status": "Active",
+          "enabled": true,
+          "description": "Branch management and uplink interface",
+          "ip_address": "203.0.113.10/24",
+          "is_primary_ip4": true
+        },
+        {
+          "name": "GigabitEthernet1/0/2",
+          "type": "1000base-t",
+          "status": "Active",
+          "enabled": true,
+          "description": "Downlink to access floor IDF"
+        },
+        {
+          "name": "Loopback0",
+          "type": "virtual",
+          "status": "Active",
+          "enabled": true,
+          "description": "Local switch loopback"
+        }
+      ]
+    },
+    {
+      "name": "acc-sw-02.lab.internal",
+      "device_type": "C9300-48P",
+      "role": "Access Switch",
+      "platform": "cisco_ios",
+      "location": "branch-sea-01",
+      "status": "Active",
+      "serial": "LAB-CIS-0005",
+      "comments": "Secondary access switch in branch-sea-01",
+      "custom_fields": {
+        "asset_tag": "LAB-AST-0005",
+        "maintenance_window": "Change-Freeze"
+      },
+      "tags": [
+        "lab-access",
+        "managed-by-nautobot"
+      ],
+      "interfaces": [
+        {
+          "name": "GigabitEthernet1/0/1",
+          "type": "1000base-t",
+          "status": "Active",
+          "enabled": true,
+          "description": "Branch management and uplink interface",
+          "ip_address": "203.0.113.11/24",
+          "is_primary_ip4": true
+        },
+        {
+          "name": "GigabitEthernet1/0/2",
+          "type": "1000base-t",
+          "status": "Active",
+          "enabled": true,
+          "description": "Downlink to wireless APs"
+        },
+        {
+          "name": "Loopback0",
+          "type": "virtual",
+          "status": "Active",
+          "enabled": true,
+          "description": "Local switch loopback"
+        }
+      ]
+    }
+  ],
+  "circuit_providers": [
+    {
+      "name": "LabTel Transit",
+      "asn": 64512,
+      "account": "LAB-ACCT-001",
+      "comments": "Synthetic lab WAN carrier using RFC 6996 private ASN 64512"
+    }
+  ],
+  "circuit_types": [
+    {
+      "name": "Dark Fiber",
+      "description": "Point-to-point synthetic dark fiber circuit"
+    },
+    {
+      "name": "DIA",
+      "description": "Dedicated Internet Access synthetic circuit"
+    }
+  ],
+  "circuits": [
+    {
+      "cid": "LAB-CKT-0001",
+      "provider": "LabTel Transit",
+      "circuit_type": "Dark Fiber",
+      "status": "Active",
+      "commit_rate": 10000000,
+      "description": "10G lab backbone between dc-west-01 and branch-sea-01",
+      "tags": [
+        "lab-edge",
+        "managed-by-nautobot"
+      ],
+      "terminations": [
+        {
+          "term_side": "A",
+          "location": "dc-west-01",
+          "port_speed": 10000000,
+          "description": "DC West A-side handoff"
+        },
+        {
+          "term_side": "Z",
+          "location": "branch-sea-01",
+          "port_speed": 10000000,
+          "description": "Branch Seattle Z-side handoff"
+        }
+      ]
+    }
+  ],
+  "config_contexts": [
+    {
+      "name": "lab-base-services",
+      "weight": 1000,
+      "is_active": true,
+      "description": "Global synthetic NetOps base services (RFC 5737 IPs, lab.internal)",
+      "data": {
+        "domain_name": "lab.internal",
+        "ntp_servers": [
+          "192.0.2.123",
+          "192.0.2.124"
+        ],
+        "syslog_servers": [
+          "192.0.2.200"
+        ],
+        "dns_servers": [
+          "192.0.2.53"
+        ]
+      }
+    }
+  ]
+}

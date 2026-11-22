@@ -1,0 +1,131 @@
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${NAUTOBOT_DB_NAME:-nautobot}
+      POSTGRES_USER: ${NAUTOBOT_DB_USER:-nautobot}
+      POSTGRES_PASSWORD: ${NAUTOBOT_DB_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: ["sh", "-c", "redis-server --appendonly yes --requirepass \"$${NAUTOBOT_REDIS_PASSWORD}\""]
+    environment:
+      NAUTOBOT_REDIS_PASSWORD: ${NAUTOBOT_REDIS_PASSWORD}
+      REDISCLI_AUTH: ${NAUTOBOT_REDIS_PASSWORD}
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 5s
+
+  volume_init:
+    image: python:3.12-alpine
+    restart: "no"
+    command: ["sh", "-c", "mkdir -p /opt/nautobot/git /opt/nautobot/media && chown -R 999:999 /opt/nautobot/git /opt/nautobot/media"]
+    volumes:
+      - nautobot_git:/opt/nautobot/git
+      - nautobot_media:/opt/nautobot/media
+
+  nautobot:
+    image: networktocode/nautobot:3.2.9-py3.12
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      volume_init:
+        condition: service_completed_successfully
+    env_file:
+      - .env
+    ports:
+      - "127.0.0.1:8081:8080"
+    volumes:
+      - ./config/nautobot_config.py:/opt/nautobot/nautobot_config.py:ro
+      - nautobot_git:/opt/nautobot/git
+      - nautobot_media:/opt/nautobot/media
+    healthcheck:
+      test: ["CMD-SHELL", "python3 -c \"import urllib.request; urllib.request.urlopen('http://127.0.0.1:8080/health/', timeout=5)\""]
+      interval: 10s
+      timeout: 10s
+      retries: 15
+      start_period: 300s
+
+  celery_worker:
+    image: networktocode/nautobot:3.2.9-py3.12
+    restart: unless-stopped
+    command: ["nautobot-server", "celery", "worker", "-l", "INFO", "--events", "--concurrency=2"]
+    depends_on:
+      nautobot:
+        condition: service_healthy
+    env_file:
+      - .env
+    environment:
+      NAUTOBOT_DOCKER_SKIP_INIT: "true"
+      NAUTOBOT_CREATE_SUPERUSER: "false"
+    volumes:
+      - ./config/nautobot_config.py:/opt/nautobot/nautobot_config.py:ro
+      - nautobot_git:/opt/nautobot/git
+      - nautobot_media:/opt/nautobot/media
+    healthcheck:
+      test: ["CMD-SHELL", "nautobot-server celery inspect ping -t 5 | grep -q pong"]
+      interval: 30s
+      timeout: 30s
+      retries: 5
+      start_period: 30s
+
+  celery_beat:
+    image: networktocode/nautobot:3.2.9-py3.12
+    restart: unless-stopped
+    command: ["nautobot-server", "celery", "beat", "-l", "INFO"]
+    depends_on:
+      nautobot:
+        condition: service_healthy
+    env_file:
+      - .env
+    environment:
+      NAUTOBOT_DOCKER_SKIP_INIT: "true"
+      NAUTOBOT_CREATE_SUPERUSER: "false"
+    volumes:
+      - ./config/nautobot_config.py:/opt/nautobot/nautobot_config.py:ro
+      - nautobot_git:/opt/nautobot/git
+      - nautobot_media:/opt/nautobot/media
+    healthcheck:
+      test: ["CMD-SHELL", "nautobot-server health_check"]
+      interval: 30s
+      timeout: 30s
+      retries: 5
+      start_period: 30s
+
+  git-server:
+    image: python:3.12-alpine
+    restart: unless-stopped
+    entrypoint: ["/bin/sh", "/entrypoint.sh"]
+    volumes:
+      - ./git-server/entrypoint.sh:/entrypoint.sh:ro
+      - ./testdata/git-repo:/src/git-repo:ro
+    healthcheck:
+      test: ["CMD-SHELL", "python3 -c \"import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/nautobot-lab-repo.git/info/refs', timeout=5)\""]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 15s
+
+volumes:
+  postgres_data:
+  redis_data:
+  nautobot_git:
+  nautobot_media:

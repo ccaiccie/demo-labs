@@ -1,0 +1,37 @@
+{
+  "_metadata": {
+    "name": "dc-west-01-bgp",
+    "weight": 1500,
+    "description": "Git-backed BGP configuration context scoped to dc-west-01",
+    "is_active": true,
+    "locations": [
+      {
+        "name": "dc-west-01"
+      }
+    ]
+  },
+  "bgp": {
+    "local_asn": 65001,
+    "router_id_prefix": "198.51.100.0/24",
+    "peers": [
+      {
+        "name": "core-sw-02.lab.internal",
+        "peer_ip": "198.51.100.2",
+        "remote_asn": 65001,
+        "description": "iBGP core peer in dc-west-01"
+      },
+      {
+        "name": "edge-rtr-01.lab.internal",
+        "peer_ip": "198.51.100.3",
+        "remote_asn": 65001,
+        "description": "iBGP edge peer in dc-west-01"
+      },
+      {
+        "name": "labtel-transit-gw",
+        "peer_ip": "198.51.100.254",
+        "remote_asn": 64512,
+        "description": "eBGP LabTel Transit peer (RFC 6996 private ASN)"
+      }
+    ]
+  }
+}

@@ -1,0 +1,13 @@
+.terraform/
+*.tfstate
+*.tfstate.*
+__pycache__/
+*.pyc
+clips/
+shots/
+evidence/*.png
+*.mp4
+*.wav
+*.mkv
+.env
+.venv/
