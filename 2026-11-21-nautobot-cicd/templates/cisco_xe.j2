@@ -1,0 +1,83 @@
+{# Cisco IOS-XE / IOS Intended Configuration Template #}
+{% set ctx = config_context | default({}) %}
+{% set domain_name = ctx.get('domain_name', 'lab.internal') %}
+{% set ntp_servers = ctx.get('ntp_servers', ['192.0.2.123']) %}
+{% set syslog_servers = ctx.get('syslog_servers', ['192.0.2.200']) %}
+{% set snmp_cfg = ctx.get('snmp', {}) %}
+{% set snmp_ro = (snmp_cfg.get('ro_community') if snmp_cfg is mapping else None) or ctx.get('snmp_ro_community', 'lab-ro-demo') %}
+{% set bgp_routing = ctx.get('bgp_routing', {}) %}
+{% set bgp_local = ctx.get('bgp', {}) %}
+{% set bgp = bgp_local if (bgp_local is mapping and bgp_local.get('asn')) else (bgp_routing.get(name, {}) if bgp_routing is mapping else {}) %}
+{% set mgmt_intfs = ctx.get('mgmt_interfaces', ['GigabitEthernet1', 'GigabitEthernet0/0', 'Management0']) %}
+{% set prefix_to_mask = {
+  '32': '255.255.255.255',
+  '31': '255.255.255.254',
+  '30': '255.255.255.252',
+  '29': '255.255.255.248',
+  '28': '255.255.255.240',
+  '27': '255.255.255.224',
+  '26': '255.255.255.192',
+  '25': '255.255.255.128',
+  '24': '255.255.255.0',
+  '23': '255.255.254.0',
+  '22': '255.255.252.0',
+  '16': '255.255.0.0',
+  '8': '255.0.0.0'
+} %}
+!
+hostname {{ name }}
+ip domain name {{ domain_name }}
+!
+{% for srv in ntp_servers %}
+ntp server {{ srv }}
+{% endfor %}
+!
+{% for srv in syslog_servers %}
+logging host {{ srv }}
+{% endfor %}
+!
+snmp-server community {{ snmp_ro }} RO
+!
+{# Non-management interfaces from Nautobot SoT #}
+{% for intf in (interfaces | default([])) | sort(attribute='name') %}
+{% if intf.name not in mgmt_intfs and not intf.name.startswith('Management') %}
+interface {{ intf.name }}
+{% if intf.description %}
+ description {{ intf.description }}
+{% endif %}
+{% for ip in intf.ip_addresses | default([]) %}
+{% set parts = ip.address.split('/') %}
+{% set mask = prefix_to_mask.get(parts[1], '255.255.255.255') if parts | length == 2 else '255.255.255.255' %}
+ ip address {{ parts[0] }} {{ mask }}
+{% endfor %}
+{% if intf.name.startswith('GigabitEthernet') %}
+ negotiation auto
+ no mop enabled
+ no mop sysid
+{% endif %}
+!
+{% endif %}
+{% endfor %}
+{# BGP configuration from Nautobot Config Context #}
+{% if bgp and bgp.get('asn') %}
+router bgp {{ bgp.asn }}
+{% if bgp.get('router_id') %}
+ bgp router-id {{ bgp.router_id }}
+{% endif %}
+ bgp log-neighbor-changes
+{% for nbr in bgp.get('neighbors', []) %}
+{% set nbr_ip = nbr.get('peer_ip', nbr.get('ip')) %}
+{% set nbr_asn = nbr.get('remote_asn', nbr.get('remote_as')) %}
+ neighbor {{ nbr_ip }} remote-as {{ nbr_asn }}
+{% if nbr.get('description') %}
+ neighbor {{ nbr_ip }} description {{ nbr.description }}
+{% endif %}
+{% endfor %}
+{% for net in bgp.get('networks', []) %}
+{% set nparts = net.split('/') %}
+{% set nmask = prefix_to_mask.get(nparts[1], '255.255.255.255') if nparts | length == 2 else '255.255.255.255' %}
+ network {{ nparts[0] }} mask {{ nmask }}
+{% endfor %}
+!
+{% endif %}
+end

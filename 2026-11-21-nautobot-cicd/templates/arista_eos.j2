@@ -1,0 +1,76 @@
+{# Arista EOS (cEOS) Intended Configuration Template #}
+{% set ctx = config_context | default({}) %}
+{% set domain_name = ctx.get('domain_name', 'lab.internal') %}
+{% set ntp_servers = ctx.get('ntp_servers', ['192.0.2.123']) %}
+{% set syslog_servers = ctx.get('syslog_servers', ['192.0.2.200']) %}
+{% set snmp_cfg = ctx.get('snmp', {}) %}
+{% set snmp_ro = (snmp_cfg.get('ro_community') if snmp_cfg is mapping else None) or ctx.get('snmp_ro_community', 'lab-ro-demo') %}
+{% set bgp_routing = ctx.get('bgp_routing', {}) %}
+{% set bgp_local = ctx.get('bgp', {}) %}
+{% set bgp = bgp_local if (bgp_local is mapping and bgp_local.get('asn')) else (bgp_routing.get(name, {}) if bgp_routing is mapping else {}) %}
+!
+hostname {{ name }}
+ip domain-name {{ domain_name }}
+!
+{% for srv in ntp_servers %}
+ntp server {{ srv }}
+{% endfor %}
+!
+{% for srv in syslog_servers %}
+logging host {{ srv }}
+{% endfor %}
+!
+snmp-server community {{ snmp_ro }} ro
+!
+{# VLANs from Nautobot Location SoT or top-level GraphQL vlans #}
+{% set sot_vlans = (location.vlans if (location and location.vlans is defined and location.vlans) else (vlans if vlans is defined else [])) %}
+{% if sot_vlans %}
+{% for vlan in sot_vlans | sort(attribute='vid') %}
+vlan {{ vlan.vid }}
+   name {{ vlan.name }}
+!
+{% endfor %}
+{% elif ctx.get('vlans') %}
+{% for vlan in ctx.get('vlans', []) | sort(attribute='vid') %}
+vlan {{ vlan.vid }}
+   name {{ vlan.name }}
+!
+{% endfor %}
+{% endif %}
+{# Non-management interfaces from Nautobot SoT #}
+{% for intf in (interfaces | default([])) | sort(attribute='name') %}
+{% if not intf.name.startswith('Management') %}
+interface {{ intf.name }}
+{% if intf.description %}
+   description {{ intf.description }}
+{% endif %}
+{% if intf.name.startswith('Ethernet') and (intf.ip_addresses | default([])) %}
+   no switchport
+{% endif %}
+{% for ip in intf.ip_addresses | default([]) %}
+   ip address {{ ip.address }}
+{% endfor %}
+!
+{% endif %}
+{% endfor %}
+{# BGP configuration from Nautobot Config Context #}
+{% if bgp and bgp.get('asn') %}
+router bgp {{ bgp.asn }}
+{% if bgp.get('router_id') %}
+   router-id {{ bgp.router_id }}
+{% endif %}
+   maximum-paths 4
+{% for nbr in bgp.get('neighbors', []) %}
+{% set nbr_ip = nbr.get('peer_ip', nbr.get('ip')) %}
+{% set nbr_asn = nbr.get('remote_asn', nbr.get('remote_as')) %}
+   neighbor {{ nbr_ip }} remote-as {{ nbr_asn }}
+{% if nbr.get('description') %}
+   neighbor {{ nbr_ip }} description {{ nbr.description }}
+{% endif %}
+{% endfor %}
+{% for net in bgp.get('networks', []) %}
+   network {{ net }}
+{% endfor %}
+!
+{% endif %}
+end

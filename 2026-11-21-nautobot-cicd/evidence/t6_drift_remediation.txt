@@ -1,0 +1,109 @@
+# T6: Manual Drift Injection -> Detection -> Golden Config Remediation
+Timestamp: 2026-11-22T06:39:41Z
+
+## Step 1: Inject Manual Out-of-Band Drift
+### ceos-leaf1 after drift injection:
+logging host 192.0.2.200
+logging host 192.0.2.250
+snmp-server community DRIFT-BAD ro
+### cisco-core1 after drift injection:
+logging host 192.0.2.200
+snmp-server community DRIFT-BAD RO
+
+## Step 2: Golden Config Drift Detection (BackupJob + ComplianceJob)
+Job Backup Configurations: SUCCESS
+Job Perform Configuration Compliance: SUCCESS
+Compliance Summary: 17/20 feature checks compliant
+  ceos-leaf1     | bgp            | COMPLIANT
+  ceos-leaf1     | hostname       | COMPLIANT
+  ceos-leaf1     | interfaces     | COMPLIANT
+  ceos-leaf1     | logging        | NON-COMPLIANT
+    extra:   'logging host 192.0.2.250'
+  ceos-leaf1     | ntp            | COMPLIANT
+  ceos-leaf1     | snmp           | NON-COMPLIANT
+    missing: 'snmp-server community lab-ro-demo ro'
+    extra:   'snmp-server community DRIFT-BAD ro'
+  ceos-leaf1     | vlans          | COMPLIANT
+  ceos-leaf2     | bgp            | COMPLIANT
+  ceos-leaf2     | hostname       | COMPLIANT
+  ceos-leaf2     | interfaces     | COMPLIANT
+  ceos-leaf2     | logging        | COMPLIANT
+  ceos-leaf2     | ntp            | COMPLIANT
+  ceos-leaf2     | snmp           | COMPLIANT
+  ceos-leaf2     | vlans          | COMPLIANT
+  cisco-core1    | bgp            | COMPLIANT
+  cisco-core1    | hostname       | COMPLIANT
+  cisco-core1    | interfaces     | COMPLIANT
+  cisco-core1    | logging        | COMPLIANT
+  cisco-core1    | ntp            | COMPLIANT
+  cisco-core1    | snmp           | NON-COMPLIANT
+    missing: 'snmp-server community lab-ro-demo RO'
+    extra:   'snmp-server community DRIFT-BAD RO'
+
+## Step 3: Generate Golden Config Remediation Plans (GenerateConfigPlans)
+GenerateConfigPlans status: SUCCESS
+[info] initialization: Running job (source version: 3.1.0)
+[info] _generate_config_plan_from_feature: Config plan created for `ceos-leaf1` with feature `logging, snmp`.
+[info] _generate_config_plan_from_feature: Config plan created for `cisco-core1` with feature `snmp`.
+[success] post_run: Job completed
+
+Generated 2 new ConfigPlan(s):
+--- ConfigPlan for cisco-core1 (id=f9c47ec1-4d13-4028-9f27-beb448d7c089, plan_type=remediation) ---
+no snmp-server community DRIFT-BAD RO
+snmp-server community lab-ro-demo RO
+--- ConfigPlan for ceos-leaf1 (id=be32d503-2407-48e3-8990-ddb6d352d6e1, plan_type=remediation) ---
+no logging host 192.0.2.250
+no snmp-server community DRIFT-BAD ro
+snmp-server community lab-ro-demo ro
+
+## Step 4: Approve & Deploy Remediation Config Plans (DeployConfigPlans)
+  Approved ConfigPlan f9c47ec1-4d13-4028-9f27-beb448d7c089 (cisco-core1)
+  Approved ConfigPlan be32d503-2407-48e3-8990-ddb6d352d6e1 (ceos-leaf1)
+DeployConfigPlans status: SUCCESS
+[info] initialization: Running job (source version: 3.1.0)
+[info] main: Config merge starting
+[info] main: Config merge starting
+[info] main: result: None, changed: True
+[warning] main: Diff was requested but may include sensitive data. Ignoring...
+[info] main: Config merge ended
+[info] main: Successfully deployed configuration to device.
+[info] main: result: None, changed: True
+[warning] main: Diff was requested but may include sensitive data. Ignoring...
+[info] main: Config merge ended
+[info] main: Successfully deployed configuration to device.
+[success] post_run: Job completed
+
+## Step 5: Live Router CLI Verification Post-Remediation
+### ceos-leaf1 post-remediation:
+logging host 192.0.2.200
+snmp-server community lab-ro-demo ro
+### cisco-core1 post-remediation:
+logging host 192.0.2.200
+snmp-server community lab-ro-demo RO
+
+## Step 6: Post-Remediation Golden Config Compliance
+Job Backup Configurations: SUCCESS
+Job Perform Configuration Compliance: SUCCESS
+Compliance Summary: 20/20 feature checks compliant
+  ceos-leaf1     | bgp            | COMPLIANT
+  ceos-leaf1     | hostname       | COMPLIANT
+  ceos-leaf1     | interfaces     | COMPLIANT
+  ceos-leaf1     | logging        | COMPLIANT
+  ceos-leaf1     | ntp            | COMPLIANT
+  ceos-leaf1     | snmp           | COMPLIANT
+  ceos-leaf1     | vlans          | COMPLIANT
+  ceos-leaf2     | bgp            | COMPLIANT
+  ceos-leaf2     | hostname       | COMPLIANT
+  ceos-leaf2     | interfaces     | COMPLIANT
+  ceos-leaf2     | logging        | COMPLIANT
+  ceos-leaf2     | ntp            | COMPLIANT
+  ceos-leaf2     | snmp           | COMPLIANT
+  ceos-leaf2     | vlans          | COMPLIANT
+  cisco-core1    | bgp            | COMPLIANT
+  cisco-core1    | hostname       | COMPLIANT
+  cisco-core1    | interfaces     | COMPLIANT
+  cisco-core1    | logging        | COMPLIANT
+  cisco-core1    | ntp            | COMPLIANT
+  cisco-core1    | snmp           | COMPLIANT
+
+## Result: PASS

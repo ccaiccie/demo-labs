@@ -1,0 +1,39 @@
+# T1: Lab Health, Containerlab Topology & Port Bindings
+Timestamp: 2026-11-22T06:38:39Z
+
+## docker compose -f compose/docker-compose.yml ps
+NAME                          IMAGE                                 COMMAND                  SERVICE         CREATED          STATUS                    PORTS
+nautobot-cicd-celery-beat     nautobot-cicd-1121/nautobot:3.2.9     "sh -c 'nautobot-ser…"   celery-beat     39 minutes ago   Up 39 minutes (healthy)   8080/tcp, 8443/tcp
+nautobot-cicd-celery-worker   nautobot-cicd-1121/nautobot:3.2.9     "sh -c 'nautobot-ser…"   celery-worker   41 minutes ago   Up 41 minutes (healthy)   8080/tcp, 8443/tcp
+nautobot-cicd-ci-runner       nautobot-cicd-1121/ci-runner:py3.11   "sh -c 'if [ -f /wor…"   ci-runner       51 minutes ago   Up 44 seconds (healthy)   127.0.0.1:8086->8086/tcp
+nautobot-cicd-gitea           gitea/gitea:1.22                      "/usr/bin/entrypoint…"   gitea           51 minutes ago   Up 51 minutes (healthy)   127.0.0.1:2223->22/tcp, 127.0.0.1:3002->3000/tcp
+nautobot-cicd-postgres        postgres:16-alpine                    "docker-entrypoint.s…"   postgres        51 minutes ago   Up 51 minutes (healthy)   5432/tcp
+nautobot-cicd-redis           redis:7-alpine                        "docker-entrypoint.s…"   redis           51 minutes ago   Up 51 minutes (healthy)   6379/tcp
+nautobot-cicd-web             nautobot-cicd-1121/nautobot:3.2.9     "/docker-entrypoint.…"   nautobot        44 minutes ago   Up 44 minutes (healthy)   8443/tcp, 127.0.0.1:8083->8080/tcp
+
+## sudo clab inspect -t clab/topology.clab.yml
+[1m╭[0m[1m────────────────────────────────[0m[1m┬[0m[1m────────────────────────────────────────────────[0m[1m┬[0m[1m───────────[0m[1m┬[0m[1m────────────────[0m[1m╮[0m
+[1m│[0m[1m              Name              [0m[1m│[0m[1m                   Kind/Image                   [0m[1m│[0m[1m   State   [0m[1m│[0m[1m IPv4/6 Address [0m[1m│[0m
+[1m├[0m[1m────────────────────────────────[0m[1m┼[0m[1m────────────────────────────────────────────────[0m[1m┼[0m[1m───────────[0m[1m┼[0m[1m────────────────[0m[1m┤[0m
+│ clab-nautobot-cicd-ceos-leaf1  │ arista_ceos                                    │ running   │ 172.30.30.11   │
+│                                │ ceos:4.37.0F                                   │           │ N/A            │
+├────────────────────────────────┼────────────────────────────────────────────────┼───────────┼────────────────┤
+│ clab-nautobot-cicd-ceos-leaf2  │ arista_ceos                                    │ running   │ 172.30.30.12   │
+│                                │ ceos:4.37.0F                                   │           │ N/A            │
+├────────────────────────────────┼────────────────────────────────────────────────┼───────────┼────────────────┤
+│ clab-nautobot-cicd-cisco-core1 │ generic_vm                                     │ running   │ 172.30.30.13   │
+│                                │ labforge/qcow2-cisco-csr1000v-17-03-08a:latest │ (healthy) │ N/A            │
+╰────────────────────────────────┴────────────────────────────────────────────────┴───────────┴────────────────╯
+
+22:38:39 INFO Parsing & checking topology file=topology.clab.yml
+
+## ss -lnt (filtered for lab ports 8083, 3002, 2223, 8086, 5432, 6379)
+State  Recv-Q Send-Q            Local Address:Port    Peer Address:Port Process 
+LISTEN 0      244                   127.0.0.1:5432         0.0.0.0:*            
+LISTEN 0      511                   127.0.0.1:6379         0.0.0.0:*            
+LISTEN 0      65535                 127.0.0.1:8083         0.0.0.0:*            
+LISTEN 0      65535                 127.0.0.1:8086         0.0.0.0:*            
+LISTEN 0      65535                 127.0.0.1:2223         0.0.0.0:*            
+LISTEN 0      65535                 127.0.0.1:3002         0.0.0.0:*            
+
+## Result: PASS

@@ -1,0 +1,153 @@
+{
+  "timestamp": "2026-11-22T06:38:39Z",
+  "host": "mydell1",
+  "results": [
+    {
+      "test": "T1",
+      "name": "Lab Health & 127.0.0.1 Port Bindings",
+      "passed": true,
+      "services_healthy": 7,
+      "routers_running": 3,
+      "loopback_ports_verified": [
+        8083,
+        3002,
+        2223,
+        8086
+      ],
+      "errors": []
+    },
+    {
+      "test": "T2",
+      "name": "Nautobot 3.2.9 Apps & Gitea Version",
+      "passed": true,
+      "nautobot_version": "3.2.9",
+      "installed_apps": {
+        "nautobot_plugin_nornir": "3.4.0",
+        "nautobot_ssot": "4.8.0",
+        "nautobot_device_onboarding": "5.6.0",
+        "nautobot_golden_config": "3.1.0"
+      },
+      "celery_workers_running": 1,
+      "gitea_version": "1.22.6",
+      "errors": []
+    },
+    {
+      "test": "T3",
+      "name": "Device Onboarding History & Live eBGP",
+      "passed": true,
+      "devices_in_nautobot": [
+        "ceos-leaf1",
+        "ceos-leaf2",
+        "cisco-core1"
+      ],
+      "bgp": {
+        "ceos-leaf1": {
+          "expected_peers": [
+            "198.51.100.1",
+            "198.51.100.5"
+          ],
+          "established_peers": [
+            "198.51.100.1",
+            "198.51.100.5"
+          ]
+        },
+        "ceos-leaf2": {
+          "expected_peers": [
+            "198.51.100.3",
+            "198.51.100.4"
+          ],
+          "established_peers": [
+            "198.51.100.3",
+            "198.51.100.4"
+          ]
+        },
+        "cisco-core1": {
+          "expected_peers": [
+            "198.51.100.0",
+            "198.51.100.2"
+          ],
+          "established_peers": [
+            "198.51.100.0",
+            "198.51.100.2"
+          ]
+        }
+      },
+      "errors": []
+    },
+    {
+      "test": "T4",
+      "name": "Baseline Golden Config Compliance",
+      "passed": true,
+      "compliant": 20,
+      "total": 20,
+      "jobs": [
+        {
+          "job": "Backup Configurations",
+          "status": "SUCCESS",
+          "job_result_id": "327578d4-991f-433b-882f-4c86f9873e83"
+        },
+        {
+          "job": "Generate Intended Configurations",
+          "status": "SUCCESS",
+          "job_result_id": "8c649b38-fad2-4617-8928-4873946538e6"
+        },
+        {
+          "job": "Perform Configuration Compliance",
+          "status": "SUCCESS",
+          "job_result_id": "dc0d498d-fcc1-4784-a032-4e161aea449e"
+        }
+      ],
+      "errors": []
+    },
+    {
+      "test": "T5",
+      "name": "SoT Change -> Webhook -> CI/CD -> Live Deploy",
+      "passed": true,
+      "baseline_sha": "b19a88ee7e",
+      "pr_number": 68,
+      "pr_merged": true,
+      "post_deploy_compliant": 20,
+      "post_deploy_total": 20,
+      "errors": []
+    },
+    {
+      "test": "T6",
+      "name": "Manual Drift Detection & Golden Config Remediation",
+      "passed": true,
+      "drift_detected_compliant": 17,
+      "drift_detected_total": 20,
+      "non_compliant_features": [
+        "ceos-leaf1:logging",
+        "ceos-leaf1:snmp",
+        "cisco-core1:snmp"
+      ],
+      "plans_generated": 2,
+      "deploy_status": "SUCCESS",
+      "post_remediation_compliant": 20,
+      "post_remediation_total": 20,
+      "errors": []
+    },
+    {
+      "test": "T7",
+      "name": "Rollback + SoT Revert + Final Baseline Compliance",
+      "passed": true,
+      "rollback_target_sha": "b19a88ee7e",
+      "rollback_pr_number": 69,
+      "final_compliant": 20,
+      "final_total": 20,
+      "errors": []
+    }
+  ],
+  "all_passed": true,
+  "passed_count": 7,
+  "total_count": 7,
+  "video_v2_aligned_prs": {
+    "deploy_pr": 74,
+    "rollback_pr": 78,
+    "baseline_commit": "4c8fe2a2d4",
+    "drift_compliance": "17/20",
+    "remediation_change_id": "DEMO-REMEDIATE-V2",
+    "post_remediation_compliance": "20/20",
+    "post_rollback_compliance": "20/20"
+  }
+}

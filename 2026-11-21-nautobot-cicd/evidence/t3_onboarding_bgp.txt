@@ -1,0 +1,90 @@
+# T3: Device Onboarding History & Live eBGP Verification
+Timestamp: 2026-11-22T06:38:40Z
+
+## Nautobot Device Onboarding (SSOTSyncDevices) Job History
+Latest JobResult: id=94e4f60a-3c6c-4f09-ab36-6b2de6f20a92 status=SUCCESS date_done=2026-11-22T06:07:42.064094Z
+  [info] initialization: Running job (source version: 5.6.0)
+  [info] sync_data: Loading current data from source adapter...
+  [info] main: Parsing credentials from Secrets (redacted) LAB-DEVICE-CREDS
+  [info] main: Subtask starting: show hostname, 172.30.30.12.
+  [info] main: Subtask starting: show hostname, 172.30.30.11.
+  [info] main: Subtask starting: show version, 172.30.30.13.
+  [info] main: Subtask succeeded: show version, 172.30.30.13.
+  [info] main: Subtask starting: show interfaces, 172.30.30.13.
+  [info] main: Subtask succeeded: show hostname, 172.30.30.12.
+  [info] main: Subtask starting: show version, 172.30.30.12.
+  [info] main: Subtask succeeded: show hostname, 172.30.30.11.
+  [info] main: Subtask starting: show version, 172.30.30.11.
+  [info] main: Subtask succeeded: show interfaces, 172.30.30.13.
+  [info] main: Subtask succeeded: show version, 172.30.30.12.
+  [info] main: Subtask starting: show switch detail, 172.30.30.13.
+  [info] main: Subtask succeeded: show version, 172.30.30.11.
+  [info] main: Subtask starting: show ip interface brief | json, 172.30.30.12.
+  [info] main: Subtask starting: show ip interface brief | json, 172.30.30.11.
+  [info] main: Subtask succeeded: show ip interface brief | json, 172.30.30.12.
+  [info] main: Subtask succeeded: show ip interface brief | json, 172.30.30.11.
+  [info] main: Subtask succeeded: show switch detail, 172.30.30.13.
+  [info] main: Task instance completed. Task Name: inner
+  [info] main: Task instance completed. Task Name: inner
+  [info] main: Subtask starting: show module, 172.30.30.13.
+  [info] main: Subtask succeeded: show module, 172.30.30.13.
+  [info] main: Task instance completed. Task Name: inner
+  [warning] main: Error During Sync Devices Command Getter:<br><br>Failure Jinja parsing, context: {'obj': [], 'original_host': '172.30.30.13'}. processor: {{ (obj | selectattr('enabled', 'eq', 'up') | list | first ).name }}<br>Traceback \(most recent call last\):<br>  File "/usr/local/lib/python3.11/site-packages/nautobot\_device\_onboarding/nornir\_plays/formatter.py", line 111, in extract\_and\_post\_process<br>    extracted\_processed = template.render\(\*\*j2\_data\_context\)<br>                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^<br>  File "/usr/local/lib/python3.11/site-packages/jinja2/environment.py", line 1295, in render<br>    self.environment.handle\_exception\(\)<br>  File "/usr/local/lib/python3.11/site-packages/jinja2/environment.py", line 942, in handle\_exception<br>    raise rewrite\_traceback\_stack\(source=source\)<br>  File "&lt;template&gt;", line 1, in top-level template code<br>  File "/usr/local/lib/python3.11/site-packages/jinja2/sandbox.py", line 319, in getattr<br>    value = getattr\(obj, attribute\)<br>            ^^^^^^^^^^^^^^^^^^^^^^^<br>jinja2.exceptions.UndefinedError: No first item, sequence was empty.<br><br>During handling of the above exception, another exception occurred:<br><br>Traceback \(most recent call last\):<br>  File "/usr/local/lib/python3.11/site-packages/nautobot\_device\_onboarding/nornir\_plays/command\_getter.py", line 351, in sync\_devices\_command\_getter<br>    result = nr\_with\_processors.run\(<br>             ^^^^^^^^^^^^^^^^^^^^^^^<br>  File "/usr/local/lib/python3.11/site-packages/nornir/core/\_\_init\_\_.py", line 215, in run<br>    result = self.runner.run\(run\_task, run\_on\)<br>             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^<br>  File "/usr/local/lib/python3.11/site-packages/nornir/plugins/runners/\_\_init\_\_.py", line 173, in run<br>    for \_ in self.execute\(task, hosts, run\):<br>  File "/usr/local/lib/python3.11/site-packages/nornir/plugins/runners/\_\_init\_\_.py", line 179, in execute<br>    self.\_coordinate\(task, hosts, run\)<br>  File "/usr/local/lib/python3.11/site-packages/nornir/plugins/runners/\_\_init\_\_.py", line 192, in \_coordinate<br>    coordinator.raise\_worker\_error\(\)<br>  File "/usr/local/lib/python3.11/site-packages/nornir/plugins/runners/\_\_init\_\_.py", line 125, in raise\_worker\_error<br>    raise error<br>  File "/usr/local/lib/python3.11/concurrent/futures/thread.py", line 58, in run<br>    result = self.fn\(\*self.args, \*\*self.kwargs\)<br>             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^<br>  File "/usr/local/lib/python3.11/site-packages/nornir/core/run.py", line 270, in start\_host<br>    next\(steps\)<br>  File "/usr/local/lib/python3.11/site-packages/nornir/core/run.py", line 285, in step\_host<br>    return \(yield from task.\_start\_steps\(host\)\)  # noqa: B901 - read through yield from<br>            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^<br>  File "/usr/local/lib/python3.11/site-packages/nornir/core/task.py", line 293, in \_start\_steps<br>    return self.\_finish\(host, r\)  # noqa: B901 - read through yield from by start\(\)<br>           ^^^^^^^^^^^^^^^^^^^^^<br>  File "/usr/local/lib/python3.11/site-packages/nornir/core/task.py", line 242, in \_finish<br>    self.processors.task\_instance\_completed\(self, host, self.results\)<br>  File "/usr/local/lib/python3.11/site-packages/nornir/core/processor.py", line 85, in task\_instance\_completed<br>    p.task\_instance\_completed\(task, host, result\)<br>  File "/usr/local/lib/python3.11/site-packages/nautobot\_device\_onboarding/utils/helper.py", line 131, in inner<br>    return func\(\*args, \*\*kwargs\)<br>           ^^^^^^^^^^^^^^^^^^^^^<br>  File "/usr/local/lib/python3.11/site-packages/nautobot\_device\_onboarding/nornir\_plays/processor.py", line 51, in task\_instance\_completed<br>    self.\_process\_result\(task, host, result\)<br>  File "/usr/local/lib/python3.11/site-packages/nautobot\_device\_onboarding/nornir\_plays/processor.py", line 81, in \_process\_result<br>    ready\_for\_ssot\_data = extract\_show\_data\(<br>                          ^^^^^^^^^^^^^^^^^^<br>  File "/usr/local/lib/python3.11/site-packages/nautobot\_device\_onboarding/nornir\_plays/formatter.py", line 236, in extract\_show\_data<br>    all\_results\_extracted = perform\_data\_extraction\(host, command\_getter\_iterable, command\_outputs, job\_debug\)<br>                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^<br>  File "/usr/local/lib/python3.11/site-packages/nautobot\_device\_onboarding/nornir\_plays/formatter.py", line 205, in perform\_data\_extraction<br>    \_, current\_field\_post = extract\_and\_post\_process\(<br>                            ^^^^^^^^^^^^^^^^^^^^^^^^^<br>  File "/usr/local/lib/python3.11/site-packages/nautobot\_device\_onboarding/nornir\_plays/formatter.py", line 113, in extract\_and\_post\_process<br>    raise ValueError\(<br>ValueError: Failure Jinja parsing, context: {'obj': \[\], 'original\_host': '172.30.30.13'}. processor: {{ \(obj | selectattr\('enabled', 'eq', 'up'\) | list | first \).name }}<br>
+  [error] load_device_types: 172.30.30.13: Unable to load DeviceType due to a missing key in returned data, ('device_type',)
+  [error] load_devices: 172.30.30.13: Unable to load Device due to a missing key in returned data, ('hostname',), 'hostname'
+  [warning] load: Failed IP Addresses: ['172.30.30.13']
+  [info] sync_data: Source Load Time from SyncDevicesNetworkAdapter: 0:00:39.850920
+  [info] sync_data: Loading current data from target adapter...
+  [info] sync_data: Target Load Time from SyncDevicesNautobotAdapter: 0:00:00.074759
+  [info] sync_data: Calculating diffs...
+  [info] calculate_diff: {'create': 3, 'update': 0, 'delete': 0, 'no-change': 4, 'skip': 5}
+  [info] sync_data: Diff Calculation Time: 0:00:00.015787
+  [info] sync_data: Syncing from SyncDevicesNetworkAdapter to SyncDevicesNautobotAdapter...
+  [info] sync_data: Sync complete
+  [info] sync_data: Sync Time: 0:00:00.970839
+  [success] post_run: Job completed
+
+Note on cisco-core1 onboarding: vrnetlab NATs management IP 172.30.30.13 to GigabitEthernet1 (10.0.0.15/24),
+so SSOTSyncDevices connects and detects IOS-XE 17.3.8a / CSR1000v, while seed_nautobot.py --include-devices
+registers cisco-core1 cleanly in Nautobot SoT alongside the auto-onboarded ceos-leaf1 and ceos-leaf2.
+
+## Nautobot Device Inventory
+  ceos-leaf1     | platform=arista_eos | role=Leaf | primary_ip4=172.30.30.11/24 | serial=2C3B38C6DF6538591EB39A64977EB082
+  ceos-leaf2     | platform=arista_eos | role=Leaf | primary_ip4=172.30.30.12/24 | serial=656FACAEA09087952A42B295224E1844
+  cisco-core1    | platform=cisco_xe | role=Core | primary_ip4=172.30.30.13/24 | serial=
+
+## Live eBGP Verification
+### ceos-leaf1 (172.30.30.11) -> `show ip bgp summary`
+BGP summary information for VRF default
+Router identifier 192.0.2.11, local AS number 65001
+Neighbor Status Codes: m - Under maintenance
+  Description              Neighbor     V AS           MsgRcvd   MsgSent  InQ OutQ  Up/Down State   PfxRcd PfxAcc PfxAdv
+  cisco-core1              198.51.100.1 4 65010             63        64    0    0 00:50:59 Estab   2      2      2
+  ceos-leaf2               198.51.100.5 4 65002             66        67    0    0 00:53:05 Estab   2      2      2
+
+### ceos-leaf2 (172.30.30.12) -> `show ip bgp summary`
+BGP summary information for VRF default
+Router identifier 192.0.2.12, local AS number 65002
+Neighbor Status Codes: m - Under maintenance
+  Description              Neighbor     V AS           MsgRcvd   MsgSent  InQ OutQ  Up/Down State   PfxRcd PfxAcc PfxAdv
+  cisco-core1              198.51.100.3 4 65010             64        65    0    0 00:50:59 Estab   2      2      2
+  ceos-leaf1               198.51.100.4 4 65001             67        66    0    0 00:53:06 Estab   2      2      2
+
+### cisco-core1 (172.30.30.13) -> `show bgp ipv4 unicast summary`
+BGP router identifier 192.0.2.13, local AS number 65010
+BGP table version is 5, main routing table version 5
+3 network entries using 744 bytes of memory
+5 path entries using 680 bytes of memory
+5/3 BGP path/bestpath attribute entries using 1440 bytes of memory
+4 BGP AS-PATH entries using 128 bytes of memory
+0 BGP route-map cache entries using 0 bytes of memory
+0 BGP filter-list cache entries using 0 bytes of memory
+BGP using 2992 total bytes of memory
+BGP activity 3/0 prefixes, 5/0 paths, scan interval 60 secs
+3 networks peaked at 05:47:43 Nov 22 2026 UTC (00:51:00.166 ago)
+
+Neighbor        V           AS MsgRcvd MsgSent   TblVer  InQ OutQ Up/Down  State/PfxRcd
+198.51.100.0    4        65001      64      63        5    0    0 00:51:00        2
+198.51.100.2    4        65002      65      64        5    0    0 00:50:59        2
+
+## Result: PASS

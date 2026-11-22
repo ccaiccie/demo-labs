@@ -1,0 +1,80 @@
+# T2: Nautobot 3.2.9 Apps Status, Gitea Version & Webhook Health
+Timestamp: 2026-11-22T06:38:39Z
+
+## Nautobot /api/status/
+{
+  "django-version": "5.2.19",
+  "installed-apps": {
+    "constance": null,
+    "corsheaders": null,
+    "db_file_storage": null,
+    "django.contrib.admin": null,
+    "django.contrib.auth": null,
+    "django.contrib.contenttypes": null,
+    "django.contrib.humanize": null,
+    "django.contrib.messages": null,
+    "django.contrib.sessions": null,
+    "django.contrib.staticfiles": null,
+    "django_ajax_tables": null,
+    "django_celery_beat": "2.9.0..",
+    "django_celery_results": "2.6.0..",
+    "django_extensions": "4.1.0.final.0",
+    "django_filters": "25.2",
+    "django_jinja": null,
+    "django_prometheus": "2.5.0",
+    "django_tables2": "3.0.1",
+    "drf_spectacular": "0.29.0",
+    "drf_spectacular_sidecar": "2026.9.1",
+    "graphene_django": "3.2.3",
+    "health_check": "3.20.8",
+    "health_check.storage": null,
+    "nautobot.circuits": null,
+    "nautobot.cloud": null,
+    "nautobot.core": null,
+    "nautobot.data_validation": null,
+    "nautobot.dcim": null,
+    "nautobot.extras": null,
+    "nautobot.ipam": null,
+    "nautobot.load_balancers": null,
+    "nautobot.tenancy": null,
+    "nautobot.users": null,
+    "nautobot.virtualization": null,
+    "nautobot.vpn": null,
+    "nautobot.wireless": null,
+    "nautobot_device_onboarding": "5.6.0",
+    "nautobot_golden_config": "3.1.0",
+    "nautobot_plugin_nornir": "3.4.0",
+    "nautobot_ssot": "4.8.0",
+    "rest_framework": "3.18.3",
+    "silk": "5.5.2",
+    "social_django": "7.2.0",
+    "taggit": "6.1.0",
+    "timezone_field": "7.2.2"
+  },
+  "nautobot-version": "3.2.9",
+  "nautobot-apps": {
+    "nautobot_device_onboarding": "5.6.0",
+    "nautobot_golden_config": "3.1.0",
+    "nautobot_plugin_nornir": "3.4.0",
+    "nautobot_ssot": "4.8.0"
+  },
+  "plugins": {
+    "nautobot_device_onboarding": "5.6.0",
+    "nautobot_golden_config": "3.1.0",
+    "nautobot_plugin_nornir": "3.4.0",
+    "nautobot_ssot": "4.8.0"
+  },
+  "python-version": "3.11.18",
+  "celery-workers-running": 1
+}
+
+## Gitea /api/v1/version
+HTTP 200: {"version":"1.22.6"}
+
+## CI Webhook Receiver /health
+HTTP 200: {
+  "status": "ok",
+  "service": "nautobot-cicd-webhook"
+}
+
+## Result: PASS

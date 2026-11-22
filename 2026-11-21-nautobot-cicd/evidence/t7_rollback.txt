@@ -1,0 +1,243 @@
+# T7: Rollback via pipeline/rollback.py + SoT Revert + Final Compliance
+Timestamp: 2026-11-22T06:40:11Z
+
+## Step 1: Execute pipeline/rollback.py --commit b19a88ee7e
+=== [Rollback 1] Loading intended configs from netops/gc-intended@b19a88ee7e9ef6dcf8afe7dc420dad04043c103e ===
+  Loaded 3 device config(s) from commit b19a88ee7e: ['ceos-leaf2', 'ceos-leaf1', 'cisco-core1']
+=== [Rollback 2] Computing dry-run diff against live devices ===
+--- Rollback diff for ceos-leaf1 (172.30.30.11) ---
+--- live/ceos-leaf1.cfg
++++ intended/ceos-leaf1.cfg
+@@ -1,14 +1,18 @@
++!
++hostname ceos-leaf1
++ip domain-name lab.internal
++!
++ntp server 192.0.2.123
++!
+ logging host 192.0.2.200
+-hostname ceos-leaf1
++!
+ snmp-server community lab-ro-demo ro
++!
+ vlan 100
+    name LAB-USERS
+ !
+ vlan 200
+    name LAB-SERVERS
+-!
+-vlan 300
+-   name LAB-CI-DEMO
+ !
+ interface Ethernet1
+    description Uplink to cisco-core1 GigabitEthernet2
+@@ -16,7 +20,7 @@
+    ip address 198.51.100.0/31
+ !
+ interface Ethernet2
+-   description Uplink to ceos-leaf2 - CI/CD Managed
++   description Peer link to ceos-leaf2 Ethernet2
+    no switchport
+    ip address 198.51.100.4/31
+ !
+@@ -24,7 +28,6 @@
+    description Router ID and BGP Loopback
+    ip address 192.0.2.11/32
+ !
+-ntp server 192.0.2.123
+ router bgp 65001
+    router-id 192.0.2.11
+    maximum-paths 4
+@@ -34,3 +37,4 @@
+    neighbor 198.51.100.5 description ceos-leaf2
+    network 192.0.2.11/32
+ !
++end
+--- Rollback diff for ceos-leaf2 (172.30.30.12) ---
+--- live/ceos-leaf2.cfg
++++ intended/ceos-leaf2.cfg
+@@ -1,14 +1,18 @@
++!
++hostname ceos-leaf2
++ip domain-name lab.internal
++!
++ntp server 192.0.2.123
++!
+ logging host 192.0.2.200
+-hostname ceos-leaf2
++!
+ snmp-server community lab-ro-demo ro
++!
+ vlan 100
+    name LAB-USERS
+ !
+ vlan 200
+    name LAB-SERVERS
+-!
+-vlan 300
+-   name LAB-CI-DEMO
+ !
+ interface Ethernet1
+    description Uplink to cisco-core1 GigabitEthernet3
+@@ -24,7 +28,6 @@
+    description Router ID and BGP Loopback
+    ip address 192.0.2.12/32
+ !
+-ntp server 192.0.2.123
+ router bgp 65002
+    router-id 192.0.2.12
+    maximum-paths 4
+@@ -34,3 +37,4 @@
+    neighbor 198.51.100.4 description ceos-leaf1
+    network 192.0.2.12/32
+ !
++end
+--- Rollback diff for cisco-core1 (172.30.30.13) ---
+--- live/cisco-core1.cfg
++++ intended/cisco-core1.cfg
+@@ -1,12 +1,12 @@
++!
+ hostname cisco-core1
+ ip domain name lab.internal
+-interface Loopback0
+- description Router ID and BGP Loopback
+- ip address 192.0.2.13 255.255.255.255
+ !
+-interface Loopback10
+- description CI/CD Managed Demo Loopback
+- ip address 203.0.113.250 255.255.255.255
++ntp server 192.0.2.123
++!
++logging host 192.0.2.200
++!
++snmp-server community lab-ro-demo RO
+ !
+ interface GigabitEthernet2
+  description Downlink to ceos-leaf1 Ethernet1
+@@ -22,15 +22,17 @@
+  no mop enabled
+  no mop sysid
+ !
++interface Loopback0
++ description Router ID and BGP Loopback
++ ip address 192.0.2.13 255.255.255.255
++!
+ router bgp 65010
+  bgp router-id 192.0.2.13
+  bgp log-neighbor-changes
+- network 192.0.2.13 mask 255.255.255.255
+  neighbor 198.51.100.0 remote-as 65001
+  neighbor 198.51.100.0 description ceos-leaf1
+  neighbor 198.51.100.2 remote-as 65002
+  neighbor 198.51.100.2 description ceos-leaf2
++ network 192.0.2.13 mask 255.255.255.255
+ !
+-logging host 192.0.2.200
+-snmp-server community lab-ro-demo RO
+-ntp server 192.0.2.123
++end
+=== [Rollback 3] Opening & merging rollback PR in Gitea ===
+  Rollback PR #69 (http://127.0.0.1:3002/netops/gc-intended/pulls/69) merged=True
+=== [Rollback 4] Re-deploying prior intended configs to live devices ===
+  Rolled back ceos-leaf1 (172.30.30.11): 29 cmds
+  Rolled back ceos-leaf2 (172.30.30.12): 29 cmds
+  Rolled back cisco-core1 (172.30.30.13): 29 cmds
+{
+  "rollback_target_sha": "b19a88ee7e9ef6dcf8afe7dc420dad04043c103e",
+  "pr": {
+    "branch": "rollback-20261122-064011",
+    "commit": "f160b74ec359ddf832d55133574a03251354ef39",
+    "pr_number": 69,
+    "pr_url": "http://127.0.0.1:3002/netops/gc-intended/pulls/69",
+    "merged": true
+  },
+  "deploy": {
+    "ceos-leaf1": {
+      "host": "172.30.30.11",
+      "device_type": "arista_eos",
+      "diff": "--- live/ceos-leaf1.cfg\n+++ intended/ceos-leaf1.cfg\n@@ -1,14 +1,18 @@\n+!\n+hostname ceos-leaf1\n+ip domain-name lab.internal\n+!\n+ntp server 192.0.2.123\n+!\n logging host 192.0.2.200\n-hostname ceos-leaf1\n+!\n snmp-server community lab-ro-demo ro\n+!\n vlan 100\n    name LAB-USERS\n !\n vlan 200\n    name LAB-SERVERS\n-!\n-vlan 300\n-   name LAB-CI-DEMO\n !\n interface Ethernet1\n    description Uplink to cisco-core1 GigabitEthernet2\n@@ -16,7 +20,7 @@\n    ip address 198.51.100.0/31\n !\n interface Ethernet2\n-   description Uplink to ceos-leaf2 - CI/CD Managed\n+   description Peer link to ceos-leaf2 Ethernet2\n    no switchport\n    ip address 198.51.100.4/31\n !\n@@ -24,7 +28,6 @@\n    description Router ID and BGP Loopback\n    ip address 192.0.2.11/32\n !\n-ntp server 192.0.2.123\n router bgp 65001\n    router-id 192.0.2.11\n    maximum-paths 4\n@@ -34,3 +37,4 @@\n    neighbor 198.51.100.5 description ceos-leaf2\n    network 192.0.2.11/32\n !\n+end",
+      "command_count": 29,
+      "deployed": true,
+      "deploy_output_tail": "ceos-leaf1(config-router-bgp)#   router-id 192.0.2.11\nceos-leaf1(config-router-bgp)#   maximum-paths 4\nceos-leaf1(config-router-bgp)#   neighbor 198.51.100.1 remote-as 65010\nceos-leaf1(config-router-bgp)#   neighbor 198.51.100.1 description cisco-core1\nceos-leaf1(config-router-bgp)#   neighbor 198.51.100.5 remote-as 65002\nceos-leaf1(config-router-bgp)#   neighbor 198.51.100.5 description ceos-leaf2\nceos-leaf1(config-router-bgp)#   network 192.0.2.11/32\nceos-leaf1(config-router-bgp)#end\nceos-leaf1#\ncopy running-config startup-config\nCopy completed successfully.\nceos-leaf1#"
+    },
+    "ceos-leaf2": {
+      "host": "172.30.30.12",
+      "device_type": "arista_eos",
+      "diff": "--- live/ceos-leaf2.cfg\n+++ intended/ceos-leaf2.cfg\n@@ -1,14 +1,18 @@\n+!\n+hostname ceos-leaf2\n+ip domain-name lab.internal\n+!\n+ntp server 192.0.2.123\n+!\n logging host 192.0.2.200\n-hostname ceos-leaf2\n+!\n snmp-server community lab-ro-demo ro\n+!\n vlan 100\n    name LAB-USERS\n !\n vlan 200\n    name LAB-SERVERS\n-!\n-vlan 300\n-   name LAB-CI-DEMO\n !\n interface Ethernet1\n    description Uplink to cisco-core1 GigabitEthernet3\n@@ -24,7 +28,6 @@\n    description Router ID and BGP Loopback\n    ip address 192.0.2.12/32\n !\n-ntp server 192.0.2.123\n router bgp 65002\n    router-id 192.0.2.12\n    maximum-paths 4\n@@ -34,3 +37,4 @@\n    neighbor 198.51.100.4 description ceos-leaf1\n    network 192.0.2.12/32\n !\n+end",
+      "command_count": 29,
+      "deployed": true,
+      "deploy_output_tail": "ceos-leaf2(config-router-bgp)#   router-id 192.0.2.12\nceos-leaf2(config-router-bgp)#   maximum-paths 4\nceos-leaf2(config-router-bgp)#   neighbor 198.51.100.3 remote-as 65010\nceos-leaf2(config-router-bgp)#   neighbor 198.51.100.3 description cisco-core1\nceos-leaf2(config-router-bgp)#   neighbor 198.51.100.4 remote-as 65001\nceos-leaf2(config-router-bgp)#   neighbor 198.51.100.4 description ceos-leaf1\nceos-leaf2(config-router-bgp)#   network 192.0.2.12/32\nceos-leaf2(config-router-bgp)#end\nceos-leaf2#\ncopy running-config startup-config\nCopy completed successfully.\nceos-leaf2#"
+    },
+    "cisco-core1": {
+      "host": "172.30.30.13",
+      "device_type": "cisco_xe",
+      "diff": "--- live/cisco-core1.cfg\n+++ intended/cisco-core1.cfg\n@@ -1,12 +1,12 @@\n+!\n hostname cisco-core1\n ip domain name lab.internal\n-interface Loopback0\n- description Router ID and BGP Loopback\n- ip address 192.0.2.13 255.255.255.255\n !\n-interface Loopback10\n- description CI/CD Managed Demo Loopback\n- ip address 203.0.113.250 255.255.255.255\n+ntp server 192.0.2.123\n+!\n+logging host 192.0.2.200\n+!\n+snmp-server community lab-ro-demo RO\n !\n interface GigabitEthernet2\n  description Downlink to ceos-leaf1 Ethernet1\n@@ -22,15 +22,17 @@\n  no mop enabled\n  no mop sysid\n !\n+interface Loopback0\n+ description Router ID and BGP Loopback\n+ ip address 192.0.2.13 255.255.255.255\n+!\n router bgp 65010\n  bgp router-id 192.0.2.13\n  bgp log-neighbor-changes\n- network 192.0.2.13 mask 255.255.255.255\n  neighbor 198.51.100.0 remote-as 65001\n  neighbor 198.51.100.0 description ceos-leaf1\n  neighbor 198.51.100.2 remote-as 65002\n  neighbor 198.51.100.2 description ceos-leaf2\n+ network 192.0.2.13 mask 255.255.255.255\n !\n-logging host 192.0.2.200\n-snmp-server community lab-ro-demo RO\n-ntp server 192.0.2.123\n+end",
+      "command_count": 29,
+      "deployed": true,
+      "deploy_output_tail": "cisco-core1(config-router)# bgp log-neighbor-changes\ncisco-core1(config-router)# neighbor 198.51.100.0 remote-as 65001\ncisco-core1(config-router)# neighbor 198.51.100.0 description ceos-leaf1\ncisco-core1(config-router)# neighbor 198.51.100.2 remote-as 65002\ncisco-core1(config-router)# neighbor 198.51.100.2 description ceos-leaf2\ncisco-core1(config-router)# network 192.0.2.13 mask 255.255.255.255\ncisco-core1(config-router)#end\ncisco-core1#\nwrite mem\nBuilding configuration...\n[OK]\ncisco-core1#"
+    }
+  },
+  "compliance": {}
+}
+
+## Step 2: Live Router CLI Verification Post-Rollback
+### ceos-leaf1: show vlan
+VLAN  Name                             Status    Ports                          
+----- -------------------------------- --------- -------------------------------
+1     default                          active                                   
+100   LAB-USERS                        active                                   
+200   LAB-SERVERS                      active
+### ceos-leaf1: show running-config interfaces Ethernet2
+interface Ethernet2
+   description Peer link to ceos-leaf2 Ethernet2
+   no switchport
+   ip address 198.51.100.4/31
+### ceos-leaf2: show vlan
+VLAN  Name                             Status    Ports                          
+----- -------------------------------- --------- -------------------------------
+1     default                          active                                   
+100   LAB-USERS                        active                                   
+200   LAB-SERVERS                      active
+### cisco-core1: show ip interface brief
+Interface              IP-Address      OK? Method Status                Protocol
+GigabitEthernet1       10.0.0.15       YES DHCP   up                    up      
+GigabitEthernet2       198.51.100.1    YES manual up                    up      
+GigabitEthernet3       198.51.100.3    YES manual up                    up      
+Loopback0              192.0.2.13      YES manual up                    up
+
+## Step 3: Revert Nautobot SoT (testdata/seed_nautobot.py --revert-demo-change)
+Reverting planned SoT CI/CD demo change fixture...
+  [deleted] Prefix 203.0.113.128/26
+  [deleted] VLAN 300 LAB-CI-DEMO
+  [deleted] IP 203.0.113.250/32
+  [deleted] Interface cisco-core1:Loopback10
+  [restored] ceos-leaf1:Ethernet2 description -> Peer link to ceos-leaf2 Ethernet2
+Done.
+
+## Step 4: Final Golden Config Compliance (BackupJob + IntendedJob + ComplianceJob)
+Job Backup Configurations: SUCCESS
+Job Generate Intended Configurations: SUCCESS
+Job Perform Configuration Compliance: SUCCESS
+Compliance Summary: 20/20 feature checks compliant
+  ceos-leaf1     | bgp            | COMPLIANT
+  ceos-leaf1     | hostname       | COMPLIANT
+  ceos-leaf1     | interfaces     | COMPLIANT
+  ceos-leaf1     | logging        | COMPLIANT
+  ceos-leaf1     | ntp            | COMPLIANT
+  ceos-leaf1     | snmp           | COMPLIANT
+  ceos-leaf1     | vlans          | COMPLIANT
+  ceos-leaf2     | bgp            | COMPLIANT
+  ceos-leaf2     | hostname       | COMPLIANT
+  ceos-leaf2     | interfaces     | COMPLIANT
+  ceos-leaf2     | logging        | COMPLIANT
+  ceos-leaf2     | ntp            | COMPLIANT
+  ceos-leaf2     | snmp           | COMPLIANT
+  ceos-leaf2     | vlans          | COMPLIANT
+  cisco-core1    | bgp            | COMPLIANT
+  cisco-core1    | hostname       | COMPLIANT
+  cisco-core1    | interfaces     | COMPLIANT
+  cisco-core1    | logging        | COMPLIANT
+  cisco-core1    | ntp            | COMPLIANT
+  cisco-core1    | snmp           | COMPLIANT
+
+## Result: PASS

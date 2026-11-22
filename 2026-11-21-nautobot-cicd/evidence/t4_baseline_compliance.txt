@@ -1,0 +1,148 @@
+# T4: Baseline Golden Config Backup + Intended + Compliance
+Timestamp: 2026-11-22T06:38:43Z
+
+## Job: Backup Configurations (BackupJob) -> SUCCESS
+[info] initialization: Running job (source version: 3.1.0)
+[info] ensure_git_repository: Repository successfully refreshed
+[info] ensure_git_repository: Golden Config Backups: the current Git repository hash is "0cf6ab2a3e46e1934ffdd00f915120d24d7238d4"
+[info] main: Successfully extracted running configuration from device.
+[info] main: Successfully extracted running configuration from device.
+[info] main: Successfully extracted running configuration from device.
+[info] GC Repo Commit and Push: Golden Config Backups: no configuration changes to commit.
+[success] post_run: Job completed
+
+## Job: Generate Intended Configurations (IntendedJob) -> SUCCESS
+[error] main: E1010: Error rendering template `main.j2` at `/opt/nautobot/git/golden_config_templates/arista_eos.j2:12`
+
+Line:
+
+```
+hostname {{ name }}
+```
+
+Error Type: `UndefinedError`
+
+Message: `'name' is undefined`
+
+
+[error] main: E1010: Error rendering template `main.j2` at `/opt/nautobot/git/golden_config_templates/cisco_xe.j2:28`
+
+Line:
+
+```
+hostname {{ name }}
+```
+
+Error Type: `UndefinedError`
+
+Message: `'name' is undefined`
+
+
+[error] main: E1014: Unknown error - `'name' is undefined`
+```
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.11/site-packages/nornir/core/task.py", line 283, in _start_steps
+    r = self.task(self, **self.params)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/nornir_nautobot/plugins/tasks/template_file.py", line 63, in template_file
+    text = jinja_template.render(host=task.host, obj=obj, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/jinja2/environment.py", line 1295, in render
+    self.environment.handle_exception()
+  File "/usr/local/lib/python3.11/site-packages/jinja2/environment.py", line 942, in handle_exception
+    raise rewrite_traceback_stack(source=source)
+  File "/opt/nautobot/git/golden_config_templates/main.j2", line 4, in top-level template code
+    {% include 'arista_eos.j2' %}
+    ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/nautobot/git/golden_config_templates/arista_eos.j2", line 12, in top-level template code
+    hostname {{ name }}
+jinja2.exceptions.UndefinedError: 'name' is undefined
+
+```
+[error] main: E1014: Unknown error - `'name' is undefined`
+```
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.11/site-packages/nornir/core/task.py", line 283, in _start_steps
+    r = self.task(self, **self.params)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/nornir_nautobot/plugins/tasks/template_file.py", line 63, in template_file
+    text = jinja_template.render(host=task.host, obj=obj, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/jinja2/environment.py", line 1295, in render
+    self.environment.handle_exception()
+  File "/usr/local/lib/python3.11/site-packages/jinja2/environment.py", line 942, in handle_exception
+    raise rewrite_traceback_stack(source=source)
+  File "/opt/nautobot/git/golden_config_templates/main.j2", line 4, in top-level template code
+    {% include 'arista_eos.j2' %}
+    ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/nautobot/git/golden_config_templates/arista_eos.j2", line 12, in top-level template code
+    hostname {{ name }}
+jinja2.exceptions.UndefinedError: 'name' is undefined
+
+```
+[error] main: RENDER CONFIG failed: Subtask: GENERATE CONFIG (failed)
+
+[error] main: RENDER CONFIG failed: Subtask: GENERATE CONFIG (failed)
+
+[error] main: E1014: Unknown error - `'name' is undefined`
+```
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.11/site-packages/nornir/core/task.py", line 283, in _start_steps
+    r = self.task(self, **self.params)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/nornir_nautobot/plugins/tasks/template_file.py", line 63, in template_file
+    text = jinja_template.render(host=task.host, obj=obj, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/site-packages/jinja2/environment.py", line 1295, in render
+    self.environment.handle_exception()
+  File "/usr/local/lib/python3.11/site-packages/jinja2/environment.py", line 942, in handle_exception
+    raise rewrite_traceback_stack(source=source)
+  File "/opt/nautobot/git/golden_config_templates/main.j2", line 6, in top-level template code
+    {% include 'cisco_xe.j2' %}
+    ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/nautobot/git/golden_config_templates/cisco_xe.j2", line 28, in top-level template code
+    hostname {{ name }}
+jinja2.exceptions.UndefinedError: 'name' is undefined
+
+```
+[error] main: RENDER CONFIG failed: Subtask: GENERATE CONFIG (failed)
+
+[info] GC Repo Commit and Push: Golden Config Intended: no configuration changes to commit.
+[success] post_run: Job completed
+
+## Job: Perform Configuration Compliance (ComplianceJob) -> SUCCESS
+[info] ensure_git_repository: Golden Config Intended: the current Git repository hash is "b19a88ee7e9ef6dcf8afe7dc420dad04043c103e"
+[info] ensure_git_repository: Repository successfully refreshed
+[info] ensure_git_repository: Golden Config Backups: the current Git repository hash is "0cf6ab2a3e46e1934ffdd00f915120d24d7238d4"
+[warning] run: Starting config compliance nornir play.
+[info] main: Successfully tested compliance job.
+[info] main: Successfully tested compliance job.
+[info] main: Successfully tested compliance job.
+[info] GC Repo Commit and Push: Golden Config Intended: no configuration changes to commit.
+[info] GC Repo Commit and Push: Golden Config Backups: no configuration changes to commit.
+[success] post_run: Job completed
+
+## Compliance Matrix
+Compliance Summary: 20/20 feature checks compliant
+  ceos-leaf1     | bgp            | COMPLIANT
+  ceos-leaf1     | hostname       | COMPLIANT
+  ceos-leaf1     | interfaces     | COMPLIANT
+  ceos-leaf1     | logging        | COMPLIANT
+  ceos-leaf1     | ntp            | COMPLIANT
+  ceos-leaf1     | snmp           | COMPLIANT
+  ceos-leaf1     | vlans          | COMPLIANT
+  ceos-leaf2     | bgp            | COMPLIANT
+  ceos-leaf2     | hostname       | COMPLIANT
+  ceos-leaf2     | interfaces     | COMPLIANT
+  ceos-leaf2     | logging        | COMPLIANT
+  ceos-leaf2     | ntp            | COMPLIANT
+  ceos-leaf2     | snmp           | COMPLIANT
+  ceos-leaf2     | vlans          | COMPLIANT
+  cisco-core1    | bgp            | COMPLIANT
+  cisco-core1    | hostname       | COMPLIANT
+  cisco-core1    | interfaces     | COMPLIANT
+  cisco-core1    | logging        | COMPLIANT
+  cisco-core1    | ntp            | COMPLIANT
+  cisco-core1    | snmp           | COMPLIANT
+
+## Result: PASS

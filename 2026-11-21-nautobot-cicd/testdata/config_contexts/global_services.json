@@ -1,0 +1,73 @@
+{
+  "domain_name": "lab.internal",
+  "ntp_servers": [
+    "192.0.2.123"
+  ],
+  "syslog_servers": [
+    "192.0.2.200"
+  ],
+  "snmp": {
+    "ro_community": "lab-ro-demo",
+    "location": "Lab-DC1",
+    "contact": "netops@lab.internal"
+  },
+  "bgp_routing": {
+    "ceos-leaf1": {
+      "asn": 65001,
+      "router_id": "192.0.2.11",
+      "networks": [
+        "192.0.2.11/32"
+      ],
+      "neighbors": [
+        {
+          "peer_ip": "198.51.100.1",
+          "remote_asn": 65010,
+          "description": "cisco-core1"
+        },
+        {
+          "peer_ip": "198.51.100.5",
+          "remote_asn": 65002,
+          "description": "ceos-leaf2"
+        }
+      ]
+    },
+    "ceos-leaf2": {
+      "asn": 65002,
+      "router_id": "192.0.2.12",
+      "networks": [
+        "192.0.2.12/32"
+      ],
+      "neighbors": [
+        {
+          "peer_ip": "198.51.100.3",
+          "remote_asn": 65010,
+          "description": "cisco-core1"
+        },
+        {
+          "peer_ip": "198.51.100.4",
+          "remote_asn": 65001,
+          "description": "ceos-leaf1"
+        }
+      ]
+    },
+    "cisco-core1": {
+      "asn": 65010,
+      "router_id": "192.0.2.13",
+      "networks": [
+        "192.0.2.13/32"
+      ],
+      "neighbors": [
+        {
+          "peer_ip": "198.51.100.0",
+          "remote_asn": 65001,
+          "description": "ceos-leaf1"
+        },
+        {
+          "peer_ip": "198.51.100.2",
+          "remote_asn": 65002,
+          "description": "ceos-leaf2"
+        }
+      ]
+    }
+  }
+}

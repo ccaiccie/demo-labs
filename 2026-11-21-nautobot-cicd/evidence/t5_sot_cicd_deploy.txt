@@ -1,0 +1,292 @@
+# T5: SoT Change -> Webhook -> CI/CD Pipeline -> Gitea PR -> Live Deploy -> Compliance
+Timestamp: 2026-11-22T06:38:52Z
+
+Pre-change Gitea gc-intended baseline commit: b19a88ee7e
+
+## Step 1: Apply SoT Demo Change (testdata/seed_nautobot.py --apply-demo-change)
+1. Location Types & Locations
+  [exists]  LocationType Site
+  [exists]  Location: {'name': 'Lab-DC1'}
+2. Manufacturers & Platforms
+  [exists]  Manufacturer: {'name': 'Arista'}
+  [exists]  Manufacturer: {'name': 'Cisco'}
+  [updated] Platform: {'name': 'arista_eos'}
+  [updated] Platform: {'name': 'cisco_xe'}
+  [updated] Platform: {'name': 'cisco_ios'}
+3. Roles & Device Types
+  [exists]  Role Leaf
+  [exists]  Role Core
+  [exists]  DeviceType: {'model': 'cEOS-lab'}
+  [exists]  DeviceType: {'model': 'CSR1000v'}
+  [exists]  DeviceType: {'model': 'Cat8000v'}
+  [exists]  DeviceType: {'model': 'IOSv'}
+4. Baseline VLANs
+  [updated] VLAN: {'vid': 100, 'name': 'LAB-USERS'}
+  [updated] VLAN: {'vid': 200, 'name': 'LAB-SERVERS'}
+5. IPAM Prefixes
+  [updated] Prefix: {'prefix': '172.30.30.0/24', 'namespace': 'Global'}
+  [updated] Prefix: {'prefix': '192.0.2.0/24', 'namespace': 'Global'}
+  [updated] Prefix: {'prefix': '198.51.100.0/24', 'namespace': 'Global'}
+  [updated] Prefix: {'prefix': '198.51.100.0/31', 'namespace': 'Global'}
+  [updated] Prefix: {'prefix': '198.51.100.2/31', 'namespace': 'Global'}
+  [updated] Prefix: {'prefix': '198.51.100.4/31', 'namespace': 'Global'}
+  [updated] Prefix: {'prefix': '203.0.113.0/24', 'namespace': 'Global'}
+  [updated] Prefix: {'prefix': '203.0.113.0/26', 'namespace': 'Global'}
+  [updated] Prefix: {'prefix': '203.0.113.64/26', 'namespace': 'Global'}
+6. Global Config Context
+  [updated] ConfigContext: {'name': 'global-services'}
+Applying planned SoT CI/CD demo change fixture...
+  [created] Demo VLAN: {'vid': 300, 'name': 'LAB-CI-DEMO'}
+  [created] Demo Prefix: {'prefix': '203.0.113.128/26', 'namespace': 'Global'}
+  [updated] ceos-leaf1:Ethernet2 description -> Uplink to ceos-leaf2 - CI/CD Managed
+  [created] Demo Interface cisco-core1:Loopback10: {'device': 'cisco-core1', 'name': 'Loopback10'}
+  [created] IPAddress: {'address': '203.0.113.250/32', 'namespace': 'Global'}
+  [attached] IP 203.0.113.250/32 -> interface 578b224f
+Nautobot seeding complete.
+
+## Step 2: Nautobot Webhook -> CI/CD Pipeline Execution
+Webhook run status: success (rc=0)
+Reason: Nautobot updated interface 'Loopback10' by admin (+17 coalesced events)
+Started: 2026-11-22T06:38:59.976760+00:00 | Finished: 2026-11-22T06:39:36.899142+00:00
+--- Pipeline stdout tail ---
+        },
+        {
+          "device": "cisco-core1",
+          "feature": null,
+          "compliance": true
+        },
+        {
+          "device": "cisco-core1",
+          "feature": null,
+          "compliance": true
+        },
+        {
+          "device": "cisco-core1",
+          "feature": null,
+          "compliance": true
+        },
+        {
+          "device": "cisco-core1",
+          "feature": null,
+          "compliance": true
+        }
+      ]
+    }
+  }
+}
+
+## Step 3: Gitea Pull Request #68
+Title:  SoT Change (20261122-063900): Nautobot updated interface 'Loopback10' by admin (+17 coales
+Merged: True | Head: sot-change-20261122-063900 -> Base: main
+--- PR Diff & Lint Comment ---
+### CI Lint & Dry-Run Diff Report
+
+**Lint**: PASSED
+- [ceos-leaf1] Lint OK (43 lines)
+- [ceos-leaf2] Lint OK (43 lines)
+- [cisco-core1] Lint OK (42 lines)
+
+**Dry-Run Diffs**:
+
+#### `ceos-leaf1` (`172.30.30.11`)
+```diff
+--- live/ceos-leaf1.cfg
++++ intended/ceos-leaf1.cfg
+@@ -1,11 +1,21 @@
++!
++hostname ceos-leaf1
++ip domain-name lab.internal
++!
++ntp server 192.0.2.123
++!
+ logging host 192.0.2.200
+-hostname ceos-leaf1
++!
+ snmp-server community lab-ro-demo ro
++!
+ vlan 100
+    name LAB-USERS
+ !
+ vlan 200
+    name LAB-SERVERS
++!
++vlan 300
++   name LAB-CI-DEMO
+ !
+ interface Ethernet1
+    description Uplink to cisco-core1 GigabitEthernet2
+@@ -13,7 +23,7 @@
+    ip address 198.51.100.0/31
+ !
+ interface Ethernet2
+-   description Peer link to ceos-leaf2 Ethernet2
++   description Uplink to ceos-leaf2 - CI/CD Managed
+    no switchport
+    ip address 198.51.100.4/31
+ !
+@@ -21,7 +31,6 @@
+    description Router ID and BGP Loopback
+    ip address 192.0.2.11/32
+ !
+-ntp server 192.0.2.123
+ router bgp 65001
+    router-id 192.0.2.11
+    maximum-paths 4
+@@ -31,3 +40,4 @@
+    neighbor 198.51.100.5 description ceos-leaf2
+    network 192.0.2.11/32
+ !
++end
+```
+
+#### `ceos-leaf2` (`172.30.30.12`)
+```diff
+--- live/ceos-leaf2.cfg
++++ intended/ceos-leaf2.cfg
+@@ -1,11 +1,21 @@
++!
++hostname ceos-leaf2
++ip domain-name lab.internal
++!
++ntp server 192.0.2.123
++!
+ logging host 192.0.2.200
+-hostname ceos-leaf2
++!
+ snmp-server community lab-ro-demo ro
++!
+ vlan 100
+    name LAB-USERS
+ !
+ vlan 200
+    name LAB-SERVERS
++!
++vlan 300
++   name LAB-CI-DEMO
+ !
+ interface Ethernet1
+    description Uplink to cisco-core1 GigabitEthernet3
+@@ -21,7 +31,6 @@
+    description Router ID and BGP Loopback
+    ip address 192.0.2.12/32
+ !
+-ntp server 192.0.2.123
+ router bgp 65002
+    router-id 192.0.2.12
+    maximum-paths 4
+@@ -31,3 +40,4 @@
+    neighbor 198.51.100.4 description ceos-leaf1
+    network 192.0.2.12/32
+ !
++end
+```
+
+#### `cisco-core1` (`172.30.30.13`)
+```diff
+--- live/cisco-core1.cfg
++++ intended/cisco-core1.cfg
+@@ -1,8 +1,12 @@
++!
+ hostname cisco-core1
+ ip domain name lab.internal
+-interface Loopback0
+- description Router ID and BGP Loopback
+- ip address 192.0.2.13 255.255.255.255
++!
++ntp server 192.0.2.123
++!
++logging host 192.0.2.200
++!
++snmp-server community lab-ro-demo RO
+ !
+ interface GigabitEthernet2
+  description Downlink to ceos-leaf1 Ethernet1
+@@ -18,15 +22,21 @@
+  no mop enabled
+  no mop sysid
+ !
++interface Loopback0
++ description Router ID and BGP Loopback
++ ip address 192.0.2.13 255.255.255.255
++!
++interface Loopback10
++ description CI/CD Managed Demo Loopback
++ ip address 203.0.113.250 255.255.255.255
++!
+ router bgp 65010
+  bgp router-id 192.0.2.13
+  bgp log-neighbor-changes
+- network 192.0.2.13 mask 255.255.255.255
+  neighbor 198.51.100.0 remote-as 65001
+  neighbor 198.51.100.0 description ceos-leaf1
+  neighbor 198.51.100.2 remote-as 65002
+  neighbor 198.51.100.2 description ceos-leaf2
++ network 192.0.2.13 mask 255.255.255.255
+ !
+-logging host 192.0.2.200
+-snmp-server community lab-ro-demo RO
+-ntp server 192.0.2.123
++end
+```
+
+## Step 4: Live Router CLI Verification
+### ceos-leaf1: show vlan
+VLAN  Name                             Status    Ports                          
+----- -------------------------------- --------- -------------------------------
+1     default                          active                                   
+100   LAB-USERS                        active                                   
+200   LAB-SERVERS                      active                                   
+300   LAB-CI-DEMO                      active
+### ceos-leaf1: show running-config interfaces Ethernet2
+interface Ethernet2
+   description Uplink to ceos-leaf2 - CI/CD Managed
+   no switchport
+   ip address 198.51.100.4/31
+### ceos-leaf2: show vlan
+VLAN  Name                             Status    Ports                          
+----- -------------------------------- --------- -------------------------------
+1     default                          active                                   
+100   LAB-USERS                        active                                   
+200   LAB-SERVERS                      active                                   
+300   LAB-CI-DEMO                      active
+### cisco-core1: show ip interface brief
+Interface              IP-Address      OK? Method Status                Protocol
+GigabitEthernet1       10.0.0.15       YES DHCP   up                    up      
+GigabitEthernet2       198.51.100.1    YES manual up                    up      
+GigabitEthernet3       198.51.100.3    YES manual up                    up      
+Loopback0              192.0.2.13      YES manual up                    up      
+Loopback10             203.0.113.250   YES manual up                    up
+### cisco-core1: show running-config interface Loopback10
+Building configuration...
+
+Current configuration : 111 bytes
+!
+interface Loopback10
+ description CI/CD Managed Demo Loopback
+ ip address 203.0.113.250 255.255.255.255
+end
+
+## Step 5: Post-Deploy Golden Config Compliance
+Compliance Summary: 20/20 feature checks compliant
+  ceos-leaf1     | bgp            | COMPLIANT
+  ceos-leaf1     | hostname       | COMPLIANT
+  ceos-leaf1     | interfaces     | COMPLIANT
+  ceos-leaf1     | logging        | COMPLIANT
+  ceos-leaf1     | ntp            | COMPLIANT
+  ceos-leaf1     | snmp           | COMPLIANT
+  ceos-leaf1     | vlans          | COMPLIANT
+  ceos-leaf2     | bgp            | COMPLIANT
+  ceos-leaf2     | hostname       | COMPLIANT
+  ceos-leaf2     | interfaces     | COMPLIANT
+  ceos-leaf2     | logging        | COMPLIANT
+  ceos-leaf2     | ntp            | COMPLIANT
+  ceos-leaf2     | snmp           | COMPLIANT
+  ceos-leaf2     | vlans          | COMPLIANT
+  cisco-core1    | bgp            | COMPLIANT
+  cisco-core1    | hostname       | COMPLIANT
+  cisco-core1    | interfaces     | COMPLIANT
+  cisco-core1    | logging        | COMPLIANT
+  cisco-core1    | ntp            | COMPLIANT
+  cisco-core1    | snmp           | COMPLIANT
+
+## Result: PASS

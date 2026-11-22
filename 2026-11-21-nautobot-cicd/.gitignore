@@ -1,0 +1,14 @@
+# Local / generated
+.env
+*.mp4
+*.wav
+*.mkv
+clips/
+shots/
+evidence/*.png
+split-for-box*/
+__pycache__/
+.video/
+scripts/_secrets_scan_tmp.py
+FIX-V2*.md
+VERIFY-REPORT*.md
