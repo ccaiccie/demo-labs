@@ -1,0 +1,30 @@
+# Copy this file to terraform.tfvars and replace the placeholder values
+# before running `terraform plan` or `terraform apply` in your own AWS account.
+
+aws_region   = "us-east-1"
+project_name = "cognito-net-lab"
+vpc_cidr     = "10.42.0.0/16"
+
+availability_zones = [
+  "us-east-1a",
+  "us-east-1b"
+]
+
+# Must be globally unique across all AWS accounts in the chosen Region.
+cognito_domain_prefix = "replace-me-cognito-net-lab-2026"
+
+# Replace with the ARN of a pre-validated ACM certificate in var.aws_region.
+acm_certificate_arn = "arn:aws:acm:us-east-1:111122223333:certificate/00000000-0000-0000-0000-000000000000"
+
+# Optional: set if you create a Route 53 Alias/CNAME pointing to the ALB.
+alb_fqdn = ""
+
+# Set to true for an internal ALB in private subnets (uses NAT Gateway to reach Cognito IPv4 endpoints).
+alb_internal = false
+
+# Restrict to your own public IP CIDR (for example ["203.0.113.10/32"]) when testing.
+alb_ingress_cidrs = ["0.0.0.0/0"]
+
+waf_rate_limit      = 1000
+enable_waf_on_alb   = true
+enable_waf_on_apigw = true
