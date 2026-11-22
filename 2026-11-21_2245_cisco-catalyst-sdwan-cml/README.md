@@ -2,7 +2,7 @@
 
 A complete Cisco Catalyst SD-WAN lab on Cisco Modeling Labs (CML), built from an empty CML server with Python and the CML and SD-WAN Manager REST APIs. Every script is explained line by line in the video.
 
-Video: [Cisco Catalyst SD-WAN on CML – A to Z: Full Python Build, Policies and Failover](https://youtu.be/-GWzq16rR8U)
+Video: [Cisco Catalyst SD-WAN on CML – A to Z: Full Python Build, Policies and Failover](https://youtu.be/RY-a3hQxlnA)
 
 ## What gets built
 
@@ -35,6 +35,7 @@ Video: [Cisco Catalyst SD-WAN on CML – A to Z: Full Python Build, Policies and
 | `sdwanlab/policy.py` | Policy objects, AAR, DIA, guest isolation, `LAB-PG` |
 | `sdwanlab/console.py` | Runs commands on any node through the CML console server |
 | `templates/` | Jinja2 day-0 templates (controller cloud-init, Gateway IOS, Alpine hosts) and exported parcel defaults |
+| `diagrams/` | Editable draw.io concept diagrams (Cisco stencils) used in the video, plus the generator |
 | `docs/lessons-learned.md` | Real problems hit while building this lab, and how the code avoids them |
 
 ## Build steps
