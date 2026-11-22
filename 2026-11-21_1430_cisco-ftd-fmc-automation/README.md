@@ -4,6 +4,8 @@ One Python script takes an empty Firewall Management Center (FMCv 10.0.1) and tw
 
 Video: [Cisco FTD through FMC: Full Automated Build with Python and the REST API (Explained)](https://youtu.be/idqv28mOKuU)
 
+Related video: [Cisco Catalyst SD-WAN on CML – A to Z: Full Python Build, Policies and Failover](https://youtu.be/RY-a3hQxlnA)
+
 ## Lab topology (GNS3)
 
 | Device | Management | Outside (Ethernet0/0) | Inside (Ethernet0/1) | Test PC |
