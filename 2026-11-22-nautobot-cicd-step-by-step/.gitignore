@@ -1,0 +1,21 @@
+# Local environment and secrets (never commit)
+.env
+compose/.env
+*.key
+*.pem
+
+# Python bytecode and caches
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+
+# Containerlab runtime artifacts
+clab/clab-*/
+.topology.clab.yml.bak
+
+# OS / editor noise
+.DS_Store
+Thumbs.db
+*.swp

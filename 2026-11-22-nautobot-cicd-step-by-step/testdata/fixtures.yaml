@@ -1,0 +1,304 @@
+# Declarative Source-of-Truth (SoT) fixtures for Nautobot 3.2 CI/CD Lab
+# Strictly RFC 5737 documentation IPs (192.0.2.0/24, 198.51.100.0/24, 203.0.113.0/24)
+# plus private containerlab management subnet (172.30.30.0/24).
+# No real data, no public IPs, no hardcoded secrets.
+
+metadata:
+  lab_name: nautobot-cicd-1121
+  domain: lab.internal
+  namespace: Global
+
+location_types:
+  - name: Site
+    nestable: false
+    content_types:
+      - dcim.device
+      - dcim.rack
+      - ipam.prefix
+      - ipam.vlan
+      - ipam.vlangroup
+
+locations:
+  - name: Lab-DC1
+    location_type: Site
+    status: Active
+    description: Virtual lab datacenter (Arista cEOS + Cisco IOS-XE)
+
+manufacturers:
+  - name: Arista
+  - name: Cisco
+
+platforms:
+  - name: arista_eos
+    manufacturer: Arista
+    network_driver: arista_eos
+    napalm_driver: eos
+    description: Arista cEOS-lab
+  - name: cisco_xe
+    manufacturer: Cisco
+    network_driver: cisco_xe
+    napalm_driver: ios
+    description: Cisco IOS-XE (CSR1000v / Cat8000v)
+  - name: cisco_ios
+    manufacturer: Cisco
+    network_driver: cisco_ios
+    napalm_driver: ios
+    description: Cisco IOSv fallback
+
+roles:
+  - name: Leaf
+    color: 2196f3
+    description: Leaf switch / router role
+    content_types:
+      - dcim.device
+      - ipam.prefix
+      - ipam.vlan
+  - name: Core
+    color: 4caf50
+    description: Core router role
+    content_types:
+      - dcim.device
+      - ipam.prefix
+      - ipam.vlan
+
+device_types:
+  - model: cEOS-lab
+    manufacturer: Arista
+    u_height: 1
+  - model: CSR1000v
+    manufacturer: Cisco
+    u_height: 1
+  - model: Cat8000v
+    manufacturer: Cisco
+    u_height: 1
+  - model: IOSv
+    manufacturer: Cisco
+    u_height: 1
+
+prefixes:
+  - prefix: 172.30.30.0/24
+    status: Active
+    type: network
+    location: Lab-DC1
+    description: Containerlab out-of-band management network
+  - prefix: 192.0.2.0/24
+    status: Active
+    type: container
+    location: Lab-DC1
+    description: RFC 5737 TEST-NET-1 loopbacks and core lab services
+  - prefix: 198.51.100.0/24
+    status: Active
+    type: container
+    location: Lab-DC1
+    description: RFC 5737 TEST-NET-2 point-to-point fabric links
+  - prefix: 198.51.100.0/31
+    status: Active
+    type: network
+    location: Lab-DC1
+    description: P2P ceos-leaf1 Ethernet1 <-> cisco-core1 GigabitEthernet2
+  - prefix: 198.51.100.2/31
+    status: Active
+    type: network
+    location: Lab-DC1
+    description: P2P ceos-leaf2 Ethernet1 <-> cisco-core1 GigabitEthernet3
+  - prefix: 198.51.100.4/31
+    status: Active
+    type: network
+    location: Lab-DC1
+    description: P2P ceos-leaf1 Ethernet2 <-> ceos-leaf2 Ethernet2
+  - prefix: 203.0.113.0/24
+    status: Active
+    type: container
+    location: Lab-DC1
+    description: RFC 5737 TEST-NET-3 tenant VLAN subnets
+  - prefix: 203.0.113.0/26
+    status: Active
+    type: network
+    location: Lab-DC1
+    vlan_vid: 100
+    description: VLAN 100 LAB-USERS subnet
+  - prefix: 203.0.113.64/26
+    status: Active
+    type: network
+    location: Lab-DC1
+    vlan_vid: 200
+    description: VLAN 200 LAB-SERVERS subnet
+
+vlans:
+  - vid: 100
+    name: LAB-USERS
+    status: Active
+    location: Lab-DC1
+    description: Baseline lab users VLAN
+  - vid: 200
+    name: LAB-SERVERS
+    status: Active
+    location: Lab-DC1
+    description: Baseline lab servers VLAN
+
+devices:
+  - name: ceos-leaf1
+    device_type: cEOS-lab
+    role: Leaf
+    platform: arista_eos
+    location: Lab-DC1
+    status: Active
+    mgmt_ip: 172.30.30.11/24
+    loopback0: 192.0.2.11/32
+    bgp_asn: 65001
+    interfaces:
+      - name: Management0
+        type: 1000base-t
+        mgmt_only: true
+        description: OOB Management
+        ip_address: 172.30.30.11/24
+      - name: Loopback0
+        type: virtual
+        description: Router ID and BGP Loopback
+        ip_address: 192.0.2.11/32
+      - name: Ethernet1
+        type: 10gbase-x-sfpp
+        description: Uplink to cisco-core1 GigabitEthernet2
+        ip_address: 198.51.100.0/31
+      - name: Ethernet2
+        type: 10gbase-x-sfpp
+        description: Peer link to ceos-leaf2 Ethernet2
+        ip_address: 198.51.100.4/31
+
+  - name: ceos-leaf2
+    device_type: cEOS-lab
+    role: Leaf
+    platform: arista_eos
+    location: Lab-DC1
+    status: Active
+    mgmt_ip: 172.30.30.12/24
+    loopback0: 192.0.2.12/32
+    bgp_asn: 65002
+    interfaces:
+      - name: Management0
+        type: 1000base-t
+        mgmt_only: true
+        description: OOB Management
+        ip_address: 172.30.30.12/24
+      - name: Loopback0
+        type: virtual
+        description: Router ID and BGP Loopback
+        ip_address: 192.0.2.12/32
+      - name: Ethernet1
+        type: 10gbase-x-sfpp
+        description: Uplink to cisco-core1 GigabitEthernet3
+        ip_address: 198.51.100.2/31
+      - name: Ethernet2
+        type: 10gbase-x-sfpp
+        description: Peer link to ceos-leaf1 Ethernet2
+        ip_address: 198.51.100.5/31
+
+  - name: cisco-core1
+    device_type: CSR1000v
+    role: Core
+    platform: cisco_xe
+    location: Lab-DC1
+    status: Active
+    mgmt_ip: 172.30.30.13/24
+    loopback0: 192.0.2.13/32
+    bgp_asn: 65010
+    interfaces:
+      - name: GigabitEthernet1
+        type: 1000base-t
+        mgmt_only: true
+        description: OOB Management
+        ip_address: 172.30.30.13/24
+      - name: Loopback0
+        type: virtual
+        description: Router ID and BGP Loopback
+        ip_address: 192.0.2.13/32
+      - name: GigabitEthernet2
+        type: 1000base-t
+        description: Downlink to ceos-leaf1 Ethernet1
+        ip_address: 198.51.100.1/31
+      - name: GigabitEthernet3
+        type: 1000base-t
+        description: Downlink to ceos-leaf2 Ethernet1
+        ip_address: 198.51.100.3/31
+
+links:
+  - a_device: ceos-leaf1
+    a_interface: Ethernet1
+    b_device: cisco-core1
+    b_interface: GigabitEthernet2
+    subnet: 198.51.100.0/31
+  - a_device: ceos-leaf2
+    a_interface: Ethernet1
+    b_device: cisco-core1
+    b_interface: GigabitEthernet3
+    subnet: 198.51.100.2/31
+  - a_device: ceos-leaf1
+    a_interface: Ethernet2
+    b_device: ceos-leaf2
+    b_interface: Ethernet2
+    subnet: 198.51.100.4/31
+
+bgp:
+  ceos-leaf1:
+    asn: 65001
+    router_id: 192.0.2.11
+    networks:
+      - 192.0.2.11/32
+    neighbors:
+      - peer_ip: 198.51.100.1
+        remote_asn: 65010
+        description: cisco-core1
+      - peer_ip: 198.51.100.5
+        remote_asn: 65002
+        description: ceos-leaf2
+  ceos-leaf2:
+    asn: 65002
+    router_id: 192.0.2.12
+    networks:
+      - 192.0.2.12/32
+    neighbors:
+      - peer_ip: 198.51.100.3
+        remote_asn: 65010
+        description: cisco-core1
+      - peer_ip: 198.51.100.4
+        remote_asn: 65001
+        description: ceos-leaf1
+  cisco-core1:
+    asn: 65010
+    router_id: 192.0.2.13
+    networks:
+      - 192.0.2.13/32
+    neighbors:
+      - peer_ip: 198.51.100.0
+        remote_asn: 65001
+        description: ceos-leaf1
+      - peer_ip: 198.51.100.2
+        remote_asn: 65002
+        description: ceos-leaf2
+
+# Planned Source-of-Truth CI/CD Demo Change Fixture
+# Applied during the live SoT -> Webhook -> CI/CD -> Deploy demo
+demo_change:
+  vlan:
+    vid: 300
+    name: LAB-CI-DEMO
+    status: Active
+    location: Lab-DC1
+    description: Provisioned via Nautobot SoT CI/CD pipeline
+  prefix:
+    prefix: 203.0.113.128/26
+    status: Active
+    type: network
+    location: Lab-DC1
+    vlan_vid: 300
+    description: VLAN 300 LAB-CI-DEMO subnet
+  interface_updates:
+    - device: ceos-leaf1
+      interface: Ethernet2
+      description: "Uplink to ceos-leaf2 - CI/CD Managed"
+  new_interfaces:
+    - device: cisco-core1
+      name: Loopback10
+      type: virtual
+      description: "CI/CD Managed Demo Loopback"
+      ip_address: 203.0.113.250/32

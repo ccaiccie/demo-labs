@@ -1,0 +1,10 @@
+{# Main Golden Config intended-configuration dispatcher for Nautobot 3.2 #}
+{% set driver = (platform.network_driver if platform and platform.network_driver else (platform.name if platform else '')) | lower %}
+{% if driver in ['arista_eos', 'eos'] %}
+{% include 'arista_eos.j2' %}
+{% elif driver in ['cisco_xe', 'cisco_ios', 'ios', 'iosxe'] %}
+{% include 'cisco_xe.j2' %}
+{% else %}
+! Unsupported platform driver: {{ driver }}
+hostname {{ name }}
+{% endif %}

@@ -1,0 +1,220 @@
+name: nautobot-cicd-1121
+
+x-nautobot-env: &nautobot-env
+  NAUTOBOT_ALLOWED_HOSTS: "*"
+  NAUTOBOT_CONFIG: "/opt/nautobot/nautobot_config.py"
+  NAUTOBOT_DB_HOST: "postgres"
+  NAUTOBOT_DB_PORT: "5432"
+  NAUTOBOT_DB_NAME: "${NAUTOBOT_DB_NAME:-nautobot}"
+  NAUTOBOT_DB_USER: "${NAUTOBOT_DB_USER:-nautobot}"
+  NAUTOBOT_DB_PASSWORD: "${NAUTOBOT_DB_PASSWORD}"
+  NAUTOBOT_REDIS_HOST: "redis"
+  NAUTOBOT_REDIS_PORT: "6379"
+  NAUTOBOT_REDIS_PASSWORD: "${NAUTOBOT_REDIS_PASSWORD}"
+  NAUTOBOT_SECRET_KEY: "${NAUTOBOT_SECRET_KEY}"
+  NAUTOBOT_SUPERUSER_NAME: "${NAUTOBOT_SUPERUSER_NAME:-admin}"
+  NAUTOBOT_SUPERUSER_EMAIL: "${NAUTOBOT_SUPERUSER_EMAIL:-admin@lab.internal}"
+  NAUTOBOT_SUPERUSER_PASSWORD: "${NAUTOBOT_SUPERUSER_PASSWORD:-LabAdmin123!}"
+  NAUTOBOT_SUPERUSER_API_TOKEN: "${NAUTOBOT_SUPERUSER_API_TOKEN}"
+  NAUTOBOT_CREATE_SUPERUSER: "true"
+  NAUTOBOT_METRICS_ENABLED: "false"
+  NAUTOBOT_INSTALLATION_METRICS_ENABLED: "false"
+  DEVICE_USERNAME: "${DEVICE_USERNAME:-admin}"
+  DEVICE_PASSWORD: "${DEVICE_PASSWORD:-LabDemo123!}"
+  DEVICE_ENABLE_SECRET: "${DEVICE_ENABLE_SECRET:-LabDemo123!}"
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: nautobot-cicd-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: "${NAUTOBOT_DB_NAME:-nautobot}"
+      POSTGRES_USER: "${NAUTOBOT_DB_USER:-nautobot}"
+      POSTGRES_PASSWORD: "${NAUTOBOT_DB_PASSWORD}"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - nautobot-cicd-net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${NAUTOBOT_DB_USER:-nautobot} -d ${NAUTOBOT_DB_NAME:-nautobot}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    container_name: nautobot-cicd-redis
+    restart: unless-stopped
+    command:
+      - "sh"
+      - "-c"
+      - "redis-server --appendonly yes --requirepass $${NAUTOBOT_REDIS_PASSWORD}"
+    environment:
+      NAUTOBOT_REDIS_PASSWORD: "${NAUTOBOT_REDIS_PASSWORD}"
+    volumes:
+      - redis_data:/data
+    networks:
+      - nautobot-cicd-net
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli -a $${NAUTOBOT_REDIS_PASSWORD} ping | grep -q PONG"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  nautobot:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: nautobot-cicd-1121/nautobot:3.2.9
+    container_name: nautobot-cicd-web
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      <<: *nautobot-env
+    ports:
+      - "127.0.0.1:8083:8080"
+    volumes:
+      - nautobot_git:/opt/nautobot/git
+    networks:
+      - nautobot-cicd-net
+      - nautobot-cicd-mgmt
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://127.0.0.1:8080/health/ || exit 1"]
+      interval: 15s
+      timeout: 10s
+      retries: 30
+      start_period: 180s
+
+  celery-worker:
+    image: nautobot-cicd-1121/nautobot:3.2.9
+    container_name: nautobot-cicd-celery-worker
+    restart: unless-stopped
+    entrypoint:
+      - "sh"
+      - "-c"
+      - "nautobot-server celery worker -l INFO --concurrency=4 --events"
+    depends_on:
+      nautobot:
+        condition: service_healthy
+    environment:
+      <<: *nautobot-env
+      NAUTOBOT_CREATE_SUPERUSER: "false"
+    volumes:
+      - nautobot_git:/opt/nautobot/git
+    networks:
+      - nautobot-cicd-net
+      - nautobot-cicd-mgmt
+    healthcheck:
+      test: ["CMD-SHELL", "nautobot-server celery inspect ping --destination celery@$$HOSTNAME || exit 1"]
+      interval: 30s
+      timeout: 15s
+      retries: 5
+      start_period: 45s
+
+  celery-beat:
+    image: nautobot-cicd-1121/nautobot:3.2.9
+    container_name: nautobot-cicd-celery-beat
+    restart: unless-stopped
+    entrypoint:
+      - "sh"
+      - "-c"
+      - "nautobot-server celery beat -l INFO"
+    depends_on:
+      nautobot:
+        condition: service_healthy
+    environment:
+      <<: *nautobot-env
+      NAUTOBOT_CREATE_SUPERUSER: "false"
+    volumes:
+      - nautobot_git:/opt/nautobot/git
+    networks:
+      - nautobot-cicd-net
+    healthcheck:
+      test: ["CMD-SHELL", "python3 -c \"import glob,sys; sys.exit(0 if any('beat' in open(p,'rb').read().decode(errors='ignore') and 'celery' in open(p,'rb').read().decode(errors='ignore') for p in glob.glob('/proc/[0-9]*/cmdline')) else 1)\""]
+      interval: 15s
+      timeout: 10s
+      retries: 5
+      start_period: 15s
+
+  gitea:
+    image: gitea/gitea:1.22
+    container_name: nautobot-cicd-gitea
+    restart: unless-stopped
+    environment:
+      USER_UID: "1000"
+      USER_GID: "1000"
+      GITEA__database__DB_TYPE: "sqlite3"
+      GITEA__security__INSTALL_LOCK: "true"
+      GITEA__server__DOMAIN: "127.0.0.1"
+      GITEA__server__SSH_DOMAIN: "127.0.0.1"
+      GITEA__server__HTTP_PORT: "3000"
+      GITEA__server__ROOT_URL: "http://127.0.0.1:3002/"
+      GITEA__server__SSH_PORT: "2223"
+      GITEA__server__SSH_LISTEN_PORT: "22"
+      GITEA__service__DISABLE_REGISTRATION: "true"
+      GITEA__webhook__ALLOWED_HOST_LIST: "*"
+    ports:
+      - "127.0.0.1:3002:3000"
+      - "127.0.0.1:2223:22"
+    volumes:
+      - gitea_data:/data
+    networks:
+      - nautobot-cicd-net
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://127.0.0.1:3000/api/v1/version || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 15
+      start_period: 15s
+
+  ci-runner:
+    build:
+      context: .
+      dockerfile: Dockerfile.ci
+    image: nautobot-cicd-1121/ci-runner:py3.11
+    container_name: nautobot-cicd-ci-runner
+    restart: unless-stopped
+    depends_on:
+      nautobot:
+        condition: service_healthy
+      gitea:
+        condition: service_healthy
+    environment:
+      NAUTOBOT_URL: "http://nautobot:8080"
+      NAUTOBOT_TOKEN: "${NAUTOBOT_SUPERUSER_API_TOKEN}"
+      GITEA_URL: "http://gitea:3000"
+      GITEA_ADMIN_USER: "${GITEA_ADMIN_USER:-netops-admin}"
+      GITEA_ADMIN_PASSWORD: "${GITEA_ADMIN_PASSWORD:-LabGitea123!}"
+      GITEA_TOKEN: "${GITEA_TOKEN:-}"
+      DEVICE_USERNAME: "${DEVICE_USERNAME:-admin}"
+      DEVICE_PASSWORD: "${DEVICE_PASSWORD:-LabDemo123!}"
+      DEVICE_ENABLE_SECRET: "${DEVICE_ENABLE_SECRET:-LabDemo123!}"
+    ports:
+      - "127.0.0.1:8086:8086"
+    volumes:
+      - "..:/workspace"
+    networks:
+      - nautobot-cicd-net
+      - nautobot-cicd-mgmt
+    healthcheck:
+      test: ["CMD-SHELL", "python3 -c 'import nornir, napalm, netmiko, jinja2, requests' || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+volumes:
+  postgres_data:
+  redis_data:
+  nautobot_git:
+  gitea_data:
+
+networks:
+  nautobot-cicd-net:
+    driver: bridge
+  nautobot-cicd-mgmt:
+    external: true

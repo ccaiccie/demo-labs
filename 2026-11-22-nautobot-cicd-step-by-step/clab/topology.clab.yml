@@ -1,0 +1,36 @@
+name: nautobot-cicd
+
+mgmt:
+  network: nautobot-cicd-mgmt
+  ipv4-subnet: 172.30.30.0/24
+
+topology:
+  nodes:
+    ceos-leaf1:
+      kind: arista_ceos
+      image: ceos:4.37.0F
+      mgmt-ipv4: 172.30.30.11
+      startup-config: configs/ceos-leaf1.cfg
+
+    ceos-leaf2:
+      kind: arista_ceos
+      image: ceos:4.37.0F
+      mgmt-ipv4: 172.30.30.12
+      startup-config: configs/ceos-leaf2.cfg
+
+    cisco-core1:
+      kind: generic_vm
+      image: labforge/qcow2-cisco-csr1000v-17-03-08a:latest
+      mgmt-ipv4: 172.30.30.13
+      env:
+        QEMU_MEMORY: "4096"
+        QEMU_SMP: "2"
+        QEMU_NIC_MODEL: "virtio-net-pci"
+
+  links:
+    # ceos-leaf1 <-> cisco-core1 (198.51.100.0/31)
+    - endpoints: ["ceos-leaf1:eth1", "cisco-core1:eth1"]
+    # ceos-leaf2 <-> cisco-core1 (198.51.100.2/31)
+    - endpoints: ["ceos-leaf2:eth1", "cisco-core1:eth2"]
+    # ceos-leaf1 <-> ceos-leaf2 (198.51.100.4/31)
+    - endpoints: ["ceos-leaf1:eth2", "ceos-leaf2:eth2"]

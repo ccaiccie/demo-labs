@@ -1,0 +1,29 @@
+FROM python:3.11-slim
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        git \
+        openssh-client \
+        curl \
+        iputils-ping \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN pip install --no-cache-dir \
+        "nornir>=3.4.1" \
+        "nornir-netmiko>=1.0.1" \
+        "nornir-napalm>=0.5.0" \
+        "nornir-utils>=0.2.0" \
+        "napalm>=5.0.0" \
+        "netmiko>=4.4.0" \
+        "pyeapi>=1.0.2" \
+        "jinja2>=3.1.4" \
+        "requests>=2.32.3" \
+        "pyyaml>=6.0.2" \
+        "pytest>=8.3.0" \
+        "yamllint>=1.35.1" \
+        "flake8>=7.1.1"
+
+WORKDIR /workspace
+
+EXPOSE 8086
+
+CMD ["sh", "-c", "if [ -f /workspace/pipeline/webhook_server.py ]; then exec python3 /workspace/pipeline/webhook_server.py; else exec tail -f /dev/null; fi"]

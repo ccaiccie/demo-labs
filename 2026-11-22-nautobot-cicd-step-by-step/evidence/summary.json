@@ -1,0 +1,109 @@
+{
+  "generated_at": "2026-11-22T17:24:00Z",
+  "lab_folder": "2026-11-22-nautobot-cicd-step-by-step",
+  "host": "mydell1",
+  "urls": {
+    "nautobot": "http://127.0.0.1:8083",
+    "gitea": "http://127.0.0.1:3002",
+    "ci_webhook": "http://127.0.0.1:8086",
+    "gitea_step_by_step_repo": "http://127.0.0.1:3002/netops/nautobot-cicd-step-by-step",
+    "gitea_gc_templates": "http://127.0.0.1:3002/netops/gc-templates",
+    "gitea_gc_intended": "http://127.0.0.1:3002/netops/gc-intended",
+    "gitea_sot_pr": "http://127.0.0.1:3002/netops/gc-intended/pulls/79",
+    "gitea_rollback_pr": "http://127.0.0.1:3002/netops/gc-intended/pulls/81"
+  },
+  "versions": {
+    "nautobot": "3.2.9",
+    "django": "5.2.19",
+    "python": "3.11.18",
+    "gitea": "1.22.6",
+    "nautobot_golden_config": "3.1.0",
+    "nautobot_ssot": "4.8.0",
+    "nautobot_device_onboarding": "5.6.0",
+    "nautobot_plugin_nornir": "3.4.0"
+  },
+  "devices": [
+    {
+      "name": "ceos-leaf1",
+      "platform": "arista_eos",
+      "os": "Arista cEOS 4.37.0F",
+      "mgmt_ip": "172.30.30.11",
+      "loopback0": "192.0.2.11/32",
+      "asn": 65001
+    },
+    {
+      "name": "ceos-leaf2",
+      "platform": "arista_eos",
+      "os": "Arista cEOS 4.37.0F",
+      "mgmt_ip": "172.30.30.12",
+      "loopback0": "192.0.2.12/32",
+      "asn": 65002
+    },
+    {
+      "name": "cisco-core1",
+      "platform": "cisco_xe",
+      "os": "Cisco CSR1000v IOS-XE 17.3.8a",
+      "mgmt_ip": "172.30.30.13",
+      "loopback0": "192.0.2.13/32",
+      "asn": 65010
+    }
+  ],
+  "observed_results": {
+    "part2_git_from_scratch": {
+      "repo": "netops/nautobot-cicd-step-by-step",
+      "default_branch": "main",
+      "feature_branch": "feat/add-vlan-300",
+      "init_commit_short": "881a9c3db2",
+      "init_commit_end": "b7a630",
+      "branch_commit_short": "ec823efbf5",
+      "branch_commit_end": "a2cf5c",
+      "nautobot_git_sync_status": "SUCCESS"
+    },
+    "part3_sot_change_pipeline": {
+      "webhook_burst_total_events": 18,
+      "webhook_coalesced_extra_events": 17,
+      "pipeline_rc": 0,
+      "sot_pr_number": 79,
+      "sot_merge_commit_short": "bd5f014171",
+      "sot_merge_commit_end": "0b70c8",
+      "deployed_objects": [
+        "VLAN 300 (LAB-CI-DEMO)",
+        "Prefix 203.0.113.128/26",
+        "ceos-leaf1:Ethernet2 description -> Uplink to ceos-leaf2 - CI/CD Managed",
+        "cisco-core1:Loopback10 (203.0.113.250/32)"
+      ],
+      "post_sot_compliance": "20/20"
+    },
+    "part4_drift_remediation": {
+      "drift_compliance": "17/20",
+      "non_compliant_rules": [
+        "ceos-leaf1 [arista_eos - logging] extra: logging host 192.0.2.250",
+        "ceos-leaf1 [arista_eos - snmp] missing: snmp-server community lab-ro-demo ro / extra: snmp-server community DRIFT-BAD ro",
+        "cisco-core1 [cisco_xe - snmp] missing: snmp-server community lab-ro-demo RO / extra: snmp-server community DRIFT-BAD RO"
+      ],
+      "remediation_change_id": "DEMO-REMEDIATE-V3",
+      "generate_config_plans": "SUCCESS",
+      "deploy_config_plans": "SUCCESS",
+      "post_remediation_compliance": "20/20"
+    },
+    "part4_rollback_and_verify": {
+      "target_baseline_short": "ecb843cab3",
+      "target_baseline_end": "bcc431",
+      "rollback_pr_number": 81,
+      "rollback_merge_commit_short": "c1437314e5",
+      "rollback_merge_commit_end": "297e89",
+      "real_delta_removed": [
+        "VLAN 300 (LAB-CI-DEMO) removed from ceos-leaf1 and ceos-leaf2",
+        "Loopback10 (203.0.113.250/32) removed from cisco-core1",
+        "ceos-leaf1:Ethernet2 description restored to Peer link to ceos-leaf2 Ethernet2"
+      ],
+      "live_cli_verified": {
+        "ceos_leaf1_vlan_300_present": false,
+        "ceos_leaf1_eth2_restored": true,
+        "cisco_core1_loopback10_present": false,
+        "ebgp_all_established": true
+      },
+      "post_rollback_compliance": "20/20"
+    }
+  }
+}

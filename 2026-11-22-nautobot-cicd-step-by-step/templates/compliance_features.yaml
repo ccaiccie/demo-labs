@@ -1,0 +1,138 @@
+# Golden Config Compliance Features and Rules for Arista EOS and Cisco IOS-XE/IOS
+# Used by scripts/configure_nautobot_apps.py to seed Nautobot Golden Config.
+
+features:
+  - name: hostname
+    slug: hostname
+    description: Device hostname compliance
+    rules:
+      arista_eos:
+        config_type: cli
+        config_ordered: false
+        match_config: |
+          hostname
+      cisco_xe:
+        config_type: cli
+        config_ordered: false
+        match_config: |
+          hostname
+      cisco_ios:
+        config_type: cli
+        config_ordered: false
+        match_config: |
+          hostname
+
+  - name: ntp
+    slug: ntp
+    description: NTP server configuration compliance
+    rules:
+      arista_eos:
+        config_type: cli
+        config_ordered: false
+        match_config: |
+          ntp server
+      cisco_xe:
+        config_type: cli
+        config_ordered: false
+        match_config: |
+          ntp server
+      cisco_ios:
+        config_type: cli
+        config_ordered: false
+        match_config: |
+          ntp server
+
+  - name: logging
+    slug: logging
+    description: Syslog server configuration compliance
+    rules:
+      arista_eos:
+        config_type: cli
+        config_ordered: false
+        match_config: |
+          logging host
+      cisco_xe:
+        config_type: cli
+        config_ordered: false
+        match_config: |
+          logging host
+      cisco_ios:
+        config_type: cli
+        config_ordered: false
+        match_config: |
+          logging host
+
+  - name: snmp
+    slug: snmp
+    description: SNMP read-only community compliance
+    rules:
+      arista_eos:
+        config_type: cli
+        config_ordered: false
+        match_config: |
+          snmp-server community
+      cisco_xe:
+        config_type: cli
+        config_ordered: false
+        match_config: |
+          snmp-server community
+      cisco_ios:
+        config_type: cli
+        config_ordered: false
+        match_config: |
+          snmp-server community
+
+  - name: vlans
+    slug: vlans
+    description: VLAN database compliance (Arista EOS leaf switches)
+    rules:
+      arista_eos:
+        config_type: cli
+        config_ordered: false
+        match_config: |
+          vlan
+
+  - name: interfaces
+    slug: interfaces
+    description: Data-plane and loopback interface compliance
+    rules:
+      arista_eos:
+        config_type: cli
+        config_ordered: false
+        match_config: |
+          interface Ethernet
+          interface Loopback
+      cisco_xe:
+        config_type: cli
+        config_ordered: false
+        match_config: |
+          interface GigabitEthernet2
+          interface GigabitEthernet3
+          interface Loopback
+      cisco_ios:
+        config_type: cli
+        config_ordered: false
+        match_config: |
+          interface GigabitEthernet0/1
+          interface GigabitEthernet0/2
+          interface Loopback
+
+  - name: bgp
+    slug: bgp
+    description: BGP routing process and neighbor compliance
+    rules:
+      arista_eos:
+        config_type: cli
+        config_ordered: false
+        match_config: |
+          router bgp
+      cisco_xe:
+        config_type: cli
+        config_ordered: false
+        match_config: |
+          router bgp
+      cisco_ios:
+        config_type: cli
+        config_ordered: false
+        match_config: |
+          router bgp

@@ -1,0 +1,36 @@
+=== 1. Nautobot Git Repositories ===
+  - Golden Config Backups | slug=golden_config_backups | branch=main | remote=http://gitea:3000/netops/gc-backups.git | head_end=81df73
+  - Golden Config Intended | slug=golden_config_intended | branch=main | remote=http://gitea:3000/netops/gc-intended.git | head_end=bcc431
+  - Golden Config Templates | slug=golden_config_templates | branch=main | remote=http://gitea:3000/netops/gc-templates.git | head_end=6cd004
+
+=== 2. Sync Nautobot Git Repository (Golden Config Templates) ===
+  Sync triggered: {"message": "Repository Golden Config Templates sync job added to queue."}
+  JobResult: Git Repository: Sync | status=SUCCESS | completed=2026-11-22T17:11:40.642975Z
+  JobResult: Perform Configuration Compliance | status=SUCCESS | completed=2026-11-22T13:54:54.364842Z
+  JobResult: Backup Configurations | status=SUCCESS | completed=2026-11-22T13:54:52.259127Z
+
+=== 3. Pre-Change Baseline Commit on netops/gc-intended ===
+  Baseline SHA: ecb843cab3 (ending in bcc431)
+  Full SHA: ecb843cab3a46981d7195af6ab3f7cad5bbcc431
+  Message: Merge PR #78: Rollback (20261122-135343) to 4c8fe2a2d4
+
+=== 4. Baseline Compliance ===
+  Compliance: 20/20
+
+=== 5. Baseline Live Router CLI Verification ===
+--- ceos-leaf1: show vlan ---
+VLAN  Name                             Status    Ports                          
+----- -------------------------------- --------- -------------------------------
+1     default                          active                                   
+100   LAB-USERS                        active                                   
+200   LAB-SERVERS                      active
+--- ceos-leaf1: show interfaces Ethernet2 description ---
+Interface                      Status         Protocol           Description
+Et2                            up             up                 Peer link to ceos-leaf2 Ethernet2
+--- ceos-leaf1: show ip bgp summary ---
+BGP summary information for VRF default
+Router identifier 192.0.2.11, local AS number 65001
+Neighbor Status Codes: m - Under maintenance
+  Description              Neighbor     V AS           MsgRcvd   MsgSent  InQ OutQ  Up/Down State   PfxRcd PfxAcc PfxAdv
+  cisco-core1              198.51.100.1 4 65010            236       247    0    0 03:27:11 Estab   2      2      2
+  ceos-leaf2               198.51.100.5 4 65002            254       248    0    0 03:29:16 Estab   2      2      2

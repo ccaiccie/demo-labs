@@ -1,0 +1,135 @@
+$ git init -b main
+Initialized empty Git repository in C:/Users/superuser/ag-lab/nautobot-cicd-v3-1122/.v3/scratch/git-demo/nautobot-cicd-step-by-step/.git/
+
+$ git config user.name NetOps Engineer
+
+$ git config user.email netops@lab.example
+
+$ git status -s
+?? .gitignore
+?? clab/
+?? compose/
+?? pipeline/
+?? scripts/
+?? templates/
+?? testdata/
+?? tests/
+
+$ git add .
+warning: in the working copy of '.gitignore', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'clab/bootstrap_cisco.py', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'clab/configs/ceos-leaf1.cfg', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'clab/configs/ceos-leaf2.cfg', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'clab/configs/cisco-core1.cfg', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'clab/topology.clab.yml', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'compose/.env.example', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'compose/Dockerfile', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'compose/Dockerfile.ci', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'compose/docker-compose.yml', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'compose/nautobot_config.py', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'pipeline/rollback.py', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'pipeline/run_cicd.py', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'pipeline/webhook_server.py', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'scripts/configure_nautobot_apps.py', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'scripts/onboard_devices.py', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'scripts/trigger_golden_config.py', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'templates/arista_eos.j2', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'templates/cisco_ios.j2', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'templates/cisco_xe.j2', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'templates/compliance_features.yaml', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'templates/main.j2', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'testdata/config_contexts/global_services.json', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'testdata/fixtures.yaml', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'testdata/seed_nautobot.py', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'tests/run_e2e_tests.py', LF will be replaced by CRLF the next time Git touches it
+
+$ git commit -m Initial Nautobot CI/CD lab repository
+[main (root-commit) 881a9c3] Initial Nautobot CI/CD lab repository
+ 26 files changed, 5002 insertions(+)
+ create mode 100644 .gitignore
+ create mode 100644 clab/bootstrap_cisco.py
+ create mode 100644 clab/configs/ceos-leaf1.cfg
+ create mode 100644 clab/configs/ceos-leaf2.cfg
+ create mode 100644 clab/configs/cisco-core1.cfg
+ create mode 100644 clab/topology.clab.yml
+ create mode 100644 compose/.env.example
+ create mode 100644 compose/Dockerfile
+ create mode 100644 compose/Dockerfile.ci
+ create mode 100644 compose/docker-compose.yml
+ create mode 100644 compose/nautobot_config.py
+ create mode 100644 pipeline/rollback.py
+ create mode 100644 pipeline/run_cicd.py
+ create mode 100644 pipeline/webhook_server.py
+ create mode 100644 scripts/configure_nautobot_apps.py
+ create mode 100644 scripts/onboard_devices.py
+ create mode 100644 scripts/trigger_golden_config.py
+ create mode 100644 templates/arista_eos.j2
+ create mode 100644 templates/cisco_ios.j2
+ create mode 100644 templates/cisco_xe.j2
+ create mode 100644 templates/compliance_features.yaml
+ create mode 100644 templates/main.j2
+ create mode 100644 testdata/config_contexts/global_services.json
+ create mode 100644 testdata/fixtures.yaml
+ create mode 100644 testdata/seed_nautobot.py
+ create mode 100644 tests/run_e2e_tests.py
+
+$ git log --oneline -n 3
+881a9c3 Initial Nautobot CI/CD lab repository
+
+$ git branch
+* main
+
+$ git switch -c feat/add-vlan-300
+Switched to a new branch 'feat/add-vlan-300'
+
+$ git branch
+* feat/add-vlan-300
+  main
+
+$ git switch main
+Switched to branch 'main'
+
+$ git remote add origin http://127.0.0.1:3002/netops/nautobot-cicd-step-by-step.git
+
+$ git remote -v
+origin	http://127.0.0.1:3002/netops/nautobot-cicd-step-by-step.git (fetch)
+origin	http://127.0.0.1:3002/netops/nautobot-cicd-step-by-step.git (push)
+
+$ git push -u origin main
+branch 'main' set up to track 'origin/main'.
+remote: . Processing 1 references        
+remote: Processed 1 references in total        
+To http://127.0.0.1:3002/netops/nautobot-cicd-step-by-step.git
+ * [new branch]      main -> main
+=== Branch Commit Demo (feat/add-vlan-300) ===
+$ git switch feat/add-vlan-300
+Switched to branch 'feat/add-vlan-300'
+
+$ git status -s
+?? testdata/VLAN300-CHANGE-NOTE.md
+
+$ git add testdata/VLAN300-CHANGE-NOTE.md
+
+$ git commit -m Document planned VLAN 300 CI/CD change
+[feat/add-vlan-300 ec823ef] Document planned VLAN 300 CI/CD change
+ 1 file changed, 3 insertions(+)
+ create mode 100644 testdata/VLAN300-CHANGE-NOTE.md
+
+$ git log --oneline -n 3
+ec823ef Document planned VLAN 300 CI/CD change
+881a9c3 Initial Nautobot CI/CD lab repository
+
+$ git push -u origin feat/add-vlan-300
+branch 'feat/add-vlan-300' set up to track 'origin/feat/add-vlan-300'.
+remote: 
+remote: Create a new pull request for 'feat/add-vlan-300':        
+remote:   http://127.0.0.1:3002/netops/nautobot-cicd-step-by-step/compare/main...feat/add-vlan-300        
+remote: 
+remote: . Processing 1 references        
+remote: Processed 1 references in total        
+To http://127.0.0.1:3002/netops/nautobot-cicd-step-by-step.git
+ * [new branch]      feat/add-vlan-300 -> feat/add-vlan-300
+
+$ git switch main
+Your branch is up to date with 'origin/main'.
+Switched to branch 'main'
