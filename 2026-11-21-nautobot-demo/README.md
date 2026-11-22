@@ -2,6 +2,8 @@
 
 A self-contained, local Docker Compose lab running **Nautobot 3.2.9** (official container images only) with realistic synthetic NetOps fixtures (RFC 5737 IPv4 prefixes, RFC 6996 private ASNs, `lab.internal` hostnames), an internal Git repository Data Source, idempotent REST API seeding, GraphQL queries, Config Context merging, and Celery Job execution.
 
+Video: [Nautobot 3.2.9 Deep Dive & NetOps Lab: APIs, GraphQL, Git, Jobs vs NetBox](https://youtu.be/7T3CtKCReLY)
+
 ---
 
 ## 1. What Nautobot Is & Why Network Engineers Use It
