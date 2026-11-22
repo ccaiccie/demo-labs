@@ -1,5 +1,7 @@
 # Nautobot 3.2.9 Network CI/CD Step-by-Step Beginner Lab
 
+Video: [Nautobot CI/CD Step-by-Step for Beginners: Git, Pipelines, Drift & Rollback](https://youtu.be/R4y4kGmiVS8)
+
 A complete, beginner-friendly, hands-on Network CI/CD lab built from scratch with **Nautobot 3.2.9**, **Git**, **local Gitea 1.22.6**, **Python**, **Jinja2**, **Golden Config**, **HierConfig**, and a live 3-router **Containerlab** topology (`ceos-leaf1`, `ceos-leaf2`, and `cisco-core1`).
 
 Every IP address in this lab uses **RFC 5737** documentation ranges (`192.0.2.0/24`, `198.51.100.0/24`, `203.0.113.0/24`) plus an isolated Containerlab management subnet (`172.30.30.0/24`). Every published host port binds strictly to `127.0.0.1`.
