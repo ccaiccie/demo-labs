@@ -2,7 +2,7 @@
 
 This lesson turns on the advanced security features of Cisco Secure Firewall Threat Defense (FTDv 10.0.0), one at a time, through the Firewall Management Center (FMCv 10.0.1) web GUI. No scripts and no API are used. Each feature is then tested live from the Ubuntu-Test-1 desktop behind FTD1 (over VNC), and the result is read in FMC Unified Events.
 
-Video: [Cisco FTD/FMC Advanced Security A to Z: IPS, URL, App Control, SI, File and TLS Decryption (GUI)](https://youtu.be/AxF6rYnOWXg)
+Video: [Cisco FTD/FMC Advanced Security A to Z: IPS, URL, App Control, SI, File and TLS Decryption (GUI)](https://youtu.be/Y8pRv8en3To)
 
 Prerequisite lab (the same GNS3 topology, built with Python and the FMC REST API): [2026-11-21_1430_cisco-ftd-fmc-automation](../2026-11-21_1430_cisco-ftd-fmc-automation/) and its video [Cisco FTD through FMC: Full Automated Build with Python and the REST API (Explained)](https://youtu.be/idqv28mOKuU).
 
