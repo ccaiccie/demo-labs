@@ -1,0 +1,21 @@
+#cloud-config
+hostname: CLIENT1
+manage_etc_hosts: True
+system_info:
+  default_user:
+    name: cisco
+password: cisco
+chpasswd:
+  expire: False
+ssh_pwauth: True
+write_files:
+  - path: /etc/wpa_supplicant/lab.conf
+    content: |
+      ctrl_interface=/run/wpa_supplicant
+      network={
+        ssid="CORP"
+        psk="CorpLab2026"
+        key_mgmt=WPA-PSK
+      }
+runcmd:
+  - [sh, -c, "pkill hostapd; ip link set wlan0 down; iw dev wlan0 set type managed; ip link set wlan0 up"]

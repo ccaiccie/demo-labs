@@ -1,0 +1,93 @@
+! SW1 - core / access switch: VLANs, gateways, DHCP and the guest ACL
+hostname SW1
+ip routing
+no ip domain lookup
+! VTP transparent keeps the VLANs below in the running config. In the recorded lab the
+! switch was in VTP server mode, the vlan lines never reached the VLAN database and
+! Vlan20/Vlan30 stayed down until the VLANs were created by hand (see the video, part 4).
+vtp mode transparent
+vlan 20
+ name CORP
+vlan 30
+ name GUEST
+vlan 50
+ name SERVERS
+vlan 100
+ name AP-MGMT
+vlan 254
+ name TRANSIT
+!
+interface Ethernet0/0
+ description WLC1 Gi1 - trunk
+ switchport trunk encapsulation dot1q
+ switchport mode trunk
+ switchport trunk allowed vlan 20,30,100
+interface Ethernet0/1
+ description AP1
+ switchport mode access
+ switchport access vlan 100
+ spanning-tree portfast
+interface Ethernet0/2
+ description AP2
+ switchport mode access
+ switchport access vlan 100
+ spanning-tree portfast
+interface Ethernet0/3
+ description R1 - Internet edge
+ switchport mode access
+ switchport access vlan 254
+interface Ethernet1/0
+ description SRV1
+ switchport mode access
+ switchport access vlan 50
+ spanning-tree portfast
+!
+interface Vlan100
+ description AP management + WLC wireless management
+ ip address 10.10.100.1 255.255.255.0
+ no shutdown
+interface Vlan20
+ description CORP clients
+ ip address 10.10.20.1 255.255.255.0
+ no shutdown
+interface Vlan30
+ description GUEST clients - internet only
+ ip address 10.10.30.1 255.255.255.0
+ ip access-group GUEST-IN in
+ no shutdown
+interface Vlan50
+ description servers
+ ip address 10.10.50.1 255.255.255.0
+ no shutdown
+interface Vlan254
+ description transit to R1
+ ip address 10.10.254.1 255.255.255.252
+ no shutdown
+ip route 0.0.0.0 0.0.0.0 10.10.254.2
+!
+ip access-list extended GUEST-IN
+ permit udp any any eq bootps
+ permit icmp any host 10.10.30.1
+ deny   ip any 10.0.0.0 0.255.255.255
+ deny   ip any 172.16.0.0 0.15.255.255
+ deny   ip any 192.168.0.0 0.0.255.255
+ permit ip any any
+!
+ip dhcp excluded-address 10.10.100.1 10.10.100.100
+ip dhcp excluded-address 10.10.100.200 10.10.100.254
+ip dhcp excluded-address 10.10.20.1 10.10.20.100
+ip dhcp excluded-address 10.10.30.1 10.10.30.100
+ip dhcp pool AP-MGMT
+ network 10.10.100.0 255.255.255.0
+ default-router 10.10.100.1
+ ! option 43 = TLV f1, length 04, WLC 10.10.100.254
+ option 43 hex f104.0a0a.64fe
+ip dhcp pool CORP
+ network 10.10.20.0 255.255.255.0
+ default-router 10.10.20.1
+ dns-server 8.8.8.8
+ip dhcp pool GUEST
+ network 10.10.30.0 255.255.255.0
+ default-router 10.10.30.1
+ dns-server 8.8.8.8
+end

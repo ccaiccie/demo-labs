@@ -1,0 +1,7 @@
+# SRV1 - a small Alpine Linux server on VLAN 50
+hostname SRV1
+USERNAME=cisco
+PASSWORD=cisco
+ip link set eth0 up
+ip addr add 10.10.50.10/24 dev eth0
+ip route add default via 10.10.50.1

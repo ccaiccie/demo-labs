@@ -1,0 +1,29 @@
+! WLC1 - Catalyst 9800-CL day-0: management access only.
+! Everything wireless is configured later in the WebUI.
+platform console serial
+hostname WLC1
+username admin privilege 15 secret 0 <ADMIN_PASSWORD>
+enable secret 0 <ADMIN_PASSWORD>
+aaa new-model
+aaa authentication login default local
+aaa authorization exec default local
+!
+! Out-of-band management on Gi2 -> CML System Bridge
+vlan 99
+ name OOB-MGMT
+interface GigabitEthernet2
+ description OOB management (CML bridge)
+ switchport mode access
+ switchport access vlan 99
+ no shutdown
+interface Vlan99
+ ip address 192.168.122.60 255.255.255.0
+ no shutdown
+!
+ip http server
+ip http secure-server
+ip http authentication local
+ip ssh version 2
+line vty 0 15
+ transport input ssh
+end
