@@ -38,6 +38,8 @@ Labs that go with the Network Technician videos. Each folder is a self-contained
 | [2026-11-23-netbox-terraform](2026-11-23-netbox-terraform/) | Beginner-friendly NetBox v4.7.5 + Terraform v1.17.2 (e-breuninger/netbox v6.0.1) local Docker Compose lab: declarative Site, VLANs (10/20/99), RFC 5737 Prefixes, Devices, Interfaces and Gateway IPs, standardized nftables, VyOS and FortiGate firewall config generation, live Alpine nftables enforcement, and automated drift detection and remediation for both NetBox and a rogue Telnet firewall rule. | Video not yet published |
 | [2026-11-23-netdata-prometheus-grafana](2026-11-23-netdata-prometheus-grafana/) | Docker Compose lab: collect checkout latency and queue depth with Netdata and StatsD, scrape with Prometheus, and provision a Grafana dashboard. Includes the flow diagrams and a verified baseline–slowdown–recovery walkthrough. | [Watch on YouTube](https://youtu.be/oyU7s9wHbvM) |
 
+| [2026-11-23-azure-route-server-route-maps](2026-11-23-azure-route-server-route-maps/) | Azure Route Server Route Maps hybrid path selection lab: validated Terraform (azurerm 4.x) hub100 VNet with Route Server rs1 (ASPath routing preference and branch-to-branch enabled), active-active VPN Gateway, optional ExpressRoute Gateway toggle, two Linux NVAs (ASN 100), inbound AS-path prepending policy (ExpressRoute Len 2, VPN Len 3, NVAs Len 4), Azure CLI verification commands, asymmetric-routing guidance, and honest provider-gap notes. | Video not yet published |
+
 ## Courses and quizzes
 
 - https://learn.techtohire.com

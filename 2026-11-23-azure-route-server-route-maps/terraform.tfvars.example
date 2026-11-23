@@ -1,0 +1,11 @@
+location                    = "eastus2"
+resource_group_name         = "rg-ars-routemaps-lab"
+admin_username              = "azureuser"
+ssh_public_key              = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIExampleReplaceWithYourOwnPublicKey lab@lab.internal"
+vpn_shared_key              = "Replace-With-Strong-Lab-PSK-2026!"
+onprem_prefix               = "10.20.0.0/24"
+onprem_asn                  = 65020
+nva_asn                     = 100
+onprem_peer1_public_ip      = "198.51.100.11"
+onprem_peer2_public_ip      = "198.51.100.12"
+enable_expressroute_gateway = false
