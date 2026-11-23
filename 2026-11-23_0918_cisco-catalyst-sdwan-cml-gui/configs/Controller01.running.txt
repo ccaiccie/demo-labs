@@ -1,0 +1,195 @@
+ system
+ host-name             Controller01
+ system-ip             10.255.255.2
+ site-id               100
+ admin-tech-on-failure
+ no vrrp-advt-with-phymac
+ sp-organization-name  cml-sdwan-lab-tool
+ organization-name     cml-sdwan-lab-tool
+ vbond validator.sdwan.local
+ aaa
+  auth-order      local radius tacacs
+  usergroup basic
+   task system read
+   task interface read
+  !
+  usergroup netadmin
+  !
+  usergroup operator
+   task system read
+   task interface read
+   task policy read
+   task routing read
+   task security read
+  !
+  usergroup tenantadmin
+  !
+  user admin
+  !
+  ciscotacro-user true
+  ciscotacrw-user true
+ !
+ logging
+  disk
+   no enable
+  !
+ !
+ ntp
+  parent
+   no enable
+   stratum 5
+  exit
+  server time.google.com
+   version 4
+  exit
+ !
+!
+omp
+ no shutdown
+ filter-route
+  no outbound affinity-group-preference
+  no outbound tloc-color
+ exit
+ graceful-restart
+ outbound-policy-caching
+!
+vpn 0
+ dns 172.16.0.254 primary
+ interface eth1
+  ip address 172.16.0.101/24
+  tunnel-interface
+   allow-service dhcp
+   allow-service dns
+   allow-service icmp
+   allow-service sshd
+   allow-service netconf
+   no allow-service ntp
+   no allow-service stun
+  !
+  no shutdown
+ !
+ ip route 0.0.0.0/0 172.16.0.254
+!
+vpn 512
+ interface eth0
+  no shutdown
+ !
+!
+policy
+ sla-class CRITICAL-SLA
+  loss    2
+  latency 150
+  jitter  50
+  fallback-best-tunnel
+   criteria         loss latency
+   loss-variance    1
+   latency-variance 10
+  !
+ !
+ data-policy data_service_LAB-APP-PRIORITY
+  vpn-list vpn_LAB-VPN20-GUEST
+   sequence 1
+    match
+     destination-data-prefix-list rfc1918_default_dataprefixes
+    !
+    action accept
+    !
+   !
+   sequence 11
+    match
+     source-data-prefix-list GUEST-NETS
+    !
+    action accept
+     nat use-vpn 0
+     nat fallback
+    !
+   !
+   default-action accept
+  !
+ !
+ app-route-policy app_route_LAB-APP-PRIORITY
+  vpn-list vpn_LAB-VPN10-CORP
+   sequence 1
+    match
+     destination-data-prefix-list CORP-NETS
+     protocol                     1
+    !
+    action
+     count CORP-CRITICAL
+     sla-class CRITICAL-SLA preferred-color mpls fallback-to-best-path
+    !
+   !
+  !
+ !
+ lists
+  vpn-list vpn_LAB-VPN10-CORP
+   vpn 10
+  !
+  vpn-list vpn_LAB-VPN20-GUEST
+   vpn 20
+  !
+  data-prefix-list CORP-NETS
+   ip-prefix 10.10.10.0/24
+   ip-prefix 10.20.10.0/24
+   ip-prefix 10.30.10.0/24
+   ip-prefix 10.40.10.0/24
+  !
+  data-prefix-list GUEST-NETS
+   ip-prefix 10.10.20.0/24
+   ip-prefix 10.20.20.0/24
+   ip-prefix 10.30.20.0/24
+   ip-prefix 10.40.20.0/24
+  !
+  data-prefix-list rfc1918_default_dataprefixes
+   ip-prefix 10.0.0.0/8
+   ip-prefix 172.16.0.0/12
+   ip-prefix 192.168.0.0/16
+  !
+  site-list site-1845464647
+   site-id 10
+  !
+  site-list site1883665396
+   site-id 20
+   site-id 30
+   site-id 40
+  !
+  site-list site_10_20_30_40
+   site-id 10
+   site-id 20
+   site-id 30
+   site-id 40
+  !
+  prefix-list _AnyIpv4PrefixList
+   ip-prefix 0.0.0.0/0 le 32
+  !
+ !
+ control-policy GUEST-ISO-CUSTOM
+  sequence 10
+   match route
+    prefix-list _AnyIpv4PrefixList
+    site-list   site-1845464647
+    vpn-list    vpn_LAB-VPN20-GUEST
+   !
+   action accept
+   !
+  !
+  sequence 20
+   match route
+    prefix-list _AnyIpv4PrefixList
+    vpn-list    vpn_LAB-VPN20-GUEST
+   !
+   action reject
+   !
+  !
+  default-action accept
+ !
+!
+apply-policy
+ site-list site1883665396
+  control-policy GUEST-ISO-CUSTOM out
+ !
+ site-list site_10_20_30_40
+  data-policy data_service_LAB-APP-PRIORITY from-service
+  app-route-policy app_route_LAB-APP-PRIORITY
+ !
+!
