@@ -1,0 +1,9 @@
+/.secrets/
+/config/dashboard.json
+/config/prometheus.yml
+/schema.json
+/phases.log
+/setup-baseline.log
+/setup-configure.log
+/verification.json
+__pycache__/

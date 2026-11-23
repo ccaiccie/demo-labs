@@ -1,0 +1,96 @@
+name: netdata-grafana-practice
+
+# Run only in a dedicated Linux lab VM. Host networking here means the
+# guest's network namespace; every configured listener is on 127.0.0.1.
+services:
+  netdata:
+    image: docker.io/netdata/netdata:v2.13.0@sha256:1fd5346bb7298702b1a907d00c8d5405479e9df65ea8288809a81af8603dc411
+    platform: linux/amd64
+    pull_policy: never
+    network_mode: host
+    cpus: 1
+    mem_limit: 512m
+    environment:
+      DISABLE_TELEMETRY: "1"
+      DO_NOT_TRACK: "1"
+    healthcheck:
+      # The stock check defaults to 19999. lab.sh verifies the actual
+      # local metrics listener at 8199 before continuing.
+      disable: true
+    volumes:
+      - type: bind
+        source: ./config/netdata.conf
+        target: /etc/netdata/netdata.conf
+        read_only: true
+        bind:
+          create_host_path: false
+
+  prometheus:
+    image: docker.io/prom/prometheus:v3.16.0@sha256:89c1a644817e9ad70fa2af76c84898e327c1de7063735f962e8313b1e28672c3
+    platform: linux/amd64
+    pull_policy: never
+    network_mode: host
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    mem_limit: 384m
+    cpus: 0.75
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+      - --storage.tsdb.retention.time=6h
+      - --web.listen-address=127.0.0.1:9090
+    volumes:
+      - type: bind
+        source: ./config/prometheus.yml
+        target: /etc/prometheus/prometheus.yml
+        read_only: true
+        bind:
+          create_host_path: false
+      - prometheus-data:/prometheus
+
+  grafana:
+    image: docker.io/grafana/grafana:13.2.3@sha256:d84563330dc9d2fd2bc096d0fb96021b5319c75bf6ed555566709998e823dec4
+    platform: linux/amd64
+    pull_policy: never
+    network_mode: host
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    mem_limit: 768m
+    cpus: 0.75
+    environment:
+      GF_SERVER_HTTP_ADDR: 127.0.0.1
+      GF_SERVER_HTTP_PORT: 3090
+      GF_SERVER_ROOT_URL: http://127.0.0.1:3090/
+      GF_ANALYTICS_REPORTING_ENABLED: "false"
+      GF_ANALYTICS_CHECK_FOR_UPDATES: "false"
+      GF_ANALYTICS_CHECK_FOR_PLUGIN_UPDATES: "false"
+      GF_PLUGINS_PREINSTALL_DISABLED: "true"
+      GF_SECURITY_ADMIN_PASSWORD__FILE: /run/secrets/grafana-admin
+      GF_AUTH_ANONYMOUS_ENABLED: "true"
+      GF_AUTH_ANONYMOUS_ORG_ROLE: Viewer
+      GF_AUTH_BASIC_ENABLED: "false"
+      GF_AUTH_DISABLE_LOGIN_FORM: "true"
+    volumes:
+      - type: bind
+        source: ./config/grafana
+        target: /etc/grafana/provisioning
+        read_only: true
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ./config/dashboard.json
+        target: /lab/dashboard.json
+        read_only: true
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ./.secrets/grafana-admin
+        target: /run/secrets/grafana-admin
+        read_only: true
+        bind:
+          create_host_path: false
+      - grafana-data:/var/lib/grafana
+
+volumes:
+  prometheus-data:
+  grafana-data:

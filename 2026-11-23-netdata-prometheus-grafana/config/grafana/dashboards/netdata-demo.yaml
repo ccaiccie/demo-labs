@@ -1,0 +1,10 @@
+apiVersion: 1
+providers:
+  - name: Netdata Demo
+    orgId: 1
+    type: file
+    disableDeletion: true
+    allowUiUpdates: false
+    options:
+      path: /lab
+      foldersFromFilesStructure: false

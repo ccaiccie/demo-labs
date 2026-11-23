@@ -1,0 +1,14 @@
+flowchart LR
+  APP["Test app<br/>Emits two gauges"]
+  ND["Netdata<br/>Receives &amp; collects"]
+  PROM["Prometheus<br/>Stores history"]
+  GF["Grafana<br/>Supplies panel data"]
+  WEB["Browser<br/>Draws the charts"]
+  APP -->|"Metric packet"| ND
+  ND -->|"Scrape reply"| PROM
+  PROM -->|"Query reply"| GF
+  GF -->|"Dashboard reply"| WEB
+  classDef collector fill:#143d3b,stroke:#58d5be,color:#eefff9,stroke-width:2px
+  classDef service fill:#1a3048,stroke:#5993b0,color:#f4f9ff,stroke-width:2px
+  class APP,GF,WEB service
+  class ND,PROM collector

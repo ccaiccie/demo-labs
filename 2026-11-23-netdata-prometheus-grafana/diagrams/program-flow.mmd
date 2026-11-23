@@ -1,0 +1,7 @@
+flowchart TB
+  PUSH["01 · TEST APP SENDS · EVERY 1 SEC DURING REPLAY<br/>Test app → Netdata: pushes a StatsD packet. No metric reply is needed."]
+  SCRAPE["02 · PROMETHEUS ASKS · EVERY 5 SEC<br/>Prometheus → Netdata: asks for metrics.<br/>Netdata → Prometheus: replies with values. Prometheus stores the samples."]
+  DISPLAY["03 · DASHBOARD ASKS · EVERY 5 SEC WHILE OPEN<br/>Browser → Grafana → Prometheus: asks for stored samples.<br/>Prometheus → Grafana → Browser: replies with data. The browser draws it."]
+  PUSH ~~~ SCRAPE ~~~ DISPLAY
+  classDef row fill:#142c41,stroke:#3e657d,color:#f1f8ff,stroke-width:2px
+  class PUSH,SCRAPE,DISPLAY row
