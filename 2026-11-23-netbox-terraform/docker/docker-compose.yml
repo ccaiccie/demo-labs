@@ -1,0 +1,143 @@
+services:
+  netbox:
+    image: netboxcommunity/netbox:v4.7-5.1.2
+    container_name: nb-tf-netbox
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      redis-cache:
+        condition: service_healthy
+    env_file:
+      - .env
+    environment:
+      CORS_ORIGIN_ALLOW_ALL: "True"
+      DB_HOST: postgres
+      DB_NAME: netbox
+      DB_USER: netbox
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_DATABASE: 0
+      REDIS_CACHE_HOST: redis-cache
+      REDIS_CACHE_PORT: 6379
+      REDIS_CACHE_DATABASE: 1
+      SKIP_SUPERUSER: "false"
+      SUPERUSER_NAME: admin
+      SUPERUSER_EMAIL: admin@lab.internal
+      MEDIA_ROOT: /opt/netbox/netbox/media
+      REPORTS_ROOT: /opt/netbox/netbox/reports
+      SCRIPTS_ROOT: /opt/netbox/netbox/scripts
+      RELEASE_CHECK_URL: ""
+    ports:
+      - "127.0.0.1:8000:8080"
+    volumes:
+      - netbox-media-files:/opt/netbox/netbox/media:rw
+      - netbox-reports-files:/opt/netbox/netbox/reports:rw
+      - netbox-scripts-files:/opt/netbox/netbox/scripts:rw
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:8080/login/ >/dev/null || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 180s
+    restart: unless-stopped
+
+  netbox-worker:
+    image: netboxcommunity/netbox:v4.7-5.1.2
+    container_name: nb-tf-worker
+    depends_on:
+      netbox:
+        condition: service_healthy
+    command:
+      - /opt/netbox/venv/bin/python
+      - /opt/netbox/netbox/manage.py
+      - rqworker
+    env_file:
+      - .env
+    environment:
+      DB_HOST: postgres
+      DB_NAME: netbox
+      DB_USER: netbox
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_DATABASE: 0
+      REDIS_CACHE_HOST: redis-cache
+      REDIS_CACHE_PORT: 6379
+      REDIS_CACHE_DATABASE: 1
+    volumes:
+      - netbox-media-files:/opt/netbox/netbox/media:rw
+      - netbox-reports-files:/opt/netbox/netbox/reports:rw
+      - netbox-scripts-files:/opt/netbox/netbox/scripts:rw
+    restart: unless-stopped
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: nb-tf-postgres
+    env_file:
+      - .env
+    environment:
+      POSTGRES_DB: netbox
+      POSTGRES_USER: netbox
+    volumes:
+      - netbox-postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U netbox -d netbox"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    restart: unless-stopped
+
+  redis:
+    image: valkey/valkey:9.1-alpine
+    container_name: nb-tf-redis
+    command:
+      - sh
+      - -c
+      - valkey-server --appendonly yes --requirepass $$REDIS_PASSWORD
+    env_file:
+      - .env
+    volumes:
+      - netbox-redis-data:/data
+    healthcheck:
+      test: ["CMD-SHELL", "valkey-cli -a $$REDIS_PASSWORD ping | grep -q PONG"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    restart: unless-stopped
+
+  redis-cache:
+    image: valkey/valkey:9.1-alpine
+    container_name: nb-tf-redis-cache
+    command:
+      - sh
+      - -c
+      - valkey-server --requirepass $$REDIS_CACHE_PASSWORD
+    env_file:
+      - .env
+    volumes:
+      - netbox-redis-cache-data:/data
+    healthcheck:
+      test: ["CMD-SHELL", "valkey-cli -a $$REDIS_CACHE_PASSWORD ping | grep -q PONG"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    restart: unless-stopped
+
+  lab-fw-01:
+    build:
+      context: .
+      dockerfile: Dockerfile.firewall
+    container_name: nb-tf-fw-edge-01
+    hostname: fw-edge-01
+    cap_add:
+      - NET_ADMIN
+    restart: unless-stopped
+
+volumes:
+  netbox-postgres-data:
+  netbox-media-files:
+  netbox-reports-files:
+  netbox-scripts-files:
+  netbox-redis-data:
+  netbox-redis-cache-data:

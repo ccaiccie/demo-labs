@@ -1,0 +1,7 @@
+﻿CONTAINER ID   IMAGE                               COMMAND                  CREATED        STATUS                  PORTS                      NAMES
+32a2802cf1e2   netboxcommunity/netbox:v4.7-5.1.2   "/usr/bin/tini -- /o…"   9 hours ago    Up 9 hours (healthy)    127.0.0.1:8000->8080/tcp   nb-tf-netbox
+5190d1f3cbf7   netboxcommunity/netbox:v4.7-5.1.2   "/usr/bin/tini -- /o…"   10 hours ago   Up 9 hours                                         nb-tf-worker
+3b490ecbddc6   postgres:16-alpine                  "docker-entrypoint.s…"   10 hours ago   Up 10 hours (healthy)   5432/tcp                   nb-tf-postgres
+6e511cd561a7   valkey/valkey:9.1-alpine            "tini -- docker-entr…"   10 hours ago   Up 10 hours (healthy)   6379/tcp                   nb-tf-redis-cache
+0ca11596c10e   docker-lab-fw-01                    "/usr/local/bin/fw-e…"   10 hours ago   Up 10 hours                                        nb-tf-fw-edge-01
+dcf0bba31cdd   valkey/valkey:9.1-alpine            "tini -- docker-entr…"   10 hours ago   Up 10 hours (healthy)   6379/tcp                   nb-tf-redis

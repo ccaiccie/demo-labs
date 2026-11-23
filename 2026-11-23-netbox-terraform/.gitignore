@@ -1,0 +1,12 @@
+.video/
+publish/
+.edge-profile-netbox/
+.env
+**/.terraform/
+*.tfstate
+*.tfstate.*
+*.tfvars
+!terraform.tfvars.example
+crash.log
+.DS_Store
+Thumbs.db

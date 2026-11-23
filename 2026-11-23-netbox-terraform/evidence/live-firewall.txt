@@ -1,0 +1,40 @@
+﻿============================================================
+  LIVE FIREWALL INTERFACES (nb-tf-fw-edge-01)
+============================================================
+eth-wan          UNKNOWN        fe80::8cae:c8ff:fe01:a59f/64 
+eth-lan          UNKNOWN        198.51.100.1/24 fe80::1c0c:52ff:fe67:788a/64 
+eth-dmz          UNKNOWN        203.0.113.1/24 fe80::54f9:f1ff:fef8:8609/64 
+eth-mgmt         UNKNOWN        192.0.2.1/24 fe80::8056:62ff:fe86:f073/64 
+
+============================================================
+  LIVE NFTABLES RULESET (nb-tf-fw-edge-01)
+============================================================
+table inet lab_fw {
+	set NET_CORP_USERS {
+		type ipv4_addr
+		flags interval
+		elements = { 198.51.100.0/24 }
+	}
+
+	set NET_DMZ_WEB {
+		type ipv4_addr
+		flags interval
+		elements = { 203.0.113.0/24 }
+	}
+
+	set NET_MGMT_OOB {
+		type ipv4_addr
+		flags interval
+		elements = { 192.0.2.0/24 }
+	}
+
+	chain forward {
+		type filter hook forward priority filter; policy drop;
+		ct state established,related accept
+		ip saddr @NET_CORP_USERS ip daddr @NET_DMZ_WEB tcp dport 443 accept comment "allow-corp-to-dmz-https"
+		ip saddr @NET_CORP_USERS ip daddr @NET_DMZ_WEB udp dport 53 accept comment "allow-corp-to-dmz-dns"
+		ip saddr @NET_MGMT_OOB ip daddr @NET_DMZ_WEB tcp dport 22 accept comment "allow-mgmt-to-dmz-ssh"
+		ip saddr @NET_DMZ_WEB ip daddr @NET_CORP_USERS drop comment "deny-dmz-to-corp-all"
+		log prefix "LAB_FW_DROP: " drop
+	}
+}
