@@ -4,7 +4,7 @@ This lesson turns on the advanced security features of Cisco Secure Firewall Thr
 
 Video: [Cisco FTD/FMC Advanced Security A to Z: IPS, URL, App Control, SI, File and TLS Decryption (GUI)](https://youtu.be/Y8pRv8en3To)
 
-Prerequisite lab (the same GNS3 topology, built with Python and the FMC REST API): [2026-11-21_1430_cisco-ftd-fmc-automation](../2026-11-21_1430_cisco-ftd-fmc-automation/) and its video [Cisco FTD through FMC: Full Automated Build with Python and the REST API (Explained)](https://youtu.be/idqv28mOKuU).
+Prerequisite lab (the same GNS3 topology, built with Python and the FMC REST API): [2026-11-21_1430_cisco-ftd-fmc-automation](../2026-11-21_1430_cisco-ftd-fmc-automation/) and its video [Cisco FTD through FMC: Full Automated Build with Python and the REST API (Explained)](https://youtu.be/id3nwWRsNZ0).
 
 ## Lab
 
