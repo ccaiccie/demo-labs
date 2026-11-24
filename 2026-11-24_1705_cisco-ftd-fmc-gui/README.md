@@ -15,6 +15,20 @@ A Firewall Management Center (FMCv) and two Firewall Threat Defense virtual fire
 | DMZ | WEB1 10.1.50.10 behind FTD1 (10.1.50.1), published as **198.51.100.110** |
 | Licensing | 90-day evaluation (no Smart account) |
 
+## Chapter guide
+
+| Time | Chapter |
+|---|---|
+| [0:00](https://youtu.be/PZqxwVtRMm0?t=0) | Introduction |
+| [3:36](https://youtu.be/PZqxwVtRMm0?t=216) | Part 1 – The lab in CML |
+| [6:04](https://youtu.be/PZqxwVtRMm0?t=364) | Part 2 – Licensing, objects and zones |
+| [7:49](https://youtu.be/PZqxwVtRMm0?t=469) | Part 3 – Access control policy |
+| [9:59](https://youtu.be/PZqxwVtRMm0?t=599) | Part 4 – Registering FTD1 and FTD2 |
+| [11:20](https://youtu.be/PZqxwVtRMm0?t=680) | Part 5 – Interfaces and routes |
+| [13:30](https://youtu.be/PZqxwVtRMm0?t=810) | Part 6 – NAT and deployment |
+| [16:15](https://youtu.be/PZqxwVtRMm0?t=975) | Part 7 – Testing |
+| [18:32](https://youtu.be/PZqxwVtRMm0?t=1112) | Recap and lessons learned |
+
 ## Topology
 
 ![topology](diagrams/png/topo.png)
