@@ -1,0 +1,15 @@
+{
+    "EULA": "accept",
+    "Hostname": "FMC1",
+    "AdminPassword": "<ADMIN_PASSWORD>",
+    "DNS1": "192.168.122.1",
+    "DNS2": "",
+    "IPv4Mode": "manual",
+    "IPv4Addr": "192.168.122.70",
+    "IPv4Mask": "255.255.255.0",
+    "IPv4Gw": "192.168.122.1",
+    "IPv6Mode": "disabled",
+    "IPv6Addr": "",
+    "IPv6Mask": "",
+    "IPv6Gw": ""
+}

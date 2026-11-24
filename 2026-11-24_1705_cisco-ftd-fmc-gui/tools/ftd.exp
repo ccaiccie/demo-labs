@@ -1,0 +1,13 @@
+#!/usr/bin/expect -f
+# ftd NODE cmd... : SSH to an FTD management IP and run CLISH show commands
+set timeout 120
+set node [lindex $argv 0]
+array set ip {FTD1 192.168.122.71 FTD2 192.168.122.72}
+set f [open "$env(HOME)/.ftdpw"]; set pw [read $f]; close $f
+log_user 0
+spawn -noecho ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o LogLevel=ERROR admin@$ip($node)
+expect "assword:"; send "$pw\r"
+expect -re "\n> $"
+log_user 1
+foreach c [lrange $argv 1 end] { send "$c\r"; expect -re "\n> $" }
+send "exit\r"; expect eof

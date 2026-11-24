@@ -1,0 +1,8 @@
+# OUT-HOST - a host out on the Internet segment (runs SSH)
+hostname OUT-HOST
+USERNAME=cisco
+PASSWORD=cisco
+ip link set eth0 up
+ip addr add 198.51.100.50/24 dev eth0
+ip route add default via 198.51.100.1
+echo "nameserver 8.8.8.8" > /etc/resolv.conf

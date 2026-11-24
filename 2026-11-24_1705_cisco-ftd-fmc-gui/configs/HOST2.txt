@@ -1,0 +1,8 @@
+# HOST2 - inside PC behind FTD2
+hostname HOST2
+USERNAME=cisco
+PASSWORD=cisco
+ip link set eth0 up
+ip addr add 10.2.2.10/24 dev eth0
+ip route add default via 10.2.2.1
+echo "nameserver 8.8.8.8" > /etc/resolv.conf

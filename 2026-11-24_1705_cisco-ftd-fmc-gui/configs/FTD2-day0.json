@@ -1,0 +1,21 @@
+{
+    "EULA": "accept",
+    "Hostname": "FTD2",
+    "AdminPassword": "<ADMIN_PASSWORD>",
+    "FirewallMode": "routed",
+    "DNS1": "192.168.122.1",
+    "DNS2": "",
+    "DNS3": "",
+    "IPv4Mode": "manual",
+    "IPv4Addr": "192.168.122.72",
+    "IPv4Mask": "255.255.255.0",
+    "IPv4Gw": "192.168.122.1",
+    "IPv6Mode": "disabled",
+    "IPv6Addr": "",
+    "IPv6Mask": "",
+    "IPv6Gw": "",
+    "FmcIp": "192.168.122.70",
+    "FmcRegKey": "<REGISTRATION_KEY>",
+    "FmcNatId": "",
+    "ManageLocally": "No"
+}
