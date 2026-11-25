@@ -2,7 +2,7 @@
 
 Companion folder for the video **Cisco FTD through FMC on CML – GUI Build A to Z**: https://youtu.be/PZqxwVtRMm0
 
-A Firewall Management Center (FMCv) and two Firewall Threat Defense virtual firewalls (FTDv), built from an empty CML canvas. Day-0 files only set management (address, password, FMC address, registration key). Everything else is done by hand in the **FMC GUI**: evaluation licensing, objects, security zones, an access control policy, device registration, interfaces, static routes, a NAT policy and the deployment. The tests prove each rule from the hosts, the FTD CLI and the FMC Unified Events.
+A Firewall Management Center (FMCv) and two Firewall Threat Defense virtual firewalls (FTDv), built from an empty CML canvas. Day-0 files only set management (address, password, FMC address, registration key). Everything else is done by hand in the **FMC GUI**: evaluation licensing, objects, security zones, an access control policy, device registration, interfaces, static routes, a NAT policy and the deployment. The tests use host probes, the FTD CLI, and FMC Unified Events. A host timeout by itself does not identify the device or rule that dropped the traffic.
 
 | Item | Value |
 |---|---|
@@ -86,10 +86,24 @@ All diagrams are draw.io files with Cisco stencils in [`diagrams/drawio`](diagra
 | HOST1 / HOST2 `ping 8.8.8.8`, `wget http://example.com` | allowed, PAT to .11 / .12 | ✅ |
 | HOST1 `ssh 198.51.100.50` (OUT-HOST runs sshd) | Block-SSH-Out | ✅ timed out |
 | OUT-HOST `wget http://198.51.100.110` | static NAT + Allow-Web-DMZ | ✅ WEB1 page |
-| OUT-HOST `ping 10.1.1.10` | default action Block | ✅ 100 % loss |
+| OUT-HOST `ping 10.1.1.10` | No reply | 100% loss observed; the FTD1 default action is not established by this result alone |
 | FTD1 `show running-config nat`, `show nat`, `show xlate` | both rules with hits, WEB1 ↔ 198.51.100.110 | ✅ |
 | FTD2 `show running-config nat` | PAT rule only | ✅ |
 | FMC › Events & Logs › Unified Events | Allow / Block events with rule names; inbound web shows the real address 10.1.50.10 | ✅ |
+
+### Verify the default block in CML
+
+In the shipped YAML, OUT-HOST sends off-subnet traffic to the ISP router at `198.51.100.1`. The ISP startup configuration has no route to `10.1.1.0/24` through FTD1. For a fresh run, check `ip route get 10.1.1.10` on OUT-HOST before interpreting the ping.
+
+To test FTD1 directly, enable **Log at Beginning of Connection** for the **Block All Traffic** default action in `LAB-ACP` and deploy to FTD1. See [Cisco's connection logging guide](https://www.cisco.com/c/en/us/td/docs/security/secure-firewall/management-center/admin/100/management-center-admin-10-0/events-connect-logging.html). Then run this on the isolated OUT-HOST console, as root, if there is no existing host route for this address:
+
+```sh
+ip route add 10.1.1.10/32 via 198.51.100.11 &&
+  ip route get 10.1.1.10 &&
+  ping -c 3 10.1.1.10
+```
+
+Confirm that the route lookup shows `via 198.51.100.11`. In **Events & Logs › Unified Events**, look for the corresponding entry on FTD1 at the test time: source `198.51.100.50`, destination `10.1.1.10`, ICMP, and a block attributed to **Default Action**. Without that rule attribution, report only what was observed. Remove the temporary route after the test with `ip route del 10.1.1.10/32 via 198.51.100.11` if you added it. These are reproduction steps, not a claim that this replay was performed in the recording.
 
 HOST1 cannot reach 198.51.100.110 (no NAT hairpin on FTD1), which is expected; HOST2 can, through FTD2 and the outside segment.
 
