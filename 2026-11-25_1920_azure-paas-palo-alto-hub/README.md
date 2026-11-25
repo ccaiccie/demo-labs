@@ -2,7 +2,7 @@
 
 A 27-minute narrated lecture (1080p, separate English SRT) on every way to put Azure PaaS services such as Azure SQL, Storage and Key Vault behind a Palo Alto Networks firewall in a hub-and-spoke network. It goes deepest on the routing and DNS that actually force private endpoint traffic through the firewall.
 
-Video: coming soon
+Video: [Securing Azure PaaS behind a Palo Alto Firewall in the Hub VNet – Every Option Explained](https://youtu.be/uYuvjoDwvOI)
 
 This is a concept lecture built from draw.io diagrams. There is no live Azure deployment.
 
