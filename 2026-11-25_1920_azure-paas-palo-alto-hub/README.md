@@ -2,7 +2,11 @@
 
 A 27-minute narrated lecture (1080p, separate English SRT) on every way to put Azure PaaS services such as Azure SQL, Storage and Key Vault behind a Palo Alto Networks firewall in a hub-and-spoke network. It goes deepest on the routing and DNS that actually force private endpoint traffic through the firewall.
 
-Video: [Securing Azure PaaS behind a Palo Alto Firewall in the Hub VNet – Every Option Explained](https://youtu.be/uYuvjoDwvOI)
+## Watch
+
+**[▶ Securing Azure PaaS behind a Palo Alto Firewall in the Hub VNet – Every Option Explained](https://youtu.be/uYuvjoDwvOI)**
+
+https://youtu.be/uYuvjoDwvOI
 
 This is a concept lecture built from draw.io diagrams. There is no live Azure deployment.
 
@@ -19,23 +23,23 @@ This is a concept lecture built from draw.io diagrams. There is no live Azure de
 
 ## Chapters
 
-```
-0:00 Introduction
-0:54 Reference topology
-3:26 The options map
-4:21 Option A · Public endpoint + IP rules
-5:50 Option B · Service endpoints
-7:47 Option C · Private endpoints and DNS
-11:22 Option C · Routing through the firewall
-16:44 Option C · Palo Alto configuration
-19:00 Option D · VNet injection
-19:56 Option E · Outbound from PaaS
-21:11 Option F · Inbound publishing
-22:28 Option G · Network Security Perimeter
-23:23 Option H · Firewall form factors
-24:35 Defense in depth and troubleshooting
-26:15 Decision guide
-```
+| Time | Chapter |
+|---|---|
+| [0:00](https://youtu.be/uYuvjoDwvOI?t=0) | Introduction |
+| [0:54](https://youtu.be/uYuvjoDwvOI?t=54) | Reference topology |
+| [3:26](https://youtu.be/uYuvjoDwvOI?t=206) | The options map |
+| [4:21](https://youtu.be/uYuvjoDwvOI?t=261) | Option A · Public endpoint + IP rules |
+| [5:50](https://youtu.be/uYuvjoDwvOI?t=350) | Option B · Service endpoints |
+| [7:47](https://youtu.be/uYuvjoDwvOI?t=467) | Option C · Private endpoints and DNS |
+| [11:22](https://youtu.be/uYuvjoDwvOI?t=682) | Option C · Routing through the firewall |
+| [16:44](https://youtu.be/uYuvjoDwvOI?t=1004) | Option C · Palo Alto configuration |
+| [19:00](https://youtu.be/uYuvjoDwvOI?t=1140) | Option D · VNet injection |
+| [19:56](https://youtu.be/uYuvjoDwvOI?t=1196) | Option E · Outbound from PaaS |
+| [21:11](https://youtu.be/uYuvjoDwvOI?t=1271) | Option F · Inbound publishing |
+| [22:28](https://youtu.be/uYuvjoDwvOI?t=1348) | Option G · Network Security Perimeter |
+| [23:23](https://youtu.be/uYuvjoDwvOI?t=1403) | Option H · Firewall form factors |
+| [24:35](https://youtu.be/uYuvjoDwvOI?t=1475) | Defense in depth and troubleshooting |
+| [26:15](https://youtu.be/uYuvjoDwvOI?t=1575) | Decision guide |
 
 ## Reference topology
 
