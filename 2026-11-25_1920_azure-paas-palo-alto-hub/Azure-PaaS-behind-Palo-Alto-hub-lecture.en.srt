@@ -1,0 +1,1719 @@
+1
+00:00:00,350 --> 00:00:00,788
+Welcome.
+
+2
+00:00:00,838 --> 00:00:05,970
+In this lecture we're going to secure Azure platform services, things like Azure SQL,
+
+3
+00:00:06,020 --> 00:00:10,481
+Storage and Key Vault, behind a Palo Alto Networks firewall that sits in a
+
+4
+00:00:10,531 --> 00:00:11,700
+hub virtual network.
+
+5
+00:00:12,650 --> 00:00:15,147
+PaaS services are different from virtual machines.
+
+6
+00:00:15,197 --> 00:00:17,337
+They don't live in your network by default.
+
+7
+00:00:17,387 --> 00:00:21,464
+They have public endpoints on the Microsoft backbone, and you have to choose how,
+
+8
+00:00:21,514 --> 00:00:24,520
+or whether, your traffic to them goes through your firewall.
+
+9
+00:00:25,470 --> 00:00:27,568
+So we'll walk through every option:
+
+10
+00:00:27,618 --> 00:00:34,074
+public endpoints with IP rules, service endpoints, private endpoints, VNet injection, VNet integration for
+
+11
+00:00:34,124 --> 00:00:38,862
+outbound traffic, publishing apps inbound, and the Network Security Perimeter.
+
+12
+00:00:38,912 --> 00:00:43,957
+Then we'll compare the Palo Alto form factors, VM-Series and Cloud NGFW, and finish
+
+13
+00:00:44,007 --> 00:00:45,307
+with a decision guide.
+
+14
+00:00:45,357 --> 00:00:49,358
+Along the way we'll go deep on the part that trips most people up:
+
+15
+00:00:49,408 --> 00:00:53,900
+the routing and DNS that actually force PaaS traffic through the firewall.
+
+16
+00:00:54,850 --> 00:01:00,620
+Let's start with the reference topology we'll use for the whole lecture.
+
+17
+00:01:00,670 --> 00:01:04,986
+In the middle is the hub virtual network, 10.0.0.0/16.
+
+18
+00:01:05,036 --> 00:01:07,330
+Everything shared lives here:
+
+19
+00:01:07,380 --> 00:01:10,240
+the firewalls, the gateways and DNS.
+
+20
+00:01:11,190 --> 00:01:15,017
+Two Palo Alto VM-Series firewalls sit across three subnets.
+
+21
+00:01:15,067 --> 00:01:19,091
+The management interface is in snet-mgmt, managed by Panorama.
+
+22
+00:01:19,141 --> 00:01:22,969
+Ethernet 1/1 is in the untrust subnet, facing the internet.
+
+23
+00:01:23,019 --> 00:01:27,109
+Ethernet 1/2 is in the trust subnet, facing everything private:
+
+24
+00:01:27,159 --> 00:01:30,460
+the spokes, on-premises, and the private endpoints.
+
+25
+00:01:31,410 --> 00:01:36,465
+In Azure you don't run firewalls with a shared virtual MAC like on-premises.
+
+26
+00:01:36,515 --> 00:01:39,757
+Instead you put Azure load balancers around them.
+
+27
+00:01:39,807 --> 00:01:45,534
+A public load balancer distributes inbound internet traffic to the untrust interfaces.
+
+28
+00:01:45,584 --> 00:01:51,848
+An internal Standard load balancer with an HA ports rule, frontend 10.0.2.100, distributes all
+
+29
+00:01:51,898 --> 00:01:54,535
+private traffic to the trust interfaces.
+
+30
+00:01:54,585 --> 00:01:59,640
+That frontend IP is the next hop that every route in this lecture points to.
+
+31
+00:02:00,590 --> 00:02:07,943
+On the left is on-premises, 172.16.0.0/16, connected with ExpressRoute or VPN to a gateway
+
+32
+00:02:07,993 --> 00:02:10,575
+in the GatewaySubnet of the hub.
+
+33
+00:02:10,625 --> 00:02:17,648
+Traffic from on-premises arrives at that gateway, and we'll steer it to the firewall's
+
+34
+00:02:17,698 --> 00:02:19,540
+internal load balancer.
+
+35
+00:02:20,490 --> 00:02:21,937
+At the bottom is DNS.
+
+36
+00:02:21,987 --> 00:02:27,996
+An Azure DNS Private Resolver gives on-premises a target IP, 10.0.3.4, that can query
+
+37
+00:02:28,046 --> 00:02:29,707
+Azure private DNS zones.
+
+38
+00:02:29,757 --> 00:02:35,553
+And the private DNS zones, the privatelink zones, hold the private IP addresses of
+
+39
+00:02:35,603 --> 00:02:36,907
+our PaaS resources.
+
+40
+00:02:36,957 --> 00:02:38,547
+Keep these two in mind;
+
+41
+00:02:38,597 --> 00:02:40,400
+DNS is half of this story.
+
+42
+00:02:41,350 --> 00:02:44,364
+On the right, spoke one holds workloads:
+
+43
+00:02:44,414 --> 00:02:47,505
+a VM at 10.1.1.10 and an App Service app.
+
+44
+00:02:47,555 --> 00:02:52,790
+The spoke is peered to the hub, and its route table sends the default
+
+45
+00:02:52,840 --> 00:02:56,620
+route to the internal load balancer at 10.0.2.100.
+
+46
+00:02:57,570 --> 00:02:59,822
+Spoke two holds private endpoints:
+
+47
+00:02:59,872 --> 00:03:04,425
+SQL at 10.2.1.4, blob storage at 10.2.1.5 and Key Vault at 10.2.1.6.
+
+48
+00:03:04,475 --> 00:03:10,652
+Each private endpoint connects over Private Link to the real PaaS resource on the far right.
+
+49
+00:03:10,702 --> 00:03:14,646
+The goal of this lecture is simple to say and tricky to do:
+
+50
+00:03:14,696 --> 00:03:20,332
+every flow to those PaaS resources, from spokes, from on-premises, and from the PaaS
+
+51
+00:03:20,382 --> 00:03:25,680
+services themselves, should be inspected and logged by the Palo Alto firewalls.
+
+52
+00:03:26,630 --> 00:03:28,226
+Here's the map of options.
+
+53
+00:03:28,276 --> 00:03:32,024
+The top row is about how your clients reach a PaaS resource.
+
+54
+00:03:32,074 --> 00:03:32,594
+Option A:
+
+55
+00:03:32,644 --> 00:03:37,026
+keep the public endpoint and lock it down to the firewall's egress IP.
+
+56
+00:03:37,076 --> 00:03:37,595
+Option B:
+
+57
+00:03:37,645 --> 00:03:38,735
+service endpoints.
+
+58
+00:03:38,785 --> 00:03:39,305
+Option C:
+
+59
+00:03:39,355 --> 00:03:43,989
+private endpoints, which is the main event and the default for production.
+
+60
+00:03:44,039 --> 00:03:44,559
+Option D:
+
+61
+00:03:44,609 --> 00:03:49,940
+VNet injection, where a dedicated version of the service runs inside your own subnet.
+
+62
+00:03:50,890 --> 00:03:55,329
+The bottom row covers the other directions and the platform choice.
+
+63
+00:03:55,379 --> 00:03:55,931
+Option E:
+
+64
+00:03:55,981 --> 00:04:01,693
+outbound traffic from PaaS, like an App Service calling the internet or your database.
+
+65
+00:04:01,743 --> 00:04:02,296
+Option F:
+
+66
+00:04:02,346 --> 00:04:06,315
+inbound publishing, getting internet users to an app safely.
+
+67
+00:04:06,365 --> 00:04:06,918
+Option G:
+
+68
+00:04:06,968 --> 00:04:12,412
+the Network Security Perimeter, for the public side of PaaS that can't go private.
+
+69
+00:04:12,462 --> 00:04:12,814
+And H:
+
+70
+00:04:12,864 --> 00:04:16,029
+which Palo Alto form factor carries all of this.
+
+71
+00:04:16,079 --> 00:04:18,106
+These options aren't exclusive;
+
+72
+00:04:18,156 --> 00:04:20,920
+a real design usually combines C, E and F.
+
+73
+00:04:21,870 --> 00:04:22,396
+Option A:
+
+74
+00:04:22,446 --> 00:04:23,676
+the public endpoint.
+
+75
+00:04:23,726 --> 00:04:29,372
+The App VM resolves the storage account's normal public name and connects to a public IP.
+
+76
+00:04:29,422 --> 00:04:35,004
+Its default route sends the packet to the internal load balancer, the VM-Series inspects
+
+77
+00:04:35,054 --> 00:04:40,252
+it, and then source-NATs it to the firewall's egress public IP, 20.55.10.7, out of
+
+78
+00:04:40,302 --> 00:04:41,660
+the untrust interface.
+
+79
+00:04:42,610 --> 00:04:48,083
+The packet travels the Microsoft backbone to the storage account's public endpoint.
+
+80
+00:04:48,133 --> 00:04:53,938
+On the storage account, under Networking, you set public access to selected networks and
+
+81
+00:04:53,988 --> 00:04:55,003
+add one IP rule:
+
+82
+00:04:55,053 --> 00:04:56,134
+allow 20.55.10.7.
+
+83
+00:04:56,184 --> 00:05:02,323
+Because every request now carries the firewall's address, only traffic that went through your
+
+84
+00:05:02,373 --> 00:05:03,720
+firewall is accepted.
+
+85
+00:05:04,670 --> 00:05:09,960
+Anyone else on the internet hits the same endpoint and is refused by the IP rule.
+
+86
+00:05:10,010 --> 00:05:15,233
+On the firewall side, you can use App-ID, URL filtering on the storage account's
+
+87
+00:05:15,283 --> 00:05:21,100
+FQDN, and Threat Prevention, because the flow is plain HTTPS leaving through your egress.
+
+88
+00:05:22,050 --> 00:05:22,664
+The upside:
+
+89
+00:05:22,714 --> 00:05:25,563
+no DNS changes, and it works with every service.
+
+90
+00:05:25,613 --> 00:05:27,435
+The downsides are real, though.
+
+91
+00:05:27,485 --> 00:05:29,549
+The endpoint stays internet-facing.
+
+92
+00:05:29,599 --> 00:05:34,138
+Every workload behind the firewall shares that one source IP, so the IP rule
+
+93
+00:05:34,188 --> 00:05:35,769
+trusts all of them equally.
+
+94
+00:05:35,819 --> 00:05:38,245
+There's no private path from on-premises.
+
+95
+00:05:38,295 --> 00:05:43,318
+And unless the firewall restricts which storage accounts can be reached, data can be
+
+96
+00:05:43,368 --> 00:05:45,250
+copied to anyone else's account.
+
+97
+00:05:45,300 --> 00:05:49,840
+Use it as a stepping stone, or for services that don't support Private Link.
+
+98
+00:05:50,790 --> 00:05:51,321
+Option B:
+
+99
+00:05:51,371 --> 00:05:53,515
+virtual network service endpoints.
+
+100
+00:05:53,565 --> 00:05:58,871
+A service endpoint extends your subnet's identity to a service like Storage or SQL,
+
+101
+00:05:58,921 --> 00:06:00,355
+so the service can say:
+
+102
+00:06:00,405 --> 00:06:02,743
+only accept traffic from this subnet.
+
+103
+00:06:02,793 --> 00:06:08,164
+Traffic still goes to the public endpoint, but over an optimized backbone route, and
+
+104
+00:06:08,214 --> 00:06:10,423
+the source is your private address.
+
+105
+00:06:10,473 --> 00:06:14,940
+The classic mistake is turning the endpoint on in the workload subnet.
+
+106
+00:06:15,890 --> 00:06:17,553
+Look at the effective routes.
+
+107
+00:06:17,603 --> 00:06:22,517
+The default route points at the firewall, but enabling the service endpoint adds the
+
+108
+00:06:22,567 --> 00:06:26,535
+service's prefixes with a next hop of VirtualNetworkServiceEndpoint.
+
+109
+00:06:26,585 --> 00:06:30,611
+Those prefixes are more specific than the default route, so they win.
+
+110
+00:06:30,661 --> 00:06:34,393
+Storage traffic leaves directly and never touches the Palo Alto.
+
+111
+00:06:34,443 --> 00:06:36,520
+You've just built a firewall bypass.
+
+112
+00:06:37,470 --> 00:06:38,251
+The right way:
+
+113
+00:06:38,301 --> 00:06:42,881
+leave service endpoints off in the spokes, and enable them on the subnet where
+
+114
+00:06:42,931 --> 00:06:44,543
+traffic leaves the firewall.
+
+115
+00:06:44,593 --> 00:06:48,342
+For a VM-Series that's the untrust subnet, the egress interface.
+
+116
+00:06:48,392 --> 00:06:53,387
+The spoke sends traffic to the firewall with its default route, the firewall inspects
+
+117
+00:06:53,437 --> 00:06:58,373
+it, source-NATs to its untrust interface, and forwards it out to the storage service
+
+118
+00:06:58,423 --> 00:06:59,620
+through the endpoint.
+
+119
+00:07:00,570 --> 00:07:06,319
+Now the storage firewall gets a virtual network rule that allows only the hub's untrust subnet.
+
+120
+00:07:06,369 --> 00:07:10,836
+The Palo Alto does the per-workload control with App-ID and URL filtering.
+
+121
+00:07:10,886 --> 00:07:15,414
+And add a service endpoint policy to that subnet, so traffic through it can
+
+122
+00:07:15,464 --> 00:07:17,672
+only reach storage accounts you list.
+
+123
+00:07:17,722 --> 00:07:21,640
+That's your guard against exfiltration to someone else's account.
+
+124
+00:07:22,590 --> 00:07:23,710
+Limits to remember:
+
+125
+00:07:23,760 --> 00:07:26,544
+it's still the public endpoint and public DNS.
+
+126
+00:07:26,594 --> 00:07:29,500
+On-premises can't use a service endpoint at all.
+
+127
+00:07:29,550 --> 00:07:35,044
+The service trusts the whole firewall subnet, so all control lives on the firewall policy.
+
+128
+00:07:35,094 --> 00:07:37,569
+And only a subset of services support it.
+
+129
+00:07:37,619 --> 00:07:42,681
+Service endpoints are a fine, cheap option for Azure-only access to a few services,
+
+130
+00:07:42,731 --> 00:07:46,500
+but for most production work, we move on to private endpoints.
+
+131
+00:07:47,450 --> 00:07:47,964
+Option C:
+
+132
+00:07:48,014 --> 00:07:49,091
+private endpoints.
+
+133
+00:07:49,141 --> 00:07:53,787
+A private endpoint is a network interface in your subnet with a private IP,
+
+134
+00:07:53,837 --> 00:07:58,295
+here 10.2.1.5, that maps to one specific resource, and one sub-resource:
+
+135
+00:07:58,345 --> 00:08:00,549
+this storage account's blob service.
+
+136
+00:08:00,599 --> 00:08:06,498
+Behind the scenes, Private Link carries the traffic to the service over the Microsoft backbone.
+
+137
+00:08:06,548 --> 00:08:11,194
+And because the endpoint maps to one resource, not to the whole service, it
+
+138
+00:08:11,244 --> 00:08:15,640
+gives you built-in protection against data going to some other account.
+
+139
+00:08:16,590 --> 00:08:21,693
+On the resource, the endpoint connection must be approved, and then you set public
+
+140
+00:08:21,743 --> 00:08:23,390
+network access to disabled.
+
+141
+00:08:23,440 --> 00:08:24,961
+That second step matters:
+
+142
+00:08:25,011 --> 00:08:29,548
+creating a private endpoint does not close the public endpoint by itself.
+
+143
+00:08:29,598 --> 00:08:30,428
+You need both.
+
+144
+00:08:30,478 --> 00:08:35,769
+Storage needs one endpoint per sub-resource, so blob, dfs, file, queue, table and web
+
+145
+00:08:35,819 --> 00:08:38,220
+are separate endpoints if you use them.
+
+146
+00:08:39,170 --> 00:08:43,236
+Now DNS, because applications keep using the normal name.
+
+147
+00:08:43,286 --> 00:08:47,786
+The app looks up stgdemo dot blob dot core dot windows dot net.
+
+148
+00:08:47,836 --> 00:08:51,831
+Public DNS answers with a CNAME to the privatelink name:
+
+149
+00:08:51,881 --> 00:08:56,308
+stgdemo dot privatelink dot blob dot core dot windows dot net.
+
+150
+00:08:56,358 --> 00:09:02,880
+That redirection happens for everyone in the world, the moment the private endpoint exists.
+
+151
+00:09:03,830 --> 00:09:09,015
+If the asking VNet is linked to the private DNS zone privatelink dot blob
+
+152
+00:09:09,065 --> 00:09:13,605
+dot core dot windows dot net, the zone answers with an A record:
+
+153
+00:09:13,655 --> 00:09:14,250
+10.2.1.5.
+
+154
+00:09:14,300 --> 00:09:19,700
+The client connects to a private IP, and nothing in the application changes.
+
+155
+00:09:20,650 --> 00:09:25,080
+Anyone not linked to the zone follows the CNAME to the public IP, and
+
+156
+00:09:25,130 --> 00:09:27,677
+is refused because public access is off.
+
+157
+00:09:27,727 --> 00:09:32,352
+So when a private endpoint "doesn't work", the first question is always:
+
+158
+00:09:32,402 --> 00:09:34,560
+did the client get the private IP?
+
+159
+00:09:35,510 --> 00:09:39,739
+In a hub-and-spoke design we centralize that DNS.
+
+160
+00:09:39,789 --> 00:09:43,582
+The privatelink zones are linked to the hub.
+
+161
+00:09:43,632 --> 00:09:52,227
+The DNS Private Resolver's inbound endpoint, 10.0.3.4, sends queries to Azure DNS at 168.63.129.16,
+
+162
+00:09:52,277 --> 00:09:57,380
+which consults the linked zones and returns the private IP.
+
+163
+00:09:58,330 --> 00:10:01,882
+On-premises, the client asks its normal DNS server.
+
+164
+00:10:01,932 --> 00:10:07,391
+That server has a conditional forwarder for the public zone, blob dot core dot
+
+165
+00:10:07,441 --> 00:10:11,982
+windows dot net, pointing at 10.0.3.4 across ExpressRoute or VPN.
+
+166
+00:10:12,032 --> 00:10:17,915
+Forward the public zone name, not just the privatelink zone, because the client asks
+
+167
+00:10:17,965 --> 00:10:19,327
+for the public name.
+
+168
+00:10:19,377 --> 00:10:27,520
+On-premises servers can't reach 168.63.129.16 directly, which is exactly why the resolver's inbound endpoint exists.
+
+169
+00:10:28,470 --> 00:10:30,025
+The firewall needs DNS too.
+
+170
+00:10:30,075 --> 00:10:34,425
+If you build FQDN address objects on the Palo Alto, set the firewall's DNS
+
+171
+00:10:34,475 --> 00:10:38,170
+server to the resolver, so the FQDN resolves to the private IP.
+
+172
+00:10:38,220 --> 00:10:43,580
+Otherwise the firewall resolves the public IP and your rule never matches the real traffic.
+
+173
+00:10:44,530 --> 00:10:46,905
+For the spokes you have three choices.
+
+174
+00:10:46,955 --> 00:10:50,734
+Point their custom DNS at the resolver for one central path.
+
+175
+00:10:50,784 --> 00:10:56,222
+Or keep Azure-provided DNS and link the zones, or a forwarding ruleset, to each spoke.
+
+176
+00:10:56,272 --> 00:11:01,263
+Or point spokes at the firewall's DNS proxy, which forwards to the resolver, so
+
+177
+00:11:01,313 --> 00:11:03,560
+every lookup is logged and filtered.
+
+178
+00:11:04,510 --> 00:11:05,773
+The common gotchas:
+
+179
+00:11:05,823 --> 00:11:13,720
+forwarding only privatelink zones on-premises, pointing on-premises at 168.63.129.16, and letting every team create
+
+180
+00:11:13,770 --> 00:11:16,346
+its own copy of the privatelink zones.
+
+181
+00:11:16,396 --> 00:11:22,220
+Keep one set per environment and let Azure Policy register the records automatically.
+
+182
+00:11:23,170 --> 00:11:25,196
+Now the heart of the lecture:
+
+183
+00:11:25,246 --> 00:11:29,133
+forcing private endpoint traffic through the Palo Alto.
+
+184
+00:11:29,183 --> 00:11:35,002
+The App VM in spoke one wants to reach the private endpoint 10.2.1.5 in spoke two.
+
+185
+00:11:35,052 --> 00:11:38,295
+Spoke one has a default route to the firewall.
+
+186
+00:11:38,345 --> 00:11:40,156
+You'd think that's enough.
+
+187
+00:11:40,206 --> 00:11:40,800
+It isn't.
+
+188
+00:11:41,750 --> 00:11:45,141
+Look at the effective routes on the app subnet.
+
+189
+00:11:45,191 --> 00:11:48,070
+There's our default route to 10.0.2.100.
+
+190
+00:11:48,120 --> 00:11:51,877
+There's the peering route to spoke two, 10.2.0.0/16.
+
+191
+00:11:51,927 --> 00:11:58,174
+And there's a slash 32 route for 10.2.1.5 with next hop InterfaceEndpoint, injected by
+
+192
+00:11:58,224 --> 00:12:02,201
+the private endpoint and propagated across the peering.
+
+193
+00:12:02,251 --> 00:12:06,155
+Longest prefix wins, so the slash 32 beats everything.
+
+194
+00:12:06,205 --> 00:12:11,500
+The traffic goes straight to the endpoint and the firewall never sees it.
+
+195
+00:12:12,450 --> 00:12:13,764
+The fix has two parts.
+
+196
+00:12:13,814 --> 00:12:14,322
+Part one:
+
+197
+00:12:14,372 --> 00:12:19,841
+on the subnet that hosts the private endpoints, enable private endpoint network policies.
+
+198
+00:12:19,891 --> 00:12:26,725
+The property is privateEndpointNetworkPolicies, set to RouteTableEnabled, or Enabled, which turns on both route
+
+199
+00:12:26,775 --> 00:12:28,895
+tables and network security groups.
+
+200
+00:12:28,945 --> 00:12:34,600
+Network policies are off by default, and this setting affects every endpoint in that subnet.
+
+201
+00:12:35,550 --> 00:12:36,104
+Part two:
+
+202
+00:12:36,154 --> 00:12:42,415
+on the client subnet, add a user-defined route for the private endpoint range to the firewall.
+
+203
+00:12:42,465 --> 00:12:46,577
+The rule is that the route must be at least as specific as the
+
+204
+00:12:46,627 --> 00:12:49,934
+address space of the VNet that holds the endpoint.
+
+205
+00:12:49,984 --> 00:12:52,485
+Here that's 10.2.0.0/16 to 10.0.2.100.
+
+206
+00:12:52,535 --> 00:12:56,514
+With network policies on, that route overrides the slash 32.
+
+207
+00:12:56,564 --> 00:12:59,132
+A default route alone will never do it.
+
+208
+00:12:59,182 --> 00:13:04,100
+Now the flow goes VM, internal load balancer, VM-Series, private endpoint.
+
+209
+00:13:05,050 --> 00:13:07,754
+Getting there is half the job.
+
+210
+00:13:07,804 --> 00:13:09,590
+Now the return path.
+
+211
+00:13:09,640 --> 00:13:16,200
+The request leaves FW1 with the original source, 10.1.1.10, to 10.2.1.4.
+
+212
+00:13:17,150 --> 00:13:22,685
+The private endpoint's data plane doesn't follow your route tables for its replies the
+
+213
+00:13:22,735 --> 00:13:23,659
+way a VM would.
+
+214
+00:13:23,709 --> 00:13:28,855
+The reply can head straight back to 10.1.1.10, skipping the firewall, or land on
+
+215
+00:13:28,905 --> 00:13:30,089
+the other firewall.
+
+216
+00:13:30,139 --> 00:13:34,700
+Either way the firewall sees half a session and drops it as asymmetric.
+
+217
+00:13:35,650 --> 00:13:37,737
+Option one, the classic answer:
+
+218
+00:13:37,787 --> 00:13:39,598
+source NAT on the firewall.
+
+219
+00:13:39,648 --> 00:13:43,527
+FW1 rewrites the source to its trust interface, 10.0.2.4.
+
+220
+00:13:43,577 --> 00:13:49,868
+The endpoint replies to 10.0.2.4, which can only be FW1, so the session is always symmetric.
+
+221
+00:13:49,918 --> 00:13:53,935
+The cost is that the PaaS logs show the firewall's address;
+
+222
+00:13:53,985 --> 00:13:58,760
+you correlate with the firewall's traffic log to find the real client.
+
+223
+00:13:59,710 --> 00:14:00,376
+Option two:
+
+224
+00:14:00,426 --> 00:14:03,629
+Microsoft now lets you drop that SNAT requirement.
+
+225
+00:14:03,679 --> 00:14:08,963
+Add a tag named disableSnatOnPL, value true, to each firewall dataplane NIC, or to
+
+226
+00:14:09,013 --> 00:14:10,525
+each scale set instance.
+
+227
+00:14:10,575 --> 00:14:15,990
+The tag is case-sensitive, and it causes a one-time reset of private endpoint flows,
+
+228
+00:14:16,040 --> 00:14:18,136
+so do it in a maintenance window.
+
+229
+00:14:18,186 --> 00:14:23,536
+Either way, keep both directions on the same internal load balancer frontend, so HA
+
+230
+00:14:23,586 --> 00:14:27,700
+ports hashing sends the flow and its reply to the same firewall.
+
+231
+00:14:28,650 --> 00:14:31,354
+Where should the private endpoints live?
+
+232
+00:14:31,404 --> 00:14:33,833
+Pattern one, which we've been using:
+
+233
+00:14:33,883 --> 00:14:36,243
+a dedicated private endpoint spoke.
+
+234
+00:14:36,293 --> 00:14:40,926
+Application subnets get one route, 10.2.0.0/16 to the load balancer.
+
+235
+00:14:40,976 --> 00:14:46,228
+DNS zone groups, NSGs and firewall address objects all live in one place, and
+
+236
+00:14:46,278 --> 00:14:48,844
+the security zone boundary is obvious.
+
+237
+00:14:48,894 --> 00:14:49,877
+It scales well;
+
+238
+00:14:49,927 --> 00:14:53,320
+you just need clear ownership of that shared VNet.
+
+239
+00:14:54,270 --> 00:14:55,030
+Pattern two:
+
+240
+00:14:55,080 --> 00:14:57,258
+endpoints in a subnet in the hub.
+
+241
+00:14:57,308 --> 00:15:02,795
+Spokes route 10.0.4.0/24 to the load balancer, which is more specific than the hub
+
+242
+00:15:02,845 --> 00:15:08,128
+space, so it works, and the GatewaySubnet needs the same route for on-premises.
+
+243
+00:15:08,178 --> 00:15:14,340
+Fewer VNets, but the hub grows, and anything else in the hub reaches the endpoints directly.
+
+244
+00:15:15,290 --> 00:15:16,190
+Pattern three:
+
+245
+00:15:16,240 --> 00:15:19,992
+the endpoint inside the workload spoke, next to the app.
+
+246
+00:15:20,042 --> 00:15:22,843
+Now it's subnet-to-subnet inside one VNet.
+
+247
+00:15:22,893 --> 00:15:27,867
+You add a route on the app subnet for the endpoint subnet, 10.1.5.0/24, to
+
+248
+00:15:27,917 --> 00:15:34,791
+the load balancer, plus network policies on the endpoint subnet, and traffic hairpins through the hub.
+
+249
+00:15:34,841 --> 00:15:39,747
+It gives app teams ownership, but it's the easiest to forget, and DNS and
+
+250
+00:15:39,797 --> 00:15:41,648
+policy sprawl across spokes.
+
+251
+00:15:41,698 --> 00:15:46,400
+Most enterprises use pattern one, with pattern three as the exception.
+
+252
+00:15:47,350 --> 00:15:48,513
+Now on-premises.
+
+253
+00:15:48,563 --> 00:15:52,380
+A client at 172.16.5.20 connects over ExpressRoute.
+
+254
+00:15:52,430 --> 00:15:58,825
+The gateway learns the spoke prefixes through peering, so by default it sends traffic
+
+255
+00:15:58,875 --> 00:16:02,540
+straight to the endpoint, bypassing the firewall.
+
+256
+00:16:03,490 --> 00:16:07,319
+Associate a route table with the GatewaySubnet:
+
+257
+00:16:07,369 --> 00:16:09,464
+10.2.0.0/16 to 10.0.2.100.
+
+258
+00:16:09,514 --> 00:16:15,818
+With network policies on the endpoint subnet, the slash 32 doesn't bypass it.
+
+259
+00:16:15,868 --> 00:16:21,760
+Now on-premises traffic goes gateway, load balancer, firewall, endpoint.
+
+260
+00:16:22,710 --> 00:16:29,116
+For the return, the firewall routes 172.16.0.0/16 out of its trust interface toward the
+
+261
+00:16:29,166 --> 00:16:34,978
+gateway, and SNAT or the disableSnatOnPL tag keeps the endpoint side symmetric.
+
+262
+00:16:35,028 --> 00:16:38,021
+Two rules for GatewaySubnet route tables:
+
+263
+00:16:38,071 --> 00:16:44,180
+never put a default route there, and don't disable gateway route propagation on it.
+
+264
+00:16:45,130 --> 00:16:48,183
+Let's configure the Palo Alto side.
+
+265
+00:16:48,233 --> 00:16:49,158
+Interfaces:
+
+266
+00:16:49,208 --> 00:16:57,580
+ethernet 1/1 untrust at 10.0.1.4 in zone UNTRUST, ethernet 1/2 trust at 10.0.2.4 in zone TRUST.
+
+267
+00:16:57,630 --> 00:16:58,821
+Static routes:
+
+268
+00:16:58,871 --> 00:17:05,913
+the default route out of ethernet 1/1 to the untrust subnet's gateway, 10.0.1.1.
+
+269
+00:17:05,963 --> 00:17:13,006
+All private ranges, the spokes and on-premises, out of ethernet 1/2 to 10.0.2.1.
+
+270
+00:17:13,056 --> 00:17:19,920
+And a route for 168.63.129.16 out of each interface to its own subnet gateway,
+
+271
+00:17:19,970 --> 00:17:28,697
+because that's the load balancer health probe source, plus an interface management profile allowing
+
+272
+00:17:28,747 --> 00:17:35,080
+HTTPS only from that address, so the probes see the firewall as healthy.
+
+273
+00:17:36,030 --> 00:17:36,455
+Objects:
+
+274
+00:17:36,505 --> 00:17:41,502
+static address objects for each endpoint, or FQDN objects that resolve to private IPs
+
+275
+00:17:41,552 --> 00:17:43,818
+because the firewall uses the resolver.
+
+276
+00:17:43,868 --> 00:17:49,400
+With Panorama, the Azure plugin pulls VNet, subnet and tag information from your subscriptions
+
+277
+00:17:49,450 --> 00:17:53,556
+into Dynamic Address Groups, so rules follow workloads as they change.
+
+278
+00:17:53,606 --> 00:17:58,010
+And a custom URL category listing your storage and Key Vault names lets you
+
+279
+00:17:58,060 --> 00:18:00,860
+match on the TLS server name without decrypting.
+
+280
+00:18:01,810 --> 00:18:03,041
+The security policy.
+
+281
+00:18:03,091 --> 00:18:07,844
+Rule one allows the app subnet to the SQL endpoint with App-ID mssql-db and
+
+282
+00:18:07,894 --> 00:18:09,189
+full threat profiles.
+
+283
+00:18:09,239 --> 00:18:10,086
+A note on SQL:
+
+284
+00:18:10,136 --> 00:18:13,160
+the Proxy connection policy uses only port 1433;
+
+285
+00:18:13,210 --> 00:18:18,347
+Redirect through a private endpoint needs a much wider port range, so either open
+
+286
+00:18:18,397 --> 00:18:21,550
+that range to the SQL endpoint only, or set Proxy.
+
+287
+00:18:21,600 --> 00:18:25,841
+Rule two allows the app to blob over SSL, limited to your accounts.
+
+288
+00:18:25,891 --> 00:18:28,595
+Rule three allows on-premises to Key Vault.
+
+289
+00:18:28,645 --> 00:18:32,693
+Rule four denies and logs anything else to the endpoint subnets.
+
+290
+00:18:32,743 --> 00:18:34,487
+Then two things people miss.
+
+291
+00:18:34,537 --> 00:18:39,930
+Spoke-to-spoke traffic enters and leaves the same trust interface, so it's intrazone;
+
+292
+00:18:39,980 --> 00:18:43,261
+override the intrazone default rule to deny and log.
+
+293
+00:18:43,311 --> 00:18:50,241
+And a NAT rule source-translates traffic to the endpoint subnets, unless you've used the disableSnatOnPL tag.
+
+294
+00:18:50,291 --> 00:18:55,301
+TLS decryption is possible for HTTPS where clients trust your CA, but SQL wraps
+
+295
+00:18:55,351 --> 00:18:59,720
+TLS inside its own protocol, so control it with App-ID and addresses.
+
+296
+00:19:00,670 --> 00:19:01,190
+Option D:
+
+297
+00:19:01,240 --> 00:19:02,141
+VNet injection.
+
+298
+00:19:02,191 --> 00:19:06,578
+Some services have a dedicated tier that deploys into your own subnet:
+
+299
+00:19:06,628 --> 00:19:13,297
+SQL Managed Instance, App Service Environment version 3, API Management in injected mode, AKS, Databricks.
+
+300
+00:19:13,347 --> 00:19:16,783
+Once they're in your subnet, they behave much like VMs.
+
+301
+00:19:16,833 --> 00:19:21,728
+A route table sends their traffic to the firewall, and other spokes reach them
+
+302
+00:19:21,778 --> 00:19:24,580
+through the firewall like any other workload.
+
+303
+00:19:25,530 --> 00:19:27,560
+The catch is the management plane.
+
+304
+00:19:27,610 --> 00:19:33,128
+Each service has documented routes and NSG rules it needs to talk to Azure's control plane.
+
+305
+00:19:33,178 --> 00:19:39,307
+SQL Managed Instance even uses service-aided subnet configuration that adds its own routes and rules;
+
+306
+00:19:39,357 --> 00:19:40,347
+don't fight them.
+
+307
+00:19:40,397 --> 00:19:46,526
+On the firewall, allow each service's documented dependencies, like Entra ID, monitoring and storage,
+
+308
+00:19:46,576 --> 00:19:50,870
+and for AKS the container registries, and deny and log everything else.
+
+309
+00:19:50,920 --> 00:19:55,520
+Injection gives the strongest isolation, at the highest cost and complexity.
+
+310
+00:19:56,470 --> 00:19:58,479
+Option E covers the other direction:
+
+311
+00:19:58,529 --> 00:20:00,652
+traffic that starts in a PaaS service.
+
+312
+00:20:00,702 --> 00:20:05,399
+Multi-tenant App Service and Functions don't live in your VNet, so by default their
+
+313
+00:20:05,449 --> 00:20:07,859
+outbound calls go straight to the internet.
+
+314
+00:20:07,909 --> 00:20:09,460
+VNet integration fixes that.
+
+315
+00:20:10,410 --> 00:20:15,673
+You give the app a delegated integration subnet, delegated to Microsoft dot Web slash
+
+316
+00:20:15,723 --> 00:20:21,860
+serverFarms, and turn on route all, which in the current API is outboundVnetRouting dot allTraffic.
+
+317
+00:20:21,910 --> 00:20:28,423
+Now all outbound traffic, including configuration traffic like image pulls, content share access, backups
+
+318
+00:20:28,473 --> 00:20:31,860
+and managed identity token requests, enters the subnet.
+
+319
+00:20:31,910 --> 00:20:35,360
+A default route on that subnet sends it to the firewall.
+
+320
+00:20:36,310 --> 00:20:41,923
+The VM-Series applies App-ID and URL filtering to internet calls and source-NATs them to
+
+321
+00:20:41,973 --> 00:20:46,042
+its public IP, and calls to SQL or Key Vault go to their private
+
+322
+00:20:46,092 --> 00:20:49,260
+endpoints, through the same routing we just built.
+
+323
+00:20:50,210 --> 00:20:54,791
+Remember to allow 443, and 445 if the app uses a content share, from
+
+324
+00:20:54,841 --> 00:20:56,358
+the integration subnet.
+
+325
+00:20:56,408 --> 00:20:58,945
+And VNet integration is outbound only:
+
+326
+00:20:58,995 --> 00:21:05,007
+users reaching the app still need a private endpoint or one of the inbound patterns next.
+
+327
+00:21:05,057 --> 00:21:11,000
+Functions Premium and Flex, Logic Apps Standard and Container Apps follow the same idea.
+
+328
+00:21:11,950 --> 00:21:12,414
+Option F:
+
+329
+00:21:12,464 --> 00:21:14,358
+publishing an app to the internet.
+
+330
+00:21:14,408 --> 00:21:15,044
+Pattern one:
+
+331
+00:21:15,094 --> 00:21:18,016
+Azure Front Door Premium with a Private Link origin.
+
+332
+00:21:18,066 --> 00:21:22,417
+Front Door's WAF and edge absorb the internet, and it reaches the App Service
+
+333
+00:21:22,467 --> 00:21:26,418
+over a Microsoft-managed private endpoint that you approve on the app.
+
+334
+00:21:26,468 --> 00:21:28,076
+The app has no public origin.
+
+335
+00:21:28,126 --> 00:21:30,534
+But notice the Palo Alto isn't in the path;
+
+336
+00:21:30,584 --> 00:21:32,420
+inspection is the WAF's job here.
+
+337
+00:21:33,370 --> 00:21:34,056
+Pattern two:
+
+338
+00:21:34,106 --> 00:21:39,082
+Application Gateway with WAF first, then the VM-Series, then the private endpoint.
+
+339
+00:21:39,132 --> 00:21:43,189
+The WAF sees the real client IP and adds an X-Forwarded-For header.
+
+340
+00:21:43,239 --> 00:21:48,215
+A route on the Application Gateway subnet sends the backend prefix to the internal
+
+341
+00:21:48,265 --> 00:21:53,241
+load balancer, and the firewall adds Threat Prevention and App-ID on the back leg,
+
+342
+00:21:53,291 --> 00:21:54,958
+SNATing toward the endpoint.
+
+343
+00:21:55,008 --> 00:21:59,800
+This is the most common combination when you want both a WAF and the Palo Alto.
+
+344
+00:22:00,750 --> 00:22:01,545
+Pattern three:
+
+345
+00:22:01,595 --> 00:22:02,692
+the firewall first.
+
+346
+00:22:02,742 --> 00:22:08,063
+The public load balancer delivers traffic to the VM-Series, which does destination NAT to
+
+347
+00:22:08,113 --> 00:22:12,348
+a private Application Gateway or endpoint, and source NAT for symmetry.
+
+348
+00:22:12,398 --> 00:22:17,056
+You get one internet edge with Threat Prevention first, but the client IP only
+
+349
+00:22:17,106 --> 00:22:21,823
+survives in the firewall logs, and seeing layer seven needs inbound decryption.
+
+350
+00:22:21,873 --> 00:22:26,531
+A variant chains a Gateway Load Balancer to a public frontend, so the firewall
+
+351
+00:22:26,581 --> 00:22:28,100
+is inserted transparently.
+
+352
+00:22:29,050 --> 00:22:29,587
+Option G:
+
+353
+00:22:29,637 --> 00:22:31,610
+the Network Security Perimeter.
+
+354
+00:22:31,660 --> 00:22:37,090
+Some PaaS traffic never enters your VNets, like Key Vault sending diagnostics to Log
+
+355
+00:22:37,140 --> 00:22:40,221
+Analytics, or services that have to stay public.
+
+356
+00:22:40,271 --> 00:22:45,310
+A perimeter draws a boundary around those PaaS resources, and they can talk to
+
+357
+00:22:45,360 --> 00:22:46,680
+each other inside it.
+
+358
+00:22:47,630 --> 00:22:53,800
+Inbound access rules allow IP prefixes or subscriptions, for example the firewall's egress IP.
+
+359
+00:22:53,850 --> 00:22:55,587
+Outbound rules allow FQDNs.
+
+360
+00:22:55,637 --> 00:22:57,175
+Everyone else is denied.
+
+361
+00:22:57,225 --> 00:23:02,733
+Start in transition mode, which logs what would be blocked, then switch to enforced.
+
+362
+00:23:02,783 --> 00:23:05,380
+Every allowed and denied call is logged.
+
+363
+00:23:06,330 --> 00:23:09,322
+Private endpoint traffic isn't governed by the perimeter;
+
+364
+00:23:09,372 --> 00:23:10,764
+that's your firewall's job.
+
+365
+00:23:10,814 --> 00:23:13,059
+So the perimeter complements the Palo Alto:
+
+366
+00:23:13,109 --> 00:23:17,756
+it covers the public side and PaaS-to-PaaS calls, and the firewall covers your networks.
+
+367
+00:23:17,806 --> 00:23:22,613
+Service coverage differs, some are generally available and some in preview, so check before
+
+368
+00:23:22,663 --> 00:23:23,360
+relying on it.
+
+369
+00:23:24,310 --> 00:23:24,899
+Option H:
+
+370
+00:23:24,949 --> 00:23:28,092
+which Palo Alto form factor carries all this?
+
+371
+00:23:28,142 --> 00:23:31,569
+The VM-Series in the hub VNet is what we've used.
+
+372
+00:23:31,619 --> 00:23:32,705
+You run the VMs:
+
+373
+00:23:32,755 --> 00:23:37,034
+sizing, zones, upgrades, bootstrap and scale-set autoscaling.
+
+374
+00:23:37,084 --> 00:23:44,201
+You get full PAN-OS, GlobalProtect, decryption and every profile, and Panorama with the Azure plugin.
+
+375
+00:23:44,251 --> 00:23:50,020
+Run them active-active behind load balancers, or active-passive with floating IPs.
+
+376
+00:23:50,970 --> 00:23:54,626
+Cloud NGFW for Azure in the hub VNet is the managed service.
+
+377
+00:23:54,676 --> 00:23:59,259
+You delegate a public and a private subnet, Palo Alto runs scaling and high
+
+378
+00:23:59,309 --> 00:24:03,521
+availability, and spokes send traffic with a route to its private IP.
+
+379
+00:24:03,571 --> 00:24:07,906
+Policy comes from a local rulestack, Panorama, or Strata Cloud Manager.
+
+380
+00:24:07,956 --> 00:24:13,280
+There are fewer knobs than full PAN-OS, so check the feature matrix against your needs.
+
+381
+00:24:14,230 --> 00:24:18,749
+And if you run Azure Virtual WAN, Cloud NGFW deploys inside the virtual hub.
+
+382
+00:24:18,799 --> 00:24:24,160
+Routing intent sends private and internet traffic to it, with no route tables to maintain.
+
+383
+00:24:24,210 --> 00:24:29,570
+For private endpoints in spokes connected to that hub, enable route table network policies
+
+384
+00:24:29,620 --> 00:24:30,592
+on their subnets.
+
+385
+00:24:30,642 --> 00:24:34,620
+Without it, on-premises traffic to the endpoints can be asymmetric.
+
+386
+00:24:35,570 --> 00:24:37,691
+The firewall is one layer of several.
+
+387
+00:24:37,741 --> 00:24:38,571
+Identity first:
+
+388
+00:24:38,621 --> 00:24:44,438
+Entra ID and managed identities, and turn off shared keys and local authentication wherever you can.
+
+389
+00:24:44,488 --> 00:24:45,964
+Then the resource network:
+
+390
+00:24:46,014 --> 00:24:48,722
+public access disabled, private endpoints only.
+
+391
+00:24:48,772 --> 00:24:49,660
+Then the subnet:
+
+392
+00:24:49,710 --> 00:24:54,000
+with network policies on, an NSG on the endpoint subnet, using application security groups,
+
+393
+00:24:55,050 --> 00:24:57,640
+can allow only the firewall's SNAT addresses.
+
+394
+00:24:58,590 --> 00:25:04,671
+The Palo Alto adds App-ID, Threat Prevention, URL and FQDN control, and a deny-and-log default.
+
+395
+00:25:04,721 --> 00:25:06,929
+Governance keeps it true over time:
+
+396
+00:25:06,979 --> 00:25:12,415
+Azure Policy can deny public network access, deploy private DNS zone groups for every
+
+397
+00:25:12,465 --> 00:25:14,931
+new endpoint, and audit what's missing.
+
+398
+00:25:14,981 --> 00:25:21,062
+And send firewall logs to Strata Logging Service or Microsoft Sentinel, alongside Azure Monitor
+
+399
+00:25:21,112 --> 00:25:22,740
+and perimeter access logs.
+
+400
+00:25:23,690 --> 00:25:26,251
+When it breaks, troubleshoot in this order.
+
+401
+00:25:26,301 --> 00:25:26,797
+One, DNS:
+
+402
+00:25:26,847 --> 00:25:28,922
+from the client, nslookup the name.
+
+403
+00:25:28,972 --> 00:25:32,200
+You must see the privatelink CNAME and the private IP.
+
+404
+00:25:32,250 --> 00:25:32,929
+Two, routes:
+
+405
+00:25:32,979 --> 00:25:35,539
+check effective routes on the client's NIC.
+
+406
+00:25:35,589 --> 00:25:42,035
+The endpoint prefix should point at the virtual appliance, with no active slash 32 InterfaceEndpoint route.
+
+407
+00:25:42,085 --> 00:25:47,560
+The endpoint's own NIC doesn't show effective routes, so always check from the client side.
+
+408
+00:25:48,510 --> 00:25:53,176
+Three, the firewall traffic log, filtered on the endpoint subnet:
+
+409
+00:25:53,226 --> 00:25:56,876
+check the rule, the NAT and the session end reason.
+
+410
+00:25:56,926 --> 00:26:00,141
+No log at all means the packet never arrived.
+
+411
+00:26:00,191 --> 00:26:01,520
+Four, the endpoint:
+
+412
+00:26:01,570 --> 00:26:06,817
+connection approved, and any NSG on its subnet allowing the SNAT address.
+
+413
+00:26:06,867 --> 00:26:07,905
+Five, symmetry:
+
+414
+00:26:07,955 --> 00:26:14,580
+if it works with SNAT but not without, check the disableSnatOnPL tag on every dataplane NIC.
+
+415
+00:26:15,530 --> 00:26:17,797
+To wrap up, here's the decision guide.
+
+416
+00:26:17,847 --> 00:26:22,797
+Public endpoints with IP rules and service endpoints are quick and cheap, but stay
+
+417
+00:26:22,847 --> 00:26:24,931
+public and can't reach on-premises.
+
+418
+00:26:24,981 --> 00:26:29,016
+Private endpoints with route tables are the default for production:
+
+419
+00:26:29,066 --> 00:26:33,955
+the traffic goes through the Palo Alto, on-premises gets a private path, and each
+
+420
+00:26:34,005 --> 00:26:35,967
+endpoint is tied to one resource.
+
+421
+00:26:36,017 --> 00:26:38,284
+VNet injection is for dedicated tiers.
+
+422
+00:26:38,334 --> 00:26:41,394
+VNet integration covers outbound traffic from PaaS.
+
+423
+00:26:41,444 --> 00:26:45,174
+Front Door, Application Gateway or firewall DNAT publish apps.
+
+424
+00:26:45,224 --> 00:26:48,040
+And the perimeter covers what can't go private.
+
+425
+00:26:48,990 --> 00:26:50,097
+The rule of thumb:
+
+426
+00:26:50,147 --> 00:26:55,753
+private endpoints in a dedicated spoke, network policies on, a route per endpoint prefix
+
+427
+00:26:55,803 --> 00:27:01,408
+to the internal load balancer, SNAT or the disableSnatOnPL tag, the DNS Private Resolver
+
+428
+00:27:01,458 --> 00:27:06,357
+for name resolution, public access off, and Azure Policy to keep it that way.
+
+429
+00:27:06,407 --> 00:27:10,535
+The diagrams and the full script are in the demo-labs repository.
+
+430
+00:27:10,585 --> 00:27:11,820
+Thanks for watching.

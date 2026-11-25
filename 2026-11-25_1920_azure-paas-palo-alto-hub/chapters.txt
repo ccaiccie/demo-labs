@@ -1,0 +1,15 @@
+0:00 Introduction
+0:54 Reference topology
+3:26 The options map
+4:21 Option A · Public endpoint + IP rules
+5:50 Option B · Service endpoints
+7:47 Option C · Private endpoints and DNS
+11:22 Option C · Routing through the firewall
+16:44 Option C · Palo Alto configuration
+19:00 Option D · VNet injection
+19:56 Option E · Outbound from PaaS
+21:11 Option F · Inbound publishing
+22:28 Option G · Network Security Perimeter
+23:23 Option H · Firewall form factors
+24:35 Defense in depth and troubleshooting
+26:15 Decision guide
