@@ -1,5 +1,7 @@
 # Amazon Cognito Secure Network Access — Terraform Practice Lab
 
+Video: [Amazon Cognito Secure Network Access: ALB, API Gateway, WAF & PrivateLink (Nov 2026 + Lab)](https://youtu.be/dekqqfXOfAc)
+
 > **Important Note — Validation Only:** This Terraform lab was initialized and verified with `terraform validate` using `hashicorp/aws` (`~> 6.0`). It was **not** applied to a live AWS account during preparation. Review all variables, prerequisites, and cost warnings below before running `terraform apply` in your own AWS account, and run `terraform destroy` as soon as you finish testing.
 
 > **CIDR note:** The video's diagrams use `10.22.0.0/16` as an example; this lab defaults to `10.42.0.0/16`.

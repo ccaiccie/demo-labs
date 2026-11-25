@@ -1,6 +1,6 @@
 # Nautobot 3.2.9 Network CI/CD Step-by-Step Beginner Lab
 
-Video: [Nautobot CI/CD Step-by-Step for Beginners: Git, Pipelines, Drift & Rollback](https://youtu.be/R4y4kGmiVS8)
+Video: [Nautobot CI/CD Live Web GUI Walkthrough: Git Sync, Jobs, Drift & Rollback](https://youtu.be/K0wi3SOfbyg)
 
 A complete, beginner-friendly, hands-on Network CI/CD lab built from scratch with **Nautobot 3.2.9**, **Git**, **local Gitea 1.22.6**, **Python**, **Jinja2**, **Golden Config**, **HierConfig**, and a live 3-router **Containerlab** topology (`ceos-leaf1`, `ceos-leaf2`, and `cisco-core1`).
 
