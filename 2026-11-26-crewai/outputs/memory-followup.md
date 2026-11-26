@@ -1,0 +1,3 @@
+| Open item | Evidence already on file | Next checks | Suggested close criteria |
+|-----------|--------------------------|--------------|---------------------------|
+| Review the source address in the log to confirm if the SSH denial burst attack from 198.51.100.66 has stopped. Note any later successful admin login from a trusted address. | Multiple SSH login denials from 198.51.100.66 are recorded in `edge-fw1.log`. | Confirm the SSH denial burst attack has ceased and note any subsequent successful admin login attempts from a trusted address. | The SSH denial burst attack from 198.51.100.66 has stopped, and no subsequent successful admin login attempts have been noted. |

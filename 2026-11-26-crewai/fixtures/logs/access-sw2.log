@@ -1,0 +1,12 @@
+Nov 21 14:05:44 access-sw2 %LINK-3-UPDOWN: Interface GigabitEthernet1/0/12, changed state to up
+Nov 21 14:05:45 access-sw2 %LINEPROTO-5-UPDOWN: Line protocol on Interface GigabitEthernet1/0/12, changed state to up
+Nov 21 14:11:02 access-sw2 %SW_MATM-4-MACFLAP_NOTIF: Host 00:11:22:33:44:61 in vlan 20 is flapping between port Gi1/0/12 and port Gi1/0/24
+Nov 21 14:11:07 access-sw2 %SW_MATM-4-MACFLAP_NOTIF: Host 00:11:22:33:44:61 in vlan 20 is flapping between port Gi1/0/24 and port Gi1/0/12
+Nov 21 14:11:12 access-sw2 %SW_MATM-4-MACFLAP_NOTIF: Host 00:11:22:33:44:61 in vlan 20 is flapping between port Gi1/0/12 and port Gi1/0/24
+Nov 21 14:11:18 access-sw2 %SW_MATM-4-MACFLAP_NOTIF: Host 00:11:22:33:44:61 in vlan 20 is flapping between port Gi1/0/24 and port Gi1/0/12
+Nov 21 14:11:25 access-sw2 %SW_MATM-4-MACFLAP_NOTIF: Host 00:11:22:33:44:61 in vlan 20 is flapping between port Gi1/0/12 and port Gi1/0/24
+Nov 21 14:11:33 access-sw2 %SW_MATM-4-MACFLAP_NOTIF: Host 00:11:22:33:44:61 in vlan 20 is flapping between port Gi1/0/24 and port Gi1/0/12
+Nov 21 14:14:10 access-sw2 %SW_MATM-4-MACFLAP_NOTIF: Host 00:11:22:33:44:61 in vlan 20 is flapping between port Gi1/0/12 and port Gi1/0/24
+Nov 21 14:20:01 access-sw2 %SYS-5-CONFIG_I: Configured from console by admin on vty0 (192.0.2.50)
+Nov 21 14:28:41 access-sw2 %LINEPROTO-5-UPDOWN: Line protocol on Interface GigabitEthernet1/0/8, changed state to down
+Nov 21 14:28:55 access-sw2 %LINEPROTO-5-UPDOWN: Line protocol on Interface GigabitEthernet1/0/8, changed state to up

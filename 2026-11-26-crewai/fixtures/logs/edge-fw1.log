@@ -1,0 +1,18 @@
+Nov 21 14:08:01 edge-fw1 %ASA-6-302013: Built inbound TCP connection 44101 for outside:192.0.2.50/51122 (192.0.2.50/51122) to identity:192.0.2.1/22 (192.0.2.1/22)
+Nov 21 14:08:07 edge-fw1 %ASA-6-611101: User authentication succeeded: Uname: admin, Src: 192.0.2.50
+Nov 21 14:12:01 edge-fw1 %ASA-4-113019: Group = DefaultSSHGroup, Username = , IP = 198.51.100.66, Session disconnected. Session Type: SSH, Duration: 0h:00m:02s, Bytes xmt: 0, Bytes rcv: 0, Reason: SSH negotiate failed
+Nov 21 14:12:02 edge-fw1 %ASA-6-605004: Login denied from 198.51.100.66/43101 to outside:192.0.2.1/22 for user "root"
+Nov 21 14:12:03 edge-fw1 %ASA-6-605004: Login denied from 198.51.100.66/43102 to outside:192.0.2.1/22 for user "admin"
+Nov 21 14:12:04 edge-fw1 %ASA-6-605004: Login denied from 198.51.100.66/43103 to outside:192.0.2.1/22 for user "cisco"
+Nov 21 14:12:05 edge-fw1 %ASA-6-605004: Login denied from 198.51.100.66/43104 to outside:192.0.2.1/22 for user "root"
+Nov 21 14:12:06 edge-fw1 %ASA-6-605004: Login denied from 198.51.100.66/43105 to outside:192.0.2.1/22 for user "admin"
+Nov 21 14:12:07 edge-fw1 %ASA-6-605004: Login denied from 198.51.100.66/43106 to outside:192.0.2.1/22 for user "enable"
+Nov 21 14:12:08 edge-fw1 %ASA-6-605004: Login denied from 198.51.100.66/43107 to outside:192.0.2.1/22 for user "root"
+Nov 21 14:12:09 edge-fw1 %ASA-6-605004: Login denied from 198.51.100.66/43108 to outside:192.0.2.1/22 for user "admin"
+Nov 21 14:12:10 edge-fw1 %ASA-6-605004: Login denied from 198.51.100.66/43109 to outside:192.0.2.1/22 for user "cisco"
+Nov 21 14:12:11 edge-fw1 %ASA-6-605004: Login denied from 198.51.100.66/43110 to outside:192.0.2.1/22 for user "root"
+Nov 21 14:12:12 edge-fw1 %ASA-6-605004: Login denied from 198.51.100.66/43111 to outside:192.0.2.1/22 for user "admin"
+Nov 21 14:12:13 edge-fw1 %ASA-6-605004: Login denied from 198.51.100.66/43112 to outside:192.0.2.1/22 for user "user"
+Nov 21 14:12:40 edge-fw1 %ASA-4-106023: Deny tcp src outside:198.51.100.66/43120 dst identity:192.0.2.1/22 by access-group "outside_access_in"
+Nov 21 14:25:19 edge-fw1 %ASA-6-302013: Built inbound TCP connection 44188 for outside:192.0.2.50/52201 (192.0.2.50/52201) to identity:192.0.2.1/22 (192.0.2.1/22)
+Nov 21 14:25:21 edge-fw1 %ASA-6-611101: User authentication succeeded: Uname: admin, Src: 192.0.2.50

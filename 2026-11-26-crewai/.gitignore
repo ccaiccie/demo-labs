@@ -1,0 +1,9 @@
+.env
+.venv/
+__pycache__/
+*.pyc
+.python-version
+outputs/_collector-sections.md
+*.rehearsal.log
+PROGRESS.md
+NOTES.md

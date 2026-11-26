@@ -1,0 +1,9 @@
+[project]
+name = "crewai-lab"
+version = "0.1.0"
+description = "Local CrewAI network-operations lab using Ollama only"
+requires-python = ">=3.12"
+dependencies = [
+  "crewai[litellm]",
+  "python-dotenv",
+]

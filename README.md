@@ -47,6 +47,8 @@ Labs that go with the Network Technician videos. Each folder is a self-contained
 | [2026-11-26-opnsense-branch-security](2026-11-26-opnsense-branch-security/) | OPNsense branch-security lab: Unbound DNS, Zenarmor application control, Squid HTTPS path filtering in Firefox, and Suricata IDS/IPS. Includes isolated test fixtures and client checks. | Video not yet published |
 | [2026-11-25-zero-trust-private-app-access](2026-11-25-zero-trust-private-app-access/) | Zero-trust private app access: AWS Verified Access vs Microsoft Entra Private Access vs Google Cloud IAP, with a comparable Terraform/CLI path per cloud. | Video not yet published |
 | [2026-11-26-mcp-review-daily](./2026-11-26-mcp-review-daily) | MCP servers daily review for Nov 26: safe read-only NetBox MCP practice lab | Upload pending |
+| [2026-11-26-crewai](2026-11-26-crewai/) | Local CrewAI lab on a small Ubuntu VM with Ollama (no cloud API keys): role-based agents, path-safe log tools, a research crew, a per-file log-triage crew, a severity-routing Flow with state, and a memory follow-up over RFC 5737 syslog fixtures. Default Ollama base URL is localhost; it can point at any reachable host. | Video not yet published |
+
 
 ## Courses and quizzes
 
