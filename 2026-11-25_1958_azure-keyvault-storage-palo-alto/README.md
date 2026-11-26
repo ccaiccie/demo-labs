@@ -10,6 +10,13 @@ https://youtu.be/-vmg5SZ58jM
 
 This is a concept lecture built from draw.io diagrams. There is no live Azure deployment.
 
+> **Correction to the [5:49 routing chapter](https://youtu.be/-vmg5SZ58jM?t=349) and the checklist graphic:** The endpoint subnet NSG matches the source IP that arrives at the private endpoint. Allowing only the firewall's trust addresses applies **only** to the SNAT design. The other design preserves the original source.
+>
+> - **Firewall SNAT:** Allow the actual translated source IPs used by the firewalls, such as `10.0.2.4` and `10.0.2.5` in this example if those are the configured SNAT addresses. Scope the rule to the required endpoint IPs and TCP 443.
+> - **Source preservation with `disableSnatOnPL=true`:** With no firewall SNAT for this flow, allow only the required original workload and on-premises client IPs or prefixes to the required endpoint IPs on TCP 443. A rule restricted to firewall trust addresses does not match that traffic.
+>
+> An NSG source match does not prove the packet traversed the firewall. Enable the necessary route-table and NSG policies on the endpoint subnet, verify the effective forward and return paths, and match a new test connection to the Palo Alto session or traffic log. See Microsoft's [private endpoint SNAT guidance](https://learn.microsoft.com/en-us/azure/private-link/private-link-disable-snat) and [NSG rule matching](https://learn.microsoft.com/en-us/azure/virtual-network/network-security-groups-overview#security-rules).
+
 ## Contents
 
 | Path | What it is |
@@ -57,7 +64,7 @@ This is a concept lecture built from draw.io diagrams. There is no live Azure de
 
 - Private endpoint per vault and per storage sub-resource you use (blob, dfs, file, queue, table, web)
 - privatelink zones linked to the hub; on-premises forwarders for the public zones (`vault.azure.net`, `vaultcore.azure.net`, `blob.core.windows.net`, ...) to the resolver inbound endpoint
-- `privateEndpointNetworkPolicies` Enabled on the endpoint subnet; NSG allows the firewall only
+- Enable the endpoint subnet's NSG and route-table network policies. Use the actual SNAT addresses or the required original client prefixes as the endpoint NSG source, according to the design above; verify rule priority and effective routing.
 - UDR for the private endpoint range on client subnets and the GatewaySubnet
 - SNAT on the VM-Series, or `disableSnatOnPL` to keep client IPs
 - PAN-OS: custom URL category with your named accounts and vaults, explicit deny for every other storage and vault FQDN
