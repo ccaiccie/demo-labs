@@ -1,0 +1,14 @@
+{
+  "mcpServers": {
+    "netbox": {
+      "command": "uvx",
+      "args": [
+        "netbox-mcp-server>=1.3.0"
+      ],
+      "env": {
+        "NETBOX_URL": "https://your-lab-netbox.example.com/",
+        "NETBOX_TOKEN": "REPLACE_WITH_READONLY_NETBOX_API_TOKEN"
+      }
+    }
+  }
+}
