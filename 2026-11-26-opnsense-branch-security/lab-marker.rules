@@ -1,0 +1,1 @@
+alert http any any -> 198.18.83.10 8080 (msg:"BRANCH LAB benign IDS control marker"; flow:established,to_server; http.uri; content:"/ids-check"; startswith; sid:1000383; rev:1;)
