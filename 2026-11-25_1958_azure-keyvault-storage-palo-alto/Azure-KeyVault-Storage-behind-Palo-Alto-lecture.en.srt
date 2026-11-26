@@ -1,0 +1,723 @@
+1
+00:00:00,350 --> 00:00:00,798
+Welcome.
+
+2
+00:00:00,848 --> 00:00:06,461
+In this lecture we secure the two Azure platform services almost every workload depends on:
+
+3
+00:00:06,511 --> 00:00:12,125
+Key Vault, which holds secrets, keys and certificates, and Storage, which holds blobs, data
+
+4
+00:00:12,175 --> 00:00:13,805
+lake files and file shares.
+
+5
+00:00:13,855 --> 00:00:19,220
+We'll put both behind a Palo Alto Networks VM-Series firewall in a hub virtual network.
+
+6
+00:00:20,170 --> 00:00:24,988
+This builds on the general lecture about securing PaaS behind a Palo Alto firewall.
+
+7
+00:00:25,038 --> 00:00:28,331
+Here we go deep on what's specific to these two services:
+
+8
+00:00:28,381 --> 00:00:33,844
+their DNS zones, their sub-resources, their firewall exceptions, the Palo Alto policy, and how
+
+9
+00:00:33,894 --> 00:00:36,600
+to stop data leaving to someone else's account.
+
+10
+00:00:37,550 --> 00:00:39,973
+Here's the reference topology.
+
+11
+00:00:40,023 --> 00:00:47,720
+The hub VNet, 10.0.0.0/16, holds two VM-Series firewalls behind an internal load balancer with
+
+12
+00:00:47,770 --> 00:00:49,121
+an HA ports rule.
+
+13
+00:00:49,171 --> 00:00:55,220
+Its frontend, 10.0.2.100, is the next hop for every route in this lecture.
+
+14
+00:00:56,170 --> 00:00:58,827
+Spoke one holds the application:
+
+15
+00:00:58,877 --> 00:01:04,157
+a VM at 10.1.1.10 and an App Service app with VNet integration.
+
+16
+00:01:04,207 --> 00:01:10,840
+Its route table sends the private endpoint range, 10.2.0.0/16, to the firewall.
+
+17
+00:01:11,790 --> 00:01:14,120
+Spoke two holds the private endpoints:
+
+18
+00:01:14,170 --> 00:01:20,382
+the vault at 10.2.1.6, and separate endpoints for the storage account's blob, dfs and file services.
+
+19
+00:01:20,432 --> 00:01:26,769
+Network policies are enabled on that subnet, and its network security group allows only the firewalls.
+
+20
+00:01:26,819 --> 00:01:29,900
+Both services have public network access disabled.
+
+21
+00:01:30,850 --> 00:01:37,293
+On-premises connects over ExpressRoute or VPN, and its traffic is also steered to the firewall.
+
+22
+00:01:37,343 --> 00:01:42,898
+In the DNS subnet, the DNS Private Resolver gives on-premises an address to query,
+
+23
+00:01:42,948 --> 00:01:48,640
+10.0.3.4, and the privatelink zones for the vault and storage are linked to the hub.
+
+24
+00:01:49,590 --> 00:01:53,354
+Before any firewall rules, one concept that trips people up:
+
+25
+00:01:53,404 --> 00:01:55,261
+both services have two planes.
+
+26
+00:01:55,311 --> 00:02:00,156
+The control plane is Azure Resource Manager, at management dot azure dot com.
+
+27
+00:02:00,206 --> 00:02:04,861
+That's where you create the vault, change its networking and assign roles.
+
+28
+00:02:04,911 --> 00:02:08,357
+The vault and storage firewalls don't govern it at all.
+
+29
+00:02:08,407 --> 00:02:14,460
+Protect it with Entra ID, Conditional Access, Privileged Identity Management and resource locks.
+
+30
+00:02:15,410 --> 00:02:18,609
+The data plane is the service endpoint itself:
+
+31
+00:02:18,659 --> 00:02:24,189
+reading a secret from kv-demo dot vault dot azure dot net, or uploading a blob.
+
+32
+00:02:24,239 --> 00:02:29,840
+That's what private endpoints, the service firewalls, and our Palo Alto control.
+
+33
+00:02:30,790 --> 00:02:32,862
+So think of two locks on every door.
+
+34
+00:02:32,912 --> 00:02:35,810
+The network decides where a request may come from.
+
+35
+00:02:35,860 --> 00:02:37,756
+Identity decides who may do what.
+
+36
+00:02:37,806 --> 00:02:44,064
+A private endpoint without role-based access still lets any workload behind the firewall read every secret.
+
+37
+00:02:44,114 --> 00:02:47,955
+Strong roles on a public endpoint still leave the service exposed.
+
+38
+00:02:48,005 --> 00:02:48,780
+You need both.
+
+39
+00:02:49,730 --> 00:02:50,856
+Key Vault first.
+
+40
+00:02:50,906 --> 00:02:56,439
+You create a private endpoint with the sub-resource vault, here at 10.2.1.6.
+
+41
+00:02:56,489 --> 00:03:00,480
+It maps to this one vault, not to Key Vault as a whole.
+
+42
+00:03:01,430 --> 00:03:01,673
+DNS:
+
+43
+00:03:01,723 --> 00:03:06,359
+the application keeps using kv-demo dot vault dot azure dot net.
+
+44
+00:03:06,409 --> 00:03:12,290
+Public DNS returns a CNAME to kv-demo dot privatelink dot vaultcore dot azure dot
+
+45
+00:03:12,340 --> 00:03:18,660
+net, and the private zone privatelink dot vaultcore dot azure dot net answers 10.2.1.6.
+
+46
+00:03:18,710 --> 00:03:21,588
+Notice the zone is vaultcore, not vault.
+
+47
+00:03:21,638 --> 00:03:27,958
+On-premises, forward both public zones, vault dot azure dot net and vaultcore dot azure
+
+48
+00:03:28,008 --> 00:03:31,180
+dot net, to the resolver's inbound endpoint.
+
+49
+00:03:32,130 --> 00:03:35,373
+On the vault, set public network access to disabled.
+
+50
+00:03:35,423 --> 00:03:36,197
+One subtlety:
+
+51
+00:03:36,247 --> 00:03:42,277
+the setting "Allow trusted Microsoft services to bypass this firewall" still applies when public
+
+52
+00:03:42,327 --> 00:03:43,480
+access is disabled.
+
+53
+00:03:43,530 --> 00:03:48,990
+Those services reach the vault over the Microsoft backbone, without a private endpoint.
+
+54
+00:03:49,040 --> 00:03:54,120
+Use the Azure role-based access model, give apps only Key Vault Secrets User, and
+
+55
+00:03:54,170 --> 00:04:00,200
+turn on soft delete and purge protection, so a compromised admin can't permanently destroy keys.
+
+56
+00:04:01,150 --> 00:04:03,000
+So who goes through your firewall?
+
+57
+00:04:03,050 --> 00:04:08,253
+Your VMs, App Service with VNet integration, and on-premises do, through the private endpoint.
+
+58
+00:04:08,303 --> 00:04:14,289
+Trusted services like disk encryption, SQL transparent data encryption, Azure Backup and Application Gateway
+
+59
+00:04:14,339 --> 00:04:15,910
+certificate retrieval do not;
+
+60
+00:04:15,960 --> 00:04:18,648
+they're governed by roles and the bypass setting.
+
+61
+00:04:18,698 --> 00:04:23,287
+And services not on the trusted list, like hosted Azure DevOps agents, are blocked,
+
+62
+00:04:23,337 --> 00:04:27,199
+so run a self-hosted agent in a spoke and it goes through the firewall
+
+63
+00:04:27,249 --> 00:04:28,540
+like any other workload.
+
+64
+00:04:29,490 --> 00:04:37,278
+Storage is different, because one account exposes several services, and each needs its own private endpoint:
+
+65
+00:04:37,328 --> 00:04:41,560
+blob, dfs, file, queue, table, and web for static websites.
+
+66
+00:04:42,510 --> 00:04:44,667
+Each has its own private DNS zone:
+
+67
+00:04:44,717 --> 00:04:50,316
+privatelink dot blob dot core dot windows dot net, privatelink dot dfs, privatelink dot
+
+68
+00:04:50,366 --> 00:04:51,355
+file, and so on.
+
+69
+00:04:51,405 --> 00:04:58,497
+If the account uses read-access geo-redundant storage, the secondary endpoints are separate sub-resources too,
+
+70
+00:04:58,547 --> 00:04:59,860
+using the same zones.
+
+71
+00:05:00,810 --> 00:05:01,747
+On the account:
+
+72
+00:05:01,797 --> 00:05:07,472
+public network access disabled, shared key access off so only Entra ID identities work,
+
+73
+00:05:07,522 --> 00:05:10,564
+anonymous blob access off, and minimum TLS 1.2.
+
+74
+00:05:10,614 --> 00:05:11,420
+And remember:
+
+75
+00:05:11,470 --> 00:05:17,078
+the storage firewall's IP and virtual network rules apply only to the public endpoint.
+
+76
+00:05:17,128 --> 00:05:22,540
+Traffic through a private endpoint isn't filtered by them, which is exactly why the
+
+77
+00:05:22,590 --> 00:05:27,080
+Palo Alto and the subnet's NSG are your controls on the private side.
+
+78
+00:05:28,030 --> 00:05:29,118
+The classic gotcha:
+
+79
+00:05:29,168 --> 00:05:34,388
+you create a blob endpoint, but your analytics tool talks to the Data Lake dfs endpoint.
+
+80
+00:05:34,438 --> 00:05:39,598
+dfs still resolves to the public address, public access is off, and you get 403 errors.
+
+81
+00:05:39,648 --> 00:05:42,053
+Inventory every endpoint your tools call.
+
+82
+00:05:42,103 --> 00:05:46,963
+And Azure Files from on-premises needs the file endpoint, with TCP 445 open across
+
+83
+00:05:47,013 --> 00:05:48,700
+the link and on the firewall.
+
+84
+00:05:49,650 --> 00:05:50,333
+Now routing.
+
+85
+00:05:50,383 --> 00:05:54,483
+Each private endpoint injects a slash 32 route into peered networks.
+
+86
+00:05:54,533 --> 00:05:58,878
+That beats any broader route, so by default the app goes straight to the
+
+87
+00:05:58,928 --> 00:06:01,320
+endpoint and the firewall never sees it.
+
+88
+00:06:02,270 --> 00:06:02,888
+The fix:
+
+89
+00:06:02,938 --> 00:06:09,821
+enable private endpoint network policies on the endpoint subnet, and add a route on
+
+90
+00:06:09,871 --> 00:06:16,252
+every client subnet, and on the GatewaySubnet, for 10.2.0.0/16 to 10.0.2.100.
+
+91
+00:06:16,302 --> 00:06:22,684
+The prefix must be at least as specific as the endpoint VNet's address space.
+
+92
+00:06:22,734 --> 00:06:26,860
+A default route alone won't override the slash 32.
+
+93
+00:06:27,810 --> 00:06:29,977
+Then keep the return path symmetric:
+
+94
+00:06:30,027 --> 00:06:35,581
+source NAT to the firewall's trust interface, or tag each firewall NIC with disableSnatOnPL
+
+95
+00:06:35,631 --> 00:06:38,291
+equals true to keep the real client address.
+
+96
+00:06:38,341 --> 00:06:42,602
+And close the loop with an NSG on the endpoint subnet that allows only
+
+97
+00:06:42,652 --> 00:06:48,760
+the firewall's trust subnet, so anything that sneaks around the firewall is dropped at the endpoint.
+
+98
+00:06:49,710 --> 00:06:54,472
+On the Palo Alto, create address objects for each endpoint and an address group
+
+99
+00:06:54,522 --> 00:06:56,056
+for the storage endpoints.
+
+100
+00:06:56,106 --> 00:06:59,771
+Then create a custom URL category listing exactly your names:
+
+101
+00:06:59,821 --> 00:07:03,974
+kv-demo dot vault dot azure dot net, and stdemo's blob and dfs names.
+
+102
+00:07:04,024 --> 00:07:09,700
+Point the firewall's DNS at the resolver so any FQDN objects resolve to the private addresses.
+
+103
+00:07:10,650 --> 00:07:15,033
+Key Vault and Blob are HTTPS, so the firewall can match the TLS server
+
+104
+00:07:15,083 --> 00:07:17,946
+name against that category without decrypting.
+
+105
+00:07:17,996 --> 00:07:23,962
+You can decrypt if clients trust your forward-proxy certificate authority, since the Azure SDKs
+
+106
+00:07:24,012 --> 00:07:26,431
+use the operating system's trust store.
+
+107
+00:07:26,481 --> 00:07:32,131
+Many teams deliberately exclude the vault from decryption, because the payload is secrets.
+
+108
+00:07:32,181 --> 00:07:36,310
+Azure Files over SMB 3 is encrypted end to end, so control it with
+
+109
+00:07:36,360 --> 00:07:37,640
+App-ID and addresses.
+
+110
+00:07:38,590 --> 00:07:39,242
+The rules:
+
+111
+00:07:39,292 --> 00:07:44,717
+one, the app and App Service integration subnets to the vault endpoint, SSL on
+
+112
+00:07:44,767 --> 00:07:49,631
+443, restricted to our URL category, with threat profiles and logging.
+
+113
+00:07:49,681 --> 00:07:55,107
+Two, the app to the blob and dfs endpoints, same pattern, adding antivirus and
+
+114
+00:07:55,157 --> 00:07:57,353
+file blocking where you decrypt.
+
+115
+00:07:57,403 --> 00:08:01,565
+Three, on-premises file servers to the file endpoint on 445.
+
+116
+00:08:01,615 --> 00:08:03,250
+Four, the important one:
+
+117
+00:08:03,300 --> 00:08:06,689
+deny any other storage or vault name, and log it.
+
+118
+00:08:06,739 --> 00:08:10,269
+Five, deny everything else to the endpoint subnets.
+
+119
+00:08:10,319 --> 00:08:14,060
+And a NAT rule for source NAT, unless you use the tag.
+
+120
+00:08:15,010 --> 00:08:17,509
+Now the traffic the firewall can't see.
+
+121
+00:08:17,559 --> 00:08:22,541
+On the storage account's public side, the default action is deny, and you can
+
+122
+00:08:22,591 --> 00:08:28,880
+add virtual network rules, IP rules, resource instance rules, and the trusted services exception.
+
+123
+00:08:29,830 --> 00:08:34,293
+A storage account using a customer-managed key reads it from Key Vault with its
+
+124
+00:08:34,343 --> 00:08:36,864
+managed identity, through the trusted bypass.
+
+125
+00:08:36,914 --> 00:08:40,977
+Azure Backup, Monitor and Event Grid use the trusted services exception.
+
+126
+00:08:41,027 --> 00:08:45,490
+Services like AI Search or Data Factory can use a resource instance rule, which
+
+127
+00:08:45,540 --> 00:08:49,204
+allows one named resource instead of every instance of a service.
+
+128
+00:08:49,254 --> 00:08:53,260
+None of these flows enter your VNets, so the Palo Alto never sees them.
+
+129
+00:08:54,210 --> 00:08:55,725
+So govern them another way:
+
+130
+00:08:55,775 --> 00:09:01,059
+prefer resource instance rules over the broad exception, give each managed identity only the
+
+131
+00:09:01,109 --> 00:09:04,943
+data roles it needs, and turn on diagnostic logs for both services.
+
+132
+00:09:04,993 --> 00:09:10,740
+The Network Security Perimeter, generally available for Key Vault and Storage, can replace scattered
+
+133
+00:09:10,790 --> 00:09:14,160
+IP and instance rules with one boundary and one access log.
+
+134
+00:09:15,110 --> 00:09:16,149
+Data exfiltration.
+
+135
+00:09:16,199 --> 00:09:18,023
+Imagine a compromised workload.
+
+136
+00:09:18,073 --> 00:09:22,740
+It can reach our storage account through the firewall, because that's allowed.
+
+137
+00:09:23,690 --> 00:09:27,336
+But can it upload our data to an attacker's storage account?
+
+138
+00:09:27,386 --> 00:09:32,265
+Every storage account shares the same domain, blob dot core dot windows dot net.
+
+139
+00:09:32,315 --> 00:09:35,468
+If your rule allows the wildcard, the answer is yes.
+
+140
+00:09:35,518 --> 00:09:40,520
+With our rule four, the firewall denies any storage or vault name that isn't ours.
+
+141
+00:09:41,470 --> 00:09:42,631
+Layer the defenses:
+
+142
+00:09:42,681 --> 00:09:44,990
+private endpoints map to one account;
+
+143
+00:09:45,040 --> 00:09:47,348
+the Palo Alto allows only your names;
+
+144
+00:09:47,398 --> 00:09:52,001
+service endpoint policies cover any subnet still using service endpoints;
+
+145
+00:09:52,051 --> 00:09:56,719
+disabling shared keys and SAS tokens forces Entra ID, which you can audit;
+
+146
+00:09:56,769 --> 00:10:00,798
+and Defender for Storage and Key Vault alerts on unusual access.
+
+147
+00:10:00,848 --> 00:10:03,922
+Review the blocked storage names in the URL logs.
+
+148
+00:10:03,972 --> 00:10:07,300
+They're often the first sign of a data theft attempt.
+
+149
+00:10:08,250 --> 00:10:09,096
+On-premises.
+
+150
+00:10:09,146 --> 00:10:13,277
+A file server at 172.16.5.20 mounts an Azure file share.
+
+151
+00:10:13,327 --> 00:10:19,773
+Traffic crosses ExpressRoute to the gateway, and a route on the GatewaySubnet sends the
+
+152
+00:10:19,823 --> 00:10:25,000
+endpoint range to the firewall, which allows 445 to the file endpoint.
+
+153
+00:10:25,950 --> 00:10:27,199
+DNS makes it work:
+
+154
+00:10:27,249 --> 00:10:32,902
+on-premises DNS forwards file dot core dot windows dot net, vault dot azure dot
+
+155
+00:10:32,952 --> 00:10:37,523
+net and vaultcore dot azure dot net to the resolver at 10.0.3.4.
+
+156
+00:10:37,573 --> 00:10:39,905
+Users mount with the normal name.
+
+157
+00:10:39,955 --> 00:10:45,752
+Many internet providers block port 445, but over ExpressRoute or VPN to a private
+
+158
+00:10:45,802 --> 00:10:47,918
+endpoint it's private traffic.
+
+159
+00:10:47,968 --> 00:10:56,220
+And use identity-based SMB authentication, Entra Kerberos or Active Directory, rather than the storage account key.
+
+160
+00:10:57,170 --> 00:11:00,389
+When something fails, the error tells you where to look.
+
+161
+00:11:00,439 --> 00:11:05,702
+Key Vault "client address is not authorized" means the name resolved to the public address.
+
+162
+00:11:05,752 --> 00:11:10,897
+"Not an approved private link" means the endpoint is pending or belongs to another vault.
+
+163
+00:11:10,947 --> 00:11:16,151
+Storage AuthorizationFailure usually means the wrong sub-resource, or the public endpoint.
+
+164
+00:11:16,201 --> 00:11:21,872
+AuthorizationPermissionMismatch means the network is fine and the identity is missing a data role.
+
+165
+00:11:21,922 --> 00:11:24,499
+A timeout with no firewall log means routing;
+
+166
+00:11:24,549 --> 00:11:27,360
+an allowed session that ages out means asymmetry.
+
+167
+00:11:28,310 --> 00:11:29,632
+Here's the checklist:
+
+168
+00:11:29,682 --> 00:11:34,010
+an endpoint for every vault and every storage sub-resource you use;
+
+169
+00:11:34,060 --> 00:11:35,382
+zones and forwarders;
+
+170
+00:11:35,432 --> 00:11:38,714
+network policies and an NSG on the endpoint subnet;
+
+171
+00:11:38,764 --> 00:11:41,785
+routes on client subnets and the GatewaySubnet;
+
+172
+00:11:41,835 --> 00:11:42,830
+SNAT or the tag;
+
+173
+00:11:42,880 --> 00:11:46,163
+a named-account URL category with an explicit deny;
+
+174
+00:11:46,213 --> 00:11:47,665
+public access disabled;
+
+175
+00:11:47,715 --> 00:11:49,756
+trusted bypass only when needed;
+
+176
+00:11:49,806 --> 00:11:53,023
+Key Vault roles, soft delete and purge protection;
+
+177
+00:11:53,073 --> 00:11:55,898
+storage shared key and anonymous access off;
+
+178
+00:11:55,948 --> 00:11:58,054
+Azure Policy to keep it that way;
+
+179
+00:11:58,104 --> 00:12:00,014
+and all the logs in one place.
+
+180
+00:12:00,064 --> 00:12:03,673
+The diagrams and script are in the demo-labs repository.
+
+181
+00:12:03,723 --> 00:12:04,980
+Thanks for watching.

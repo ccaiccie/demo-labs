@@ -1,0 +1,11 @@
+0:00 Introduction
+0:37 Reference topology
+1:49 Control plane vs data plane
+2:49 Key Vault private endpoint
+4:29 Storage sub-resources
+5:49 Routing through the firewall
+6:49 Palo Alto configuration
+8:14 Trusted services and exceptions
+9:14 Stopping data exfiltration
+10:07 On-premises access
+10:56 Troubleshooting and checklist
