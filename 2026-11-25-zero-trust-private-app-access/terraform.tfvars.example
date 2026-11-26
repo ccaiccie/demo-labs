@@ -1,0 +1,20 @@
+# Copy to terraform.tfvars and enable the cloud path(s) you want to test.
+# Never commit terraform.tfvars or state files.
+
+enable_aws = false
+enable_gcp = false
+
+# AWS Verified Access (used when enable_aws = true)
+aws_region             = "us-west-2"
+aws_application_domain = "app.example.com"
+aws_acm_cert_arn       = "arn:aws:acm:us-west-2:123456789012:certificate/00000000-0000-0000-0000-000000000000"
+aws_internal_alb_arn   = "arn:aws:elasticloadbalancing:us-west-2:123456789012:loadbalancer/app/my-internal-alb/0000000000000000"
+aws_subnet_ids         = ["subnet-00000000000000001", "subnet-00000000000000002"]
+aws_security_group_ids = ["sg-00000000000000001"]
+aws_idc_group_id       = "c242c5b0-6081-1845-6fa8-6e0d9513c107"
+
+# Google Cloud IAP (used when enable_gcp = true)
+gcp_project_id  = "your-gcp-project-id"
+gcp_region      = "us-central1"
+gcp_zone        = "us-central1-a"
+gcp_user_member = "user:mike@example.com"
