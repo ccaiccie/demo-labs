@@ -1,0 +1,122 @@
+configure terminal
+hostname ACC-SW
+vlan 10
+name USERS
+vlan 20
+name SERVICES
+vlan 30
+name IOT-MAB
+exit
+aaa new-model
+radius server ISE1
+address ipv4 10.10.20.10 auth-port 1812 acct-port 1813
+key LabRadius-2026
+exit
+aaa group server radius ISE-GROUP
+server name ISE1
+exit
+aaa authentication dot1x default group ISE-GROUP
+aaa authorization network default group ISE-GROUP
+aaa accounting dot1x default start-stop group ISE-GROUP
+aaa server radius dynamic-author
+client 10.10.20.10 server-key LabRadius-2026
+exit
+ip radius source-interface Vlan20
+dot1x system-auth-control
+device-tracking policy IPDT_POLICY
+no protocol udp
+tracking enable
+exit
+class-map type control subscriber match-all DOT1X_NO_RESP
+match method dot1x
+match result-type method-timeout
+exit
+class-map type control subscriber match-all MAB_FAILED
+match method mab
+match result-type method-failure
+exit
+policy-map type control subscriber DOT1X_MAB_POLICY
+event session-started match-all
+10 class always do-until-failure
+10 authenticate using dot1x priority 10
+20 authenticate using mab priority 20
+exit
+exit
+event authentication-failure match-first
+10 class DOT1X_NO_RESP do-until-failure
+10 terminate dot1x
+20 authenticate using mab priority 20
+exit
+20 class MAB_FAILED do-until-failure
+10 terminate mab
+20 authentication-restart 60
+exit
+30 class always do-until-failure
+10 terminate dot1x
+20 terminate mab
+30 authentication-restart 60
+exit
+exit
+event agent-found match-all
+10 class always do-until-failure
+10 terminate mab
+20 authenticate using dot1x priority 10
+exit
+exit
+exit
+policy-map type control subscriber MAB_POLICY
+event session-started match-all
+10 class always do-until-failure
+10 authenticate using mab priority 10
+exit
+exit
+event authentication-failure match-first
+10 class always do-until-failure
+10 terminate mab
+20 authentication-restart 60
+exit
+exit
+exit
+interface GigabitEthernet1/0/1
+description CORE-SW trunk
+switchport trunk allowed vlan 10,20,30
+switchport mode trunk
+exit
+interface GigabitEthernet1/0/2
+description PC1-8021X
+switchport access vlan 10
+switchport mode access
+device-tracking attach-policy IPDT_POLICY
+access-session control-direction in
+access-session host-mode single-host
+access-session port-control auto
+mab
+dot1x pae authenticator
+service-policy type control subscriber DOT1X_MAB_POLICY
+spanning-tree portfast
+exit
+interface GigabitEthernet1/0/3
+description LINUX1-MAB
+switchport access vlan 30
+switchport mode access
+device-tracking attach-policy IPDT_POLICY
+access-session control-direction in
+access-session host-mode single-host
+access-session port-control auto
+mab
+service-policy type control subscriber MAB_POLICY
+spanning-tree portfast
+exit
+interface GigabitEthernet1/0/4
+description AD-DC1
+switchport access vlan 20
+switchport mode access
+spanning-tree portfast
+exit
+interface Vlan20
+ip address 10.10.20.3 255.255.255.0
+no shutdown
+exit
+ip default-gateway 10.10.20.1
+end
+write memory

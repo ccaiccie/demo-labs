@@ -1,0 +1,567 @@
+annotations: []
+smart_annotations: []
+nodes:
+  - boot_disk_size: null
+    configuration:
+      - name: default
+        content: NAT
+    cpu_limit: null
+    cpus: null
+    data_volume: null
+    hide_links: false
+    id: n0
+    image_definition: null
+    label: INTERNET
+    node_definition: external_connector
+    parameters: {}
+    priority: null
+    pyats:
+      username: null
+      password: null
+      enable_password: null
+    ram: null
+    tags: []
+    x: -650
+    y: -150
+    interfaces:
+      - id: i0
+        label: port
+        mac_address: null
+        type: physical
+        slot: 0
+  - boot_disk_size: null
+    configuration:
+      - name: day0-config
+        content: |-
+          {
+              "EULA": "accept",
+              "Hostname": "ftd1",
+              "AdminPassword": "LabFTD-2026!",
+              "FirewallMode": "routed",
+              "DNS1": "8.8.8.8",
+              "DNS2": "",
+              "DNS3": "",
+              "IPv4Mode": "manual",
+              "IPv4Addr": "10.10.20.5",
+              "IPv4Mask": "255.255.255.0",
+              "IPv4Gw": "10.10.20.1",
+              "IPv6Mode": "disabled",
+              "IPv6Addr": "",
+              "IPv6Mask": "",
+              "IPv6Gw": "",
+              "FmcIp": "",
+              "FmcRegKey": "",
+              "FmcNatId": "",
+              "ManageLocally": "Yes"
+          }
+    cpu_limit: null
+    cpus: null
+    data_volume: null
+    hide_links: false
+    id: n1
+    image_definition: ftdv-10-0-0
+    label: FTD
+    node_definition: ftdv
+    parameters: {}
+    priority: null
+    pyats:
+      username: null
+      password: null
+      enable_password: null
+    ram: null
+    tags: []
+    x: -350
+    y: -150
+    interfaces:
+      - id: i0
+        label: Management0/0
+        mac_address: null
+        type: physical
+        slot: 0
+      - id: i1
+        label: donotuse1
+        mac_address: null
+        type: physical
+        slot: 1
+      - id: i2
+        label: GigabitEthernet0/0
+        mac_address: null
+        type: physical
+        slot: 2
+      - id: i3
+        label: GigabitEthernet0/1
+        mac_address: null
+        type: physical
+        slot: 3
+  - boot_disk_size: null
+    configuration: []
+    cpu_limit: null
+    cpus: null
+    data_volume: null
+    hide_links: false
+    id: n2
+    image_definition: iosvl2-2020
+    label: CORE-SW
+    node_definition: iosvl2
+    parameters: {}
+    priority: null
+    pyats:
+      username: null
+      password: null
+      enable_password: null
+    ram: null
+    tags: []
+    x: -50
+    y: -150
+    interfaces:
+      - id: i0
+        label: Loopback0
+        mac_address: null
+        type: loopback
+      - id: i1
+        label: GigabitEthernet0/0
+        mac_address: null
+        type: physical
+        slot: 0
+      - id: i2
+        label: GigabitEthernet0/1
+        mac_address: null
+        type: physical
+        slot: 1
+      - id: i3
+        label: GigabitEthernet0/2
+        mac_address: null
+        type: physical
+        slot: 2
+      - id: i4
+        label: GigabitEthernet0/3
+        mac_address: null
+        type: physical
+        slot: 3
+      - id: i5
+        label: GigabitEthernet1/0
+        mac_address: null
+        type: physical
+        slot: 4
+      - id: i6
+        label: GigabitEthernet1/1
+        mac_address: null
+        type: physical
+        slot: 5
+  - boot_disk_size: null
+    configuration:
+      - name: ise-ztp.conf
+        content: |-
+          hostname=ise1
+          ipv4_addr=10.10.20.10
+          ipv4_mask=255.255.255.0
+          ipv4_default_gw=10.10.20.1
+          domain=lab.local
+          primary_nameserver=8.8.8.8
+          primary_ntpserver=time.google.com
+          timezone=America/Los_Angeles
+          username=admin
+          password=LabISE-2026!
+          SkipIcmpChecks=true
+    cpu_limit: null
+    cpus: 8
+    data_volume: null
+    hide_links: false
+    id: n3
+    image_definition: ise-3-5-0-527
+    label: ISE
+    node_definition: ise
+    parameters: {}
+    priority: null
+    pyats:
+      username: null
+      password: null
+      enable_password: null
+    ram: null
+    tags: []
+    x: -50
+    y: 150
+    interfaces:
+      - id: i0
+        label: lo
+        mac_address: null
+        type: loopback
+      - id: i1
+        label: eth0
+        mac_address: null
+        type: physical
+        slot: 0
+  - boot_disk_size: null
+    configuration:
+      - name: boot.sh
+        content: |-
+          # WEB1 inside web server (static NAT port-forward target)
+          ip address add dev eth0 10.10.20.20/24
+          ip link set dev eth0 up
+          ip route add default via 10.10.20.1
+          # keep the next line to indicate that the machine is ready
+          echo "READY" >/dev/console
+          exit 0
+      - name: environment
+        content: |-
+          # Create additional environment variables
+          # VARIABLE="some value"
+      - name: mounts
+        content: |-
+          # Can map a volume with www data into container so that Nginx can use
+          # it. By default, only type=volume is allowed, see
+          # /etc/default/docker-shim.env
+          # Note: Volumes must exist to be usable and can be created via
+          # "docker volume create wwwdata" where wwwdata is the name
+          #
+          # type=volume,source=wwwdata,target=/usr/share/nginx/html
+    cpu_limit: null
+    cpus: null
+    data_volume: null
+    hide_links: false
+    id: n4
+    image_definition: nginx-1-31-2
+    label: WEB1
+    node_definition: nginx
+    parameters: {}
+    priority: null
+    pyats:
+      username: null
+      password: null
+      enable_password: null
+    ram: null
+    tags: []
+    x: 150
+    y: 150
+    interfaces:
+      - id: i0
+        label: eth0
+        mac_address: null
+        type: physical
+        slot: 0
+  - boot_disk_size: null
+    configuration: []
+    cpu_limit: null
+    cpus: null
+    data_volume: null
+    hide_links: false
+    id: n5
+    image_definition: ubuntu-24.04-desktop
+    label: ADMIN-PC
+    node_definition: ubuntu2404-desktop
+    parameters: {}
+    priority: null
+    pyats:
+      username: null
+      password: null
+      enable_password: null
+    ram: null
+    tags: []
+    x: 380
+    y: 150
+    interfaces:
+      - id: i0
+        label: eth0
+        mac_address: null
+        type: physical
+        slot: 0
+  - boot_disk_size: null
+    configuration: []
+    cpu_limit: null
+    cpus: null
+    data_volume: null
+    hide_links: false
+    id: n6
+    image_definition: ubuntu-24.04-desktop
+    label: PC1-8021X
+    node_definition: ubuntu2404-desktop
+    parameters: {}
+    priority: null
+    pyats:
+      username: null
+      password: null
+      enable_password: null
+    ram: null
+    tags: []
+    x: 150
+    y: -340
+    interfaces:
+      - id: i0
+        label: eth0
+        mac_address: '52:54:00:10:10:01'
+        type: physical
+        slot: 0
+  - boot_disk_size: null
+    configuration: []
+    cpu_limit: null
+    cpus: null
+    data_volume: null
+    hide_links: false
+    id: n7
+    image_definition: alpine-base-3-23-3
+    label: LINUX1-MAB
+    node_definition: alpine
+    parameters: {}
+    priority: null
+    pyats:
+      username: null
+      password: null
+      enable_password: null
+    ram: null
+    tags: []
+    x: 380
+    y: -340
+    interfaces:
+      - id: i0
+        label: eth0
+        mac_address: '52:54:00:10:30:01'
+        type: physical
+        slot: 0
+  - boot_disk_size: null
+    configuration: []
+    cpu_limit: null
+    cpus: null
+    data_volume: null
+    hide_links: false
+    id: n8
+    image_definition: ubuntu-24.04-desktop
+    label: AD-DC1
+    node_definition: ubuntu2404-desktop
+    parameters: {}
+    priority: null
+    pyats:
+      username: null
+      password: null
+      enable_password: null
+    ram: null
+    tags: []
+    x: 100
+    y: 50
+    interfaces:
+      - id: i0
+        label: eth0
+        mac_address: null
+        type: physical
+        slot: 0
+  - boot_disk_size: null
+    configuration: []
+    cpu_limit: null
+    cpus: 12
+    data_volume: null
+    hide_links: false
+    id: n9
+    image_definition: cat9000v-q200-17-18-02
+    label: ACC-SW-Q200
+    node_definition: cat9000v-q200
+    parameters: {}
+    priority: null
+    pyats:
+      username: null
+      password: null
+      enable_password: null
+    ram: 32768
+    tags: []
+    x: 250
+    y: 170
+    interfaces:
+      - id: i0
+        label: Loopback0
+        mac_address: null
+        type: loopback
+      - id: i1
+        label: GigabitEthernet0/0
+        mac_address: null
+        type: physical
+        slot: 0
+      - id: i2
+        label: GigabitEthernet1/0/1
+        mac_address: null
+        type: physical
+        slot: 1
+      - id: i3
+        label: GigabitEthernet1/0/2
+        mac_address: null
+        type: physical
+        slot: 2
+      - id: i4
+        label: GigabitEthernet1/0/3
+        mac_address: null
+        type: physical
+        slot: 3
+      - id: i5
+        label: GigabitEthernet1/0/4
+        mac_address: null
+        type: physical
+        slot: 4
+      - id: i6
+        label: GigabitEthernet1/0/5
+        mac_address: null
+        type: physical
+        slot: 5
+      - id: i7
+        label: GigabitEthernet1/0/6
+        mac_address: null
+        type: physical
+        slot: 6
+      - id: i8
+        label: GigabitEthernet1/0/7
+        mac_address: null
+        type: physical
+        slot: 7
+      - id: i9
+        label: GigabitEthernet1/0/8
+        mac_address: null
+        type: physical
+        slot: 8
+  - boot_disk_size: null
+    configuration: []
+    cpu_limit: null
+    cpus: 12
+    data_volume: null
+    hide_links: false
+    id: n10
+    image_definition: cat9000v-uadp-17-18-02
+    label: ACC-SW
+    node_definition: cat9000v-uadp
+    parameters: {}
+    priority: null
+    pyats:
+      username: null
+      password: null
+      enable_password: null
+    ram: 32768
+    tags: []
+    x: 250
+    y: 290
+    interfaces:
+      - id: i0
+        label: Loopback0
+        mac_address: null
+        type: loopback
+      - id: i1
+        label: GigabitEthernet0/0
+        mac_address: null
+        type: physical
+        slot: 0
+      - id: i2
+        label: GigabitEthernet1/0/1
+        mac_address: null
+        type: physical
+        slot: 1
+      - id: i3
+        label: GigabitEthernet1/0/2
+        mac_address: null
+        type: physical
+        slot: 2
+      - id: i4
+        label: GigabitEthernet1/0/3
+        mac_address: null
+        type: physical
+        slot: 3
+      - id: i5
+        label: GigabitEthernet1/0/4
+        mac_address: null
+        type: physical
+        slot: 4
+      - id: i6
+        label: GigabitEthernet1/0/5
+        mac_address: null
+        type: physical
+        slot: 5
+      - id: i7
+        label: GigabitEthernet1/0/6
+        mac_address: null
+        type: physical
+        slot: 6
+      - id: i8
+        label: GigabitEthernet1/0/7
+        mac_address: null
+        type: physical
+        slot: 7
+      - id: i9
+        label: GigabitEthernet1/0/8
+        mac_address: null
+        type: physical
+        slot: 8
+links:
+  - id: l0
+    n1: n0
+    n2: n1
+    i1: i0
+    i2: i2
+    conditioning: {}
+    label: INTERNET-port<->FTD-GigabitEthernet0/0
+  - id: l1
+    n1: n1
+    n2: n2
+    i1: i3
+    i2: i1
+    conditioning: {}
+    label: FTD-GigabitEthernet0/1<->CORE-SW-GigabitEthernet0/0
+  - id: l2
+    n1: n1
+    n2: n2
+    i1: i0
+    i2: i4
+    conditioning: {}
+    label: FTD-Management0/0<->CORE-SW-GigabitEthernet0/3
+  - id: l3
+    n1: n2
+    n2: n3
+    i1: i3
+    i2: i1
+    conditioning: {}
+    label: CORE-SW-GigabitEthernet0/2<->ISE-eth0
+  - id: l4
+    n1: n2
+    n2: n4
+    i1: i5
+    i2: i0
+    conditioning: {}
+    label: CORE-SW-GigabitEthernet1/0<->WEB1-eth0
+  - id: l5
+    n1: n2
+    n2: n5
+    i1: i6
+    i2: i0
+    conditioning: {}
+    label: CORE-SW-GigabitEthernet1/1<->ADMIN-PC-eth0
+  - id: l6
+    n1: n10
+    n2: n2
+    i1: i2
+    i2: i2
+    conditioning: {}
+    label: ACC-SW2-GigabitEthernet1/0/1<->CORE-SW-GigabitEthernet0/1
+  - id: l7
+    n1: n10
+    n2: n6
+    i1: i3
+    i2: i0
+    conditioning: {}
+    label: ACC-SW2-GigabitEthernet1/0/2<->PC1-8021X-eth0
+  - id: l8
+    n1: n10
+    n2: n7
+    i1: i4
+    i2: i0
+    conditioning: {}
+    label: ACC-SW2-GigabitEthernet1/0/3<->LINUX1-MAB-eth0
+  - id: l9
+    n1: n10
+    n2: n8
+    i1: i5
+    i2: i0
+    conditioning: {}
+    label: ACC-SW2-GigabitEthernet1/0/4<->AD-DC1-eth0
+lab:
+  description: ISE 3.5 authenticates a wired 802.1X computer and a Linux device via
+    MAB through two IOSvL2 switches; FTDv (locally managed) provides static NAT port-forwards
+    and user authentication for internet egress.
+  notes: ''
+  title: ISE 802.1X and MAB with FTD Internet Egress
+  node_staging:
+    enabled: false
+    start_remaining: true
+    abort_on_failure: false
+  version: 0.3.1
