@@ -1,0 +1,635 @@
+1
+00:00:00,350 --> 00:00:03,399
+Your private endpoints don't sit in a dedicated network.
+
+2
+00:00:03,449 --> 00:00:07,162
+Each spoke keeps its own, right next to the workloads that use them.
+
+3
+00:00:07,212 --> 00:00:11,533
+And the requirement is that every connection to them goes through the Palo Alto
+
+4
+00:00:11,583 --> 00:00:12,640
+firewall in the hub.
+
+5
+00:00:12,690 --> 00:00:17,620
+If that's your setup and the traffic keeps skipping the firewall, this lecture is for you.
+
+6
+00:00:18,570 --> 00:00:23,559
+We'll see exactly why the traffic bypasses the firewall, the one routing rule that
+
+7
+00:00:23,609 --> 00:00:28,843
+fixes it, how to keep the return path symmetric, the PAN-OS configuration, and finally
+
+8
+00:00:28,893 --> 00:00:32,960
+a Terraform lab you can deploy to prove each piece with real tests.
+
+9
+00:00:33,910 --> 00:00:35,706
+Here's the topology.
+
+10
+00:00:35,756 --> 00:00:43,646
+The hub, 10.0.0.0/16, has a VM-Series firewall in the trust subnet at 10.0.2.4, behind
+
+11
+00:00:43,696 --> 00:00:48,078
+an internal load balancer with an HA ports rule.
+
+12
+00:00:48,127 --> 00:00:54,540
+Its frontend, 10.0.2.100, is the next hop for every route we'll write.
+
+13
+00:00:55,490 --> 00:00:57,495
+Two spokes are peered to the hub.
+
+14
+00:00:57,545 --> 00:01:01,604
+Each spoke has an app subnet with a test VM, and a separate subnet
+
+15
+00:01:01,654 --> 00:01:03,285
+just for private endpoints.
+
+16
+00:01:03,335 --> 00:01:07,021
+Spoke 1 has endpoints for a storage account and a key vault.
+
+17
+00:01:07,071 --> 00:01:09,760
+Spoke 2 has one for its own storage account.
+
+18
+00:01:10,710 --> 00:01:14,827
+Now look at vm1 talking to the blob endpoint in its own spoke.
+
+19
+00:01:14,877 --> 00:01:18,659
+Its effective routes show why the firewall never sees it.
+
+20
+00:01:18,709 --> 00:01:23,095
+The endpoint created a slash 32 route, next hop InterfaceEndpoint.
+
+21
+00:01:23,145 --> 00:01:25,918
+Everything else in the spoke is VnetLocal.
+
+22
+00:01:25,968 --> 00:01:31,900
+Your default route to the firewall loses to both, because the longest prefix always wins.
+
+23
+00:01:32,850 --> 00:01:35,060
+So there are two separate causes.
+
+24
+00:01:35,110 --> 00:01:41,429
+Inside a VNet, subnet-to-subnet traffic is delivered directly, with no appliance in the path.
+
+25
+00:01:41,479 --> 00:01:46,291
+And each private endpoint injects a slash 32 into its own VNet and into
+
+26
+00:01:46,341 --> 00:01:47,524
+every peered VNet.
+
+27
+00:01:47,574 --> 00:01:50,400
+A default route can never beat a slash 32.
+
+28
+00:01:51,350 --> 00:01:53,847
+Here's the rule that fixes it.
+
+29
+00:01:53,897 --> 00:02:01,488
+With network policies turned on for the endpoint subnet, a user-defined route can override
+
+30
+00:02:01,538 --> 00:02:07,176
+the endpoint's slash 32, but only if its prefix is at least as long
+
+31
+00:02:07,226 --> 00:02:12,100
+as the address space of the VNet where the endpoint lives.
+
+32
+00:02:12,150 --> 00:02:13,967
+Spoke 1 is a slash 16.
+
+33
+00:02:14,017 --> 00:02:16,175
+So 0.0.0.0/0 doesn't work.
+
+34
+00:02:16,225 --> 00:02:22,627
+10.0.0.0/8 doesn't work either, and that's the one that catches most people.
+
+35
+00:02:22,677 --> 00:02:28,060
+10.1.0.0/16 works, and so does the endpoint subnet, 10.1.2.0/24.
+
+36
+00:02:29,010 --> 00:02:35,150
+The switch is a property called privateEndpointNetworkPolicies, and it goes on the subnet that
+
+37
+00:02:35,200 --> 00:02:38,178
+hosts the endpoints, not on the client subnet.
+
+38
+00:02:38,228 --> 00:02:41,602
+RouteTableEnabled lets routes override the slash 32.
+
+39
+00:02:41,652 --> 00:02:45,685
+NetworkSecurityGroupEnabled makes NSGs apply to the endpoints.
+
+40
+00:02:45,735 --> 00:02:47,660
+Set it to Enabled to get both.
+
+41
+00:02:47,710 --> 00:02:50,360
+In Terraform it's one line on the subnet.
+
+42
+00:02:51,310 --> 00:02:53,811
+The endpoint subnet route is the sweet spot.
+
+43
+00:02:53,861 --> 00:02:57,812
+It's one route per spoke instead of one per endpoint, so you stay far
+
+44
+00:02:57,862 --> 00:02:59,320
+below the 400 route limit.
+
+45
+00:02:59,370 --> 00:03:04,364
+App-to-app traffic inside the spoke stays local, and any new endpoint dropped into that
+
+46
+00:03:04,414 --> 00:03:06,220
+subnet is covered automatically.
+
+47
+00:03:07,170 --> 00:03:11,760
+There are three flows to cover, and each one needs its route in a different place.
+
+48
+00:03:12,710 --> 00:03:16,690
+Flow one, a VM reaching an endpoint in its own spoke.
+
+49
+00:03:16,740 --> 00:03:21,632
+Flow two, a VM in spoke 2 reaching the vault endpoint in spoke 1.
+
+50
+00:03:21,682 --> 00:03:29,540
+Flow three, on-premises clients reaching an endpoint in spoke 2 through the ExpressRoute or VPN gateway.
+
+51
+00:03:30,490 --> 00:03:34,290
+Same spoke needs the endpoint subnet route on the app subnet.
+
+52
+00:03:34,340 --> 00:03:38,204
+Cross spoke needs the remote spoke's prefix on the app subnet.
+
+53
+00:03:38,254 --> 00:03:43,506
+On-premises needs the spoke prefixes on a route table attached to the GatewaySubnet.
+
+54
+00:03:43,556 --> 00:03:45,400
+Let's take them one at a time.
+
+55
+00:03:46,350 --> 00:03:47,252
+Flow one.
+
+56
+00:03:47,302 --> 00:03:56,137
+On spoke 1's app subnet, the route table rt-spoke1-app gets a route for 10.1.2.0/24,
+
+57
+00:03:56,187 --> 00:04:01,003
+the endpoint subnet, with next hop 10.0.2.100.
+
+58
+00:04:01,053 --> 00:04:05,340
+Turn off gateway route propagation on it.
+
+59
+00:04:06,290 --> 00:04:11,266
+Now vm1's packet to the blob endpoint goes across the peering to the load
+
+60
+00:04:11,316 --> 00:04:16,085
+balancer, then to the firewall, and from the firewall to the endpoint.
+
+61
+00:04:16,135 --> 00:04:20,560
+The same table also carries the route to spoke 2 and, if you want
+
+62
+00:04:20,610 --> 00:04:23,520
+internet egress inspected, a default route.
+
+63
+00:04:24,470 --> 00:04:27,416
+Check the effective routes on vm1 again.
+
+64
+00:04:27,466 --> 00:04:33,708
+The endpoint's slash 32 now shows as Invalid, and your slash 24 is the active route.
+
+65
+00:04:33,758 --> 00:04:38,802
+The VNet's own slash 16 is still VnetLocal, so the app tiers talk to
+
+66
+00:04:38,852 --> 00:04:40,300
+each other directly.
+
+67
+00:04:41,250 --> 00:04:44,547
+Getting the packet to the firewall is half the job.
+
+68
+00:04:44,597 --> 00:04:47,894
+The endpoint has to reply through the firewall too.
+
+69
+00:04:47,944 --> 00:04:54,062
+Without help, the endpoint sees vm1's real address and replies straight back inside the spoke.
+
+70
+00:04:54,113 --> 00:04:58,000
+The firewall sees half a conversation and drops the session.
+
+71
+00:04:58,950 --> 00:05:00,221
+There are two fixes.
+
+72
+00:05:00,271 --> 00:05:05,375
+One is source NAT on the firewall toward the endpoint subnets, so the endpoint
+
+73
+00:05:05,425 --> 00:05:08,018
+replies to the firewall's trust address.
+
+74
+00:05:08,068 --> 00:05:11,982
+The other is the disableSnatOnPL tag on the firewall's NICs.
+
+75
+00:05:12,032 --> 00:05:17,532
+The platform then returns endpoint traffic to the firewall and keeps the real client
+
+76
+00:05:17,582 --> 00:05:19,580
+IP, which is nicer for logging.
+
+77
+00:05:20,530 --> 00:05:22,873
+Watch the NSG on the endpoint subnet.
+
+78
+00:05:22,923 --> 00:05:26,689
+It matches the source address that arrives at the endpoint.
+
+79
+00:05:26,739 --> 00:05:30,117
+Allow only the firewall works only when you use SNAT.
+
+80
+00:05:30,167 --> 00:05:34,839
+Without SNAT, the NSG can't tell a firewalled packet from a bypass, so it
+
+81
+00:05:34,889 --> 00:05:39,560
+has to allow the client subnets, and the route becomes your real control.
+
+82
+00:05:40,510 --> 00:05:42,340
+Flow two, cross spoke.
+
+83
+00:05:42,390 --> 00:05:47,810
+In a plain hub and spoke, the spokes are peered only to the hub,
+
+84
+00:05:47,860 --> 00:05:52,597
+so spoke 2 has no route to spoke 1 at all except the one
+
+85
+00:05:52,647 --> 00:05:53,622
+you give it.
+
+86
+00:05:53,672 --> 00:06:02,340
+rt-spoke2-app sends 10.1.0.0/16 to the load balancer, and the firewall forwards to the vault endpoint.
+
+87
+00:06:03,290 --> 00:06:08,475
+The hub learns spoke 1's prefix and every endpoint slash 32 over its peering,
+
+88
+00:06:08,525 --> 00:06:11,806
+so the firewall can reach the endpoints directly.
+
+89
+00:06:11,856 --> 00:06:17,041
+Add the mirror route on spoke 1, 10.2.0.0/16 to the load balancer, so traffic
+
+90
+00:06:17,091 --> 00:06:19,760
+in the other direction is inspected too.
+
+91
+00:06:20,710 --> 00:06:21,424
+One warning.
+
+92
+00:06:21,474 --> 00:06:26,324
+If spokes are peered directly, or joined in a Virtual Network Manager mesh or
+
+93
+00:06:26,374 --> 00:06:31,033
+connected group, every endpoint slash 32 propagates into the other spokes.
+
+94
+00:06:31,083 --> 00:06:32,433
+The same rule applies.
+
+95
+00:06:32,483 --> 00:06:36,824
+The route must be at least as long as the remote spoke's VNet prefix,
+
+96
+00:06:36,874 --> 00:06:38,860
+and network policies must be on.
+
+97
+00:06:39,810 --> 00:06:41,279
+Flow three, on-premises.
+
+98
+00:06:41,329 --> 00:06:44,570
+Traffic arrives at the gateway in the GatewaySubnet.
+
+99
+00:06:44,620 --> 00:06:50,202
+The gateway's effective routes include each spoke prefix and every endpoint slash 32, all
+
+100
+00:06:50,252 --> 00:06:51,531
+learned over peering.
+
+101
+00:06:51,581 --> 00:06:57,480
+So the GatewaySubnet gets its own route table, rt-gateway, that sends traffic to the firewall.
+
+102
+00:06:58,430 --> 00:07:06,164
+Its routes are the spoke address spaces, 10.1.0.0/16 and 10.2.0.0/16, to the load balancer.
+
+103
+00:07:06,214 --> 00:07:13,264
+A single 10.0.0.0/8 route is too short, and the endpoint slash 32s would still win.
+
+104
+00:07:13,314 --> 00:07:20,620
+Keep gateway route propagation on, and never put a default route on the GatewaySubnet.
+
+105
+00:07:21,570 --> 00:07:22,574
+Two more pieces.
+
+106
+00:07:22,624 --> 00:07:27,778
+The spokes peer with use remote gateways, so on-premises learns their prefixes.
+
+107
+00:07:27,828 --> 00:07:34,892
+And on-premises DNS forwards the public zones, blob.core.windows.net and vault.azure.net, to the DNS Private
+
+108
+00:07:34,942 --> 00:07:39,240
+Resolver's inbound IP, so names resolve to the endpoint addresses.
+
+109
+00:07:40,190 --> 00:07:44,986
+On the firewall, keep it one-armed on the trust interface.
+
+110
+00:07:45,036 --> 00:07:48,914
+Ethernet 1/1 is untrust, ethernet 1/2 is trust.
+
+111
+00:07:48,964 --> 00:07:55,682
+A static route sends 10.0.0.0/8 out ethernet 1/2 to the subnet gateway, 10.0.2.1.
+
+112
+00:07:55,732 --> 00:08:03,035
+A host route and a management profile answer the load balancer probe from 168.63.129.16.
+
+113
+00:08:03,085 --> 00:08:09,469
+Then add one security rule from the app subnets to the endpoint subnets, plus
+
+114
+00:08:09,519 --> 00:08:11,140
+the source NAT rule.
+
+115
+00:08:12,090 --> 00:08:17,227
+Because traffic enters and leaves on ethernet 1/2, the firewall sees it as trust
+
+116
+00:08:17,277 --> 00:08:19,108
+to trust, which is intrazone.
+
+117
+00:08:19,158 --> 00:08:24,944
+PAN-OS allows intrazone traffic by default, so override intrazone-default to deny and log.
+
+118
+00:08:24,994 --> 00:08:29,029
+Otherwise any spoke reaches any endpoint and nothing is logged.
+
+119
+00:08:29,079 --> 00:08:34,800
+With two firewalls, the HA ports rule keeps each flow on one firewall in both directions.
+
+120
+00:08:35,750 --> 00:08:37,762
+Now lock it down so it can't drift.
+
+121
+00:08:37,812 --> 00:08:39,883
+Put an NSG on every endpoint subnet.
+
+122
+00:08:39,933 --> 00:08:43,831
+Use Azure Policy to deny endpoint subnets without network policies.
+
+123
+00:08:43,881 --> 00:08:46,365
+And don't forget App Service and Functions.
+
+124
+00:08:46,415 --> 00:08:50,725
+Their VNet integration subnet is a client subnet too, so it needs the same
+
+125
+00:08:50,775 --> 00:08:54,260
+route table, with all outbound traffic routed into the VNet.
+
+126
+00:08:55,210 --> 00:08:59,177
+DNS doesn't change the path, but names must resolve privately.
+
+127
+00:08:59,227 --> 00:09:03,517
+Keep the privatelink zones in one place, link them to the hub or to
+
+128
+00:09:03,567 --> 00:09:08,506
+every spoke, and point the firewall's own DNS at the resolver so FQDN objects
+
+129
+00:09:08,556 --> 00:09:10,320
+match the private addresses.
+
+130
+00:09:11,270 --> 00:09:14,938
+And if you can ever move endpoints, there are other layouts.
+
+131
+00:09:14,988 --> 00:09:20,454
+A dedicated endpoint spoke needs just one route and is Microsoft's most scalable pattern.
+
+132
+00:09:20,504 --> 00:09:25,845
+Virtual WAN with routing intent attracts private traffic to a supported firewall in the
+
+133
+00:09:25,895 --> 00:09:28,820
+virtual hub, with no routes to maintain by hand.
+
+134
+00:09:29,770 --> 00:09:30,957
+Now let's prove it.
+
+135
+00:09:31,007 --> 00:09:34,016
+The Terraform lab builds exactly this topology:
+
+136
+00:09:34,066 --> 00:09:39,028
+the hub with a VM-Series and the internal load balancer, two spokes with test
+
+137
+00:09:39,078 --> 00:09:44,496
+VMs, two storage accounts and a key vault with public access disabled, their private
+
+138
+00:09:44,546 --> 00:09:47,360
+endpoints, DNS zones, route tables and NSGs.
+
+139
+00:09:48,310 --> 00:09:50,578
+main.tf builds the Azure side.
+
+140
+00:09:50,628 --> 00:09:57,068
+panos/fw-config.set is the firewall configuration you paste into the CLI and commit.
+
+141
+00:09:57,118 --> 00:10:02,940
+tests/run-tests.sh runs curl from both VMs and shows their effective routes.
+
+142
+00:10:03,890 --> 00:10:07,112
+Three variables turn it into an experiment.
+
+143
+00:10:07,162 --> 00:10:12,135
+steer_through_firewall adds or removes the endpoint subnet routes.
+
+144
+00:10:12,185 --> 00:10:17,386
+snat_mode switches between firewall SNAT and the disableSnatOnPL tag.
+
+145
+00:10:17,436 --> 00:10:21,800
+And lock_pe_subnets_with_nsg adds the endpoint subnet NSG.
+
+146
+00:10:22,750 --> 00:10:24,213
+Here's what to expect.
+
+147
+00:10:24,263 --> 00:10:28,750
+With steering on, SNAT and the NSG, both VMs get an HTTP 4xx back.
+
+148
+00:10:28,800 --> 00:10:33,769
+That means TLS reached the endpoint, and the firewall shows each session.
+
+149
+00:10:33,819 --> 00:10:38,238
+Turn steering off with the NSG still on, and vm1 times out to its
+
+150
+00:10:38,288 --> 00:10:43,051
+own endpoints, because the NSG drops a source that isn't the firewall.
+
+151
+00:10:43,101 --> 00:10:46,420
+Turn the NSG off as well, and you see the bypass.
+
+152
+00:10:47,370 --> 00:10:49,826
+If it doesn't work, check in this order.
+
+153
+00:10:49,876 --> 00:10:55,151
+Network policies on the endpoint subnet, the route prefix length, and the route table
+
+154
+00:10:55,201 --> 00:10:56,404
+on the right subnet.
+
+155
+00:10:56,454 --> 00:11:01,417
+A session that times out after the firewall means the return path is asymmetric.
+
+156
+00:11:01,467 --> 00:11:04,925
+If names resolve to a public IP, a zone link is missing.
+
+157
+00:11:04,975 --> 00:11:09,749
+Destroy the lab when you're done, because the firewall is billed by the hour.
+
+158
+00:11:09,799 --> 00:11:13,947
+The diagrams, script and Terraform are in the demo-labs repository.
+
+159
+00:11:13,997 --> 00:11:15,200
+Thanks for watching.

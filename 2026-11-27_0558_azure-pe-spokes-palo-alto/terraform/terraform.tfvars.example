@@ -1,0 +1,15 @@
+subscription_id   = "00000000-0000-0000-0000-000000000000"
+location          = "westus2"
+prefix            = "pespoke"
+fw_admin_password = "Change-Me-Str0ng!"
+ssh_public_key    = "ssh-ed25519 AAAA... you@laptop"
+mgmt_allowed_cidr = "203.0.113.10/32"
+
+# Marketplace plan for the VM-Series: byol, bundle1 or bundle2.
+fw_sku     = "bundle1"
+fw_version = "latest"
+
+# Test toggles
+steer_through_firewall   = true            # false = same-spoke traffic bypasses the firewall (baseline)
+snat_mode                = "firewall_snat" # or "disable_snat_on_pl"
+lock_pe_subnets_with_nsg = true

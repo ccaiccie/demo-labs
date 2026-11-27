@@ -1,0 +1,12 @@
+0:00 Introduction
+0:33 Why traffic bypasses the firewall
+1:51 The routing rule that fixes it
+3:06 Three flows to cover
+3:46 Same-spoke traffic
+4:40 Keeping the return path symmetric
+5:40 Cross-spoke traffic
+6:39 On-premises traffic
+7:39 Palo Alto configuration
+8:35 DNS, guardrails and other layouts
+9:29 The Terraform test lab
+10:22 Testing and troubleshooting

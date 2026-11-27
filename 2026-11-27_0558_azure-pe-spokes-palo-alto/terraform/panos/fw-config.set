@@ -1,0 +1,48 @@
+# PAN-OS configuration for the lab (VM-Series 10.2 / 11.x, legacy virtual router).
+# Log in:  ssh labadmin@<firewall_mgmt_ip>   then:  configure   paste this file   then:  commit
+#
+# Design: one-arm on the trust interface. Spoke traffic arrives on ethernet1/2 through the ILB (10.0.2.100)
+# and leaves on ethernet1/2 toward the private endpoint, so spoke-to-endpoint traffic is trust -> trust (intrazone).
+
+# --- interfaces (Azure hands out the static NIC IPs over DHCP)
+set network interface ethernet ethernet1/1 layer3 dhcp-client enable yes create-default-route yes
+set network interface ethernet ethernet1/2 layer3 dhcp-client enable yes create-default-route no
+
+# --- answer the Azure load balancer health probe (TCP 443 from 168.63.129.16) on the trust interface
+set network profiles interface-management-profile azure-probe https yes
+set network profiles interface-management-profile azure-probe permitted-ip 168.63.129.16/32
+set network interface ethernet ethernet1/2 layer3 interface-management-profile azure-probe
+
+# --- zones and virtual router
+set zone untrust network layer3 ethernet1/1
+set zone trust network layer3 ethernet1/2
+set network virtual-router default interface [ ethernet1/1 ethernet1/2 ]
+# All spokes (and their private endpoints) sit behind the trust subnet's Azure gateway, 10.0.2.1.
+set network virtual-router default routing-table ip static-route spokes destination 10.0.0.0/8 interface ethernet1/2 nexthop ip-address 10.0.2.1
+# Probe replies must leave the interface the probe arrived on.
+set network virtual-router default routing-table ip static-route azure-lb-probe destination 168.63.129.16/32 interface ethernet1/2 nexthop ip-address 10.0.2.1
+
+# --- address objects
+set address spoke1-app ip-netmask 10.1.1.0/24
+set address spoke2-app ip-netmask 10.2.1.0/24
+set address spoke1-pe ip-netmask 10.1.2.0/24
+set address spoke2-pe ip-netmask 10.2.2.0/24
+set address-group app-subnets static [ spoke1-app spoke2-app ]
+set address-group pe-subnets static [ spoke1-pe spoke2-pe ]
+
+# --- security policy
+set rulebase security rules app-to-private-endpoints from trust to trust source app-subnets destination pe-subnets application [ ssl web-browsing ] service application-default action allow log-end yes
+# Spoke-to-spoke is intrazone (trust -> trust), which PAN-OS allows by default. Override it to deny and log.
+set rulebase default-security-rules rules intrazone-default action deny
+set rulebase default-security-rules rules intrazone-default log-end yes
+
+# --- source NAT toward private endpoints (only when terraform snat_mode = "firewall_snat")
+# Keeps the return path on the firewall: the endpoint replies to 10.0.2.4, not to the client.
+# Skip this rule if snat_mode = "disable_snat_on_pl"; the disableSnatOnPL NIC tag keeps the flow symmetric instead.
+set rulebase nat rules snat-to-private-endpoints from trust to trust source app-subnets destination pe-subnets service any source-translation dynamic-ip-and-port interface-address interface ethernet1/2
+
+# --- optional: allow only YOUR storage accounts and vault by name (TLS SNI), not every *.blob.core.windows.net
+# Fill in the FQDNs from:  terraform output targets
+# set profiles custom-url-category our-paas type "URL List"
+# set profiles custom-url-category our-paas list [ <stpespokespoke1xxxxx>.blob.core.windows.net <stpespokespoke2xxxxx>.blob.core.windows.net <kv-pespoke-xxxxx>.vault.azure.net ]
+# set rulebase security rules app-to-private-endpoints category our-paas
