@@ -1,0 +1,103 @@
+{
+  "lab_name": "netlab-demo",
+  "topology_file": "topology.yml",
+  "validate_checks": [
+    {
+      "id": "ospf_r1",
+      "category": "ospf",
+      "description": "Check OSPFv2 adjacencies from r2 and r3 to r1",
+      "nodes": ["r2", "r3"],
+      "expected_neighbor_router_id": "192.0.2.1",
+      "expected_state": "Full",
+      "wait_seconds": 30
+    },
+    {
+      "id": "ospf_core",
+      "category": "ospf",
+      "description": "Check OSPFv2 adjacency between r2 and r3",
+      "nodes": ["r2"],
+      "expected_neighbor_router_id": "192.0.2.3",
+      "expected_state": "Full",
+      "wait_seconds": 30
+    },
+    {
+      "id": "ibgp_as65001",
+      "category": "bgp",
+      "session_type": "ibgp",
+      "local_asn": 65001,
+      "remote_asn": 65001,
+      "description": "Check iBGP sessions from r2 and r3 to r1",
+      "nodes": ["r2", "r3"],
+      "expected_peer": "r1",
+      "expected_peer_ip": "192.0.2.1",
+      "expected_state": "Established",
+      "wait_seconds": 30
+    },
+    {
+      "id": "ebgp_as65002",
+      "category": "bgp",
+      "session_type": "ebgp",
+      "local_asn": 65001,
+      "remote_asn": 65002,
+      "description": "Check eBGP sessions from r2 and r3 to r4 (AS 65002)",
+      "nodes": ["r2", "r3"],
+      "expected_peer": "r4",
+      "expected_peer_ips": {
+        "r2": "198.51.100.14",
+        "r3": "198.51.100.18"
+      },
+      "expected_state": "Established",
+      "wait_seconds": 30
+    },
+    {
+      "id": "ping_h1_h2",
+      "category": "reachability",
+      "description": "End-to-end IPv4 reachability from h1 to h2",
+      "source_node": "h1",
+      "source_ip": "203.0.113.5",
+      "target_node": "h2",
+      "target_ip": "203.0.113.22",
+      "expected_result": "pass",
+      "wait_seconds": 15
+    }
+  ],
+  "failure_scenario": {
+    "name": "ebgp_primary_link_failover_and_recovery",
+    "fault_node": "r2",
+    "fault_interface": "eth3",
+    "fault_link": "p2p-r2-r4",
+    "fault_subnet": "198.51.100.12/30",
+    "backup_path": "r1 -> r3 -> r4 (198.51.100.16/30)",
+    "steps": [
+      {
+        "phase": "baseline",
+        "expect": {
+          "r2_to_r4_ebgp": "Established",
+          "r3_to_r4_ebgp": "Established",
+          "h1_ping_h2": "pass",
+          "netlab_validate": "pass"
+        }
+      },
+      {
+        "phase": "fault_injected",
+        "action": "Bring down r2 eth3 (link to r4 on 198.51.100.12/30)",
+        "expect": {
+          "r2_to_r4_ebgp": "down",
+          "r3_to_r4_ebgp": "Established",
+          "h1_ping_h2": "pass",
+          "netlab_validate_ebgp_as65002": "fail"
+        }
+      },
+      {
+        "phase": "recovered",
+        "action": "Restore r2 eth3 and wait for eBGP reconvergence",
+        "expect": {
+          "r2_to_r4_ebgp": "Established",
+          "r3_to_r4_ebgp": "Established",
+          "h1_ping_h2": "pass",
+          "netlab_validate": "pass"
+        }
+      }
+    ]
+  }
+}

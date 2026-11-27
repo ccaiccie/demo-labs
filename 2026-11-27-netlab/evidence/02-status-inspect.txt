@@ -1,0 +1,210 @@
+=== [02-inspect-show] netlab version / tool versions ===
+netlab version 26.11
+  executable location: /opt/netlab-venv/bin/netlab
+  package location: ['/opt/netlab-venv/lib/python3.12/site-packages/netsim']
+  no user defaults
+    version: 0.83.0
+     commit: fb20edd45
+       date: 2026-11-07T10:37:39Z
+ansible [core 2.21.6]
+  config file = /lab/ansible.cfg
+dot - graphviz version 2.43.0 (0)
+=== [02-inspect-show] netlab status ===
+Lab default in /lab
+  status:      started
+  topology:    topology.yml
+  provider(s): clab
+
+┏━━━━━━┳━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━┳━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━┓
+┃ node ┃ device ┃ image                        ┃ mgmt IP        ┃ connection ┃ provider ┃ VM/container        ┃ status        ┃
+┡━━━━━━╇━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━╇━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━┩
+│ r1   │ frr    │ quay.io/frrouting/frr:10.7.1 │ 192.168.250.11 │ docker     │ clab     │ clab-netlab-demo-r1 │ Up 12 seconds │
+├──────┼────────┼──────────────────────────────┼────────────────┼────────────┼──────────┼─────────────────────┼───────────────┤
+│ r2   │ frr    │ quay.io/frrouting/frr:10.7.1 │ 192.168.250.12 │ docker     │ clab     │ clab-netlab-demo-r2 │ Up 12 seconds │
+├──────┼────────┼──────────────────────────────┼────────────────┼────────────┼──────────┼─────────────────────┼───────────────┤
+│ r3   │ frr    │ quay.io/frrouting/frr:10.7.1 │ 192.168.250.13 │ docker     │ clab     │ clab-netlab-demo-r3 │ Up 12 seconds │
+├──────┼────────┼──────────────────────────────┼────────────────┼────────────┼──────────┼─────────────────────┼───────────────┤
+│ r4   │ frr    │ quay.io/frrouting/frr:10.7.1 │ 192.168.250.14 │ docker     │ clab     │ clab-netlab-demo-r4 │ Up 12 seconds │
+├──────┼────────┼──────────────────────────────┼────────────────┼────────────┼──────────┼─────────────────────┼───────────────┤
+│ h1   │ linux  │ python:3.13-alpine           │ 192.168.250.15 │ docker     │ clab     │ clab-netlab-demo-h1 │ Up 12 seconds │
+├──────┼────────┼──────────────────────────────┼────────────────┼────────────┼──────────┼─────────────────────┼───────────────┤
+│ h2   │ linux  │ python:3.13-alpine           │ 192.168.250.16 │ docker     │ clab     │ clab-netlab-demo-h2 │ Up 12 seconds │
+└──────┴────────┴──────────────────────────────┴────────────────┴────────────┴──────────┴─────────────────────┴───────────────┘
+=== [02-inspect-show] netlab report addressing ===
+  Node/Interface           IPv4 address                             IPv6 address   MTU Description
+==========================================================================================================
+r1 (192.0.2.1/32)
+  eth1                   203.0.113.1/28                                           1500 r1 -> h1
+  eth2                  198.51.100.1/30                                           1500 r1 -> r2
+  eth3                  198.51.100.5/30                                           1500 r1 -> r3
+
+r2 (192.0.2.2/32)
+  eth1                  198.51.100.2/30                                           1500 r2 -> r1
+  eth2                  198.51.100.9/30                                           1500 r2 -> r3
+  eth3                 198.51.100.13/30                                           1500 r2 -> r4
+
+r3 (192.0.2.3/32)
+  eth1                  198.51.100.6/30                                           1500 r3 -> r1
+  eth2                 198.51.100.10/30                                           1500 r3 -> r2
+  eth3                 198.51.100.17/30                                           1500 r3 -> r4
+
+r4 (192.0.2.4/32)
+  eth1                  203.0.113.20/28                                           1500 r4 -> h2
+  eth2                 198.51.100.14/30                                           1500 r4 -> r2
+  eth3                 198.51.100.18/30                                           1500 r4 -> r3
+
+h1 
+  eth1                   203.0.113.5/28                                           1500 h1 -> r1
+
+h2 
+  eth1                  203.0.113.22/28                                           1500 h2 -> r4
+
+=== [02-inspect-show] netlab report bgp ===
+AS Numbers
+=============
+|-----------------|-----------------|----------------------|
+| Node/ASN        | Router ID       | Advertised prefixes  |
+|-----------------|-----------------|----------------------|
+| AS 65001                                                 |
+|-----------------|-----------------|----------------------|
+| r1              |       192.0.2.1 |         192.0.2.1/32 |
+|                 |                 |       203.0.113.0/28 |
+| r2              |       192.0.2.2 |         192.0.2.2/32 |
+| r3              |       192.0.2.3 |         192.0.2.3/32 |
+|-----------------|-----------------|----------------------|
+| AS 65002                                                 |
+|-----------------|-----------------|----------------------|
+| r4              |       192.0.2.4 |         192.0.2.4/32 |
+|                 |                 |      203.0.113.16/28 |
+|-----------------|-----------------|----------------------|
+
+BGP Neighbors
+=============
+|-----------------|-----------------|-------------|-----------------|
+| Node            | Neighbor        | Neighbor AS |   Neighbor IPv4 |
+|-----------------|-----------------|-------------|-----------------|
+| r1 (192.0.2.1 / AS 65001)                                         |
+|-----------------|-----------------|-------------|-----------------|
+|                 | r2              |       65001 |       192.0.2.2 |
+|                 | r3              |       65001 |       192.0.2.3 |
+|-----------------|-----------------|-------------|-----------------|
+| r2 (192.0.2.2 / AS 65001)                                         |
+|-----------------|-----------------|-------------|-----------------|
+|                 | r1              |       65001 |       192.0.2.1 |
+|                 | r3              |       65001 |       192.0.2.3 |
+|                 | r4              |       65002 |   198.51.100.14 |
+|-----------------|-----------------|-------------|-----------------|
+| r3 (192.0.2.3 / AS 65001)                                         |
+|-----------------|-----------------|-------------|-----------------|
+|                 | r1              |       65001 |       192.0.2.1 |
+|                 | r2              |       65001 |       192.0.2.2 |
+|                 | r4              |       65002 |   198.51.100.18 |
+|-----------------|-----------------|-------------|-----------------|
+| r4 (192.0.2.4 / AS 65002)                                         |
+|-----------------|-----------------|-------------|-----------------|
+|                 | r2              |       65001 |   198.51.100.13 |
+|                 | r3              |       65001 |   198.51.100.17 |
+|-----------------|-----------------|-------------|-----------------|
+
+=== [02-inspect-show] netlab inspect --node r1 (ospf & bgp) ===
+af:                                                                                                                                         
+  ipv4: true                                                                                                                                
+area: 0.0.0.0                                                                                                                               
+areas:                                                                                                                                      
+- _area_int: 0                                                                                                                              
+  area: 0.0.0.0                                                                                                                             
+  kind: regular                                                                                                                             
+router_id: 192.0.2.1                                                                                                                        
+                                                                                                                                            
+advertise:                                                                                                                                  
+- ipv4: 192.0.2.1/32                                                                                                                        
+- ipv4: 203.0.113.0/28                                                                                                                      
+advertise_loopback: true                                                                                                                    
+as: 65001                                                                                                                                   
+community:                                                                                                                                  
+  ebgp:                                                                                                                                     
+  - standard                                                                                                                                
+  - large                                                                                                                                   
+  ibgp:                                                                                                                                     
+  - standard                                                                                                                                
+  - large                                                                                                                                   
+  - extended                                                                                                                                
+  localas_ibgp:                                                                                                                             
+  - standard                                                                                                                                
+  - large                                                                                                                                   
+  - extended                                                                                                                                
+ipv4: true                                                                                                                                  
+neighbors:                                                                                                                                  
+- _source_intf:                                                                                                                             
+    ifindex: 0                                                                                                                              
+    ifname: lo                                                                                                                              
+    ipv4: 192.0.2.1/32                                                                                                                      
+    neighbors: []                                                                                                                           
+    ospf:                                                                                                                                   
+      area: 0.0.0.0                                                                                                                         
+      passive: false                                                                                                                        
+    type: loopback                                                                                                                          
+    virtual_interface: true                                                                                                                 
+  activate:                                                                                                                                 
+    ipv4: true                                                                                                                              
+  as: 65001                                                                                                                                 
+  ipv4: 192.0.2.2                                                                                                                           
+  name: r2                                                                                                                                  
+  next_hop_self: ebgp                                                                                                                       
+  type: ibgp                                                                                                                                
+- _source_intf:                                                                                                                             
+    ifindex: 0                                                                                                                              
+    ifname: lo                                                                                                                              
+    ipv4: 192.0.2.1/32                                                                                                                      
+    neighbors: []                                                                                                                           
+    ospf:                                                                                                                                   
+      area: 0.0.0.0                                                                                                                         
+      passive: false                                                                                                                        
+    type: loopback                                                                                                                          
+    virtual_interface: true                                                                                                                 
+  activate:                                                                                                                                 
+    ipv4: true                                                                                                                              
+  as: 65001                                                                                                                                 
+  ipv4: 192.0.2.3                                                                                                                           
+  name: r3                                                                                                                                  
+  next_hop_self: ebgp                                                                                                                       
+  type: ibgp                                                                                                                                
+next_hop_self: true                                                                                                                         
+router_id: 192.0.2.1                                                                                                                        
+                                                                                                                                            
+=== [02-inspect-show] netlab inspect --node r4 (bgp) ===
+advertise:                                                                                                                                  
+- ipv4: 192.0.2.4/32                                                                                                                        
+- ipv4: 203.0.113.16/28                                                                                                                     
+advertise_loopback: true                                                                                                                    
+as: 65002                                                                                                                                   
+community:                                                                                                                                  
+  ebgp:                                                                                                                                     
+  - standard                                                                                                                                
+  - large                                                                                                                                   
+  ibgp:                                                                                                                                     
+  - standard                                                                                                                                
+  - large                                                                                                                                   
+  - extended                                                                                                                                
+  localas_ibgp:                                                                                                                             
+  - standard                                                                                                                                
+  - large                                                                                                                                   
+  - extended                                                                                                                                
+ipv4: true                                                                                                                                  
+neighbors:                                                                                                                                  
+- activate:                                                                                                                                 
+    ipv4: true                                                                                                                              
+  as: 65001                                                                                                                                 
+  ifindex: 2                                                                                                                                
+  ipv4: 198.51.100.13                                                                                                                       
+  name: r2                                                                                                                                  
+  type: ebgp                                                                                                                                
+- activate:                                                                                                                                 
+    ipv4: true                                                                                                                              
+  as: 65001                                                                                                                                 
+  ifindex: 3                                                                                                                                
+  ipv4: 198.51.100.17                                                                                                                       
+  name: r3                                                                                                                                  
+  type: ebgp                                                                                                                                
+next_hop_self: true                                                                                                                         
+router_id: 192.0.2.4

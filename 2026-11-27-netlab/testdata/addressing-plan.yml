@@ -1,0 +1,126 @@
+---
+# Made-up RFC 5737 addressing plan for the netlab-demo local lab.
+# All lab data-plane, loopback, p2p, and host LAN prefixes are strictly
+# from RFC 5737 (TEST-NET-1, TEST-NET-2, TEST-NET-3).
+lab_name: netlab-demo
+domain: lab.example
+provider: clab
+rfc_reference: RFC 5737
+
+management:
+  network: netlab-demo-mgmt
+  note: Isolated local containerlab management bridge defined in topology.yml to avoid host Docker bridge collisions.
+
+pools:
+  loopback:
+    prefix: 192.0.2.0/24
+    host_prefix_length: 32
+    description: Router loopbacks and OSPF/BGP router IDs (TEST-NET-1)
+  p2p:
+    prefix: 198.51.100.0/24
+    link_prefix_length: 30
+    description: Point-to-point transit links between FRR routers (TEST-NET-2)
+  lan:
+    prefix: 203.0.113.0/24
+    link_prefix_length: 28
+    description: Stub LANs attaching Linux hosts h1 and h2 (TEST-NET-3)
+
+autonomous_systems:
+  as65001:
+    asn: 65001
+    group: core
+    igp: ospf
+    bgp: ibgp_full_mesh
+    members:
+      - r1.lab.example
+      - r2.lab.example
+      - r3.lab.example
+  as65002:
+    asn: 65002
+    group: edge
+    igp: none
+    bgp: ebgp_dual_homed
+    members:
+      - r4.lab.example
+
+loopbacks:
+  r1:
+    fqdn: r1.lab.example
+    ipv4: 192.0.2.1/32
+    router_id: 192.0.2.1
+    asn: 65001
+  r2:
+    fqdn: r2.lab.example
+    ipv4: 192.0.2.2/32
+    router_id: 192.0.2.2
+    asn: 65001
+  r3:
+    fqdn: r3.lab.example
+    ipv4: 192.0.2.3/32
+    router_id: 192.0.2.3
+    asn: 65001
+  r4:
+    fqdn: r4.lab.example
+    ipv4: 192.0.2.4/32
+    router_id: 192.0.2.4
+    asn: 65002
+
+links:
+  - name: lan-h1-r1
+    type: lan
+    role: stub
+    subnet: 203.0.113.0/28
+    bgp_advertise: true
+    endpoints:
+      r1: 203.0.113.1/28
+      h1: 203.0.113.5/28
+
+  - name: lan-h2-r4
+    type: lan
+    role: stub
+    subnet: 203.0.113.16/28
+    bgp_advertise: true
+    endpoints:
+      r4: 203.0.113.20/28
+      h2: 203.0.113.22/28
+
+  - name: p2p-r1-r2
+    type: p2p
+    routing: ospf
+    subnet: 198.51.100.0/30
+    endpoints:
+      r1: 198.51.100.1/30
+      r2: 198.51.100.2/30
+
+  - name: p2p-r1-r3
+    type: p2p
+    routing: ospf
+    subnet: 198.51.100.4/30
+    endpoints:
+      r1: 198.51.100.5/30
+      r3: 198.51.100.6/30
+
+  - name: p2p-r2-r3
+    type: p2p
+    routing: ospf
+    subnet: 198.51.100.8/30
+    endpoints:
+      r2: 198.51.100.9/30
+      r3: 198.51.100.10/30
+
+  - name: p2p-r2-r4
+    type: p2p
+    routing: ebgp
+    subnet: 198.51.100.12/30
+    failure_test_interface: r2:eth3
+    endpoints:
+      r2: 198.51.100.13/30
+      r4: 198.51.100.14/30
+
+  - name: p2p-r3-r4
+    type: p2p
+    routing: ebgp
+    subnet: 198.51.100.16/30
+    endpoints:
+      r3: 198.51.100.17/30
+      r4: 198.51.100.18/30

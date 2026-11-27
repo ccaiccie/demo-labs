@@ -1,0 +1,14 @@
+# netlab generated runtime artifacts
+clab-*/
+clab.yml
+hosts.yml
+ansible.cfg
+group_vars/
+host_vars/
+netlab.snapshot.yml
+netlab.snapshot.pickle
+.clab.yml.bak
+*.dot
+__pycache__/
+*.pyc
+.DS_Store

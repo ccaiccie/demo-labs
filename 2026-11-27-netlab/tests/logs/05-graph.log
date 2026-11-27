@@ -1,0 +1,11 @@
+=== [05-graph] Generating Graphviz DOT files with netlab graph ===
+Created graph file /lab/tests/logs/topology.dot in topology format
+Created graph file /lab/tests/logs/bgp.dot in bgp format
+=== [05-graph] Rendering light-background SVG and PNG via dot ===
+-rwxrwxrwx 1 labuser labuser 1015 Nov 27 11:11 /lab/tests/logs/bgp.dot
+-rwxrwxrwx 1 labuser labuser  26K Nov 27 11:11 /lab/tests/logs/bgp.png
+-rwxrwxrwx 1 labuser labuser 4.2K Nov 27 11:11 /lab/tests/logs/bgp.svg
+-rwxrwxrwx 1 labuser labuser  993 Nov 27 11:11 /lab/tests/logs/topology.dot
+-rwxrwxrwx 1 labuser labuser  34K Nov 27 11:11 /lab/tests/logs/topology.png
+-rwxrwxrwx 1 labuser labuser 5.6K Nov 27 11:11 /lab/tests/logs/topology.svg
+=== [05-graph] PASS ===

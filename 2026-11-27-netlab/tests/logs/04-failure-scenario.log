@@ -1,0 +1,169 @@
+=== [04-failure-scenario] Step 1: Baseline BGP summary on r2 and r4 ===
+--- r2 baseline ---
+Connecting to container clab-netlab-demo-r2, executing vtysh -c "show ip bgp summary"
+
+IPv4 Unicast Summary:
+BGP router identifier 192.0.2.2, local AS number 65001 VRF default vrf-id 0
+BGP table version 4
+RIB entries 6, using 960 bytes of memory
+Peers 3, using 69 KiB of memory
+
+Neighbor          V         AS   MsgRcvd   MsgSent   TblVer  InQ OutQ  Up/Down State/PfxRcd   PfxSnt Desc
+r1(192.0.2.1)     4      65001        11        12        4    0    0 00:00:21            2        3 r1
+r3(192.0.2.3)     4      65001        13        14        4    0    0 00:00:21            3        3 r3
+r4(198.51.100.14) 4      65002        18        17        4    0    0 00:00:35            2        4 r4
+
+Total number of neighbors 3
+--- r4 baseline ---
+Connecting to container clab-netlab-demo-r4, executing vtysh -c "show ip bgp summary"
+
+IPv4 Unicast Summary:
+BGP router identifier 192.0.2.4, local AS number 65002 VRF default vrf-id 0
+BGP table version 6
+RIB entries 5, using 800 bytes of memory
+Peers 2, using 46 KiB of memory
+
+Neighbor          V         AS   MsgRcvd   MsgSent   TblVer  InQ OutQ  Up/Down State/PfxRcd   PfxSnt Desc
+r2(198.51.100.13) 4      65001        17        18        6    0    0 00:00:36            2        5 r2
+r3(198.51.100.17) 4      65001        17        19        6    0    0 00:00:36            2        5 r3
+
+Total number of neighbors 2
+--- r1 route to h2 subnet (203.0.113.16/28) before failure ---
+Connecting to container clab-netlab-demo-r1, executing vtysh -c "show ip route 203.0.113.16/28"
+Routing entry for 203.0.113.16/28
+  Known via "bgp", distance 200, metric 0, best
+  Last update 00:00:22 ago
+  Flags: Recursion iBGP Selected 
+  Status: Installed 
+    192.0.2.2 (recursive), weight 1
+  *   198.51.100.2, via eth2, weight 1
+    192.0.2.3 (recursive), weight 1
+  *   198.51.100.6, via eth3, weight 1
+
+=== [04-failure-scenario] Step 2: Shut down r2->r4 eBGP link (r2 eth3) ===
+Connecting to container clab-netlab-demo-r2, executing vtysh -c "configure terminal" -c "interface eth3" -c shutdown
+% Configuration applied with notes:
+No changes found to be committed!
+--- r2 BGP summary during failure ---
+Connecting to container clab-netlab-demo-r2, executing vtysh -c "show ip bgp summary"
+
+IPv4 Unicast Summary:
+BGP router identifier 192.0.2.2, local AS number 65001 VRF default vrf-id 0
+BGP table version 6
+RIB entries 6, using 960 bytes of memory
+Peers 3, using 69 KiB of memory
+
+Neighbor          V         AS   MsgRcvd   MsgSent   TblVer  InQ OutQ  Up/Down State/PfxRcd   PfxSnt Desc
+r1(192.0.2.1)     4      65001        13        15        6    0    0 00:00:29            2        1 r1
+r3(192.0.2.3)     4      65001        15        17        6    0    0 00:00:29            3        1 r3
+r4(198.51.100.14) 4      65002        19        18        0    0    0 00:00:06       Active        0 r4
+
+Total number of neighbors 3
+--- r4 BGP summary during failure ---
+Connecting to container clab-netlab-demo-r4, executing vtysh -c "show ip bgp summary"
+
+IPv4 Unicast Summary:
+BGP router identifier 192.0.2.4, local AS number 65002 VRF default vrf-id 0
+BGP table version 8
+RIB entries 4, using 640 bytes of memory
+Peers 2, using 46 KiB of memory
+
+Neighbor          V         AS   MsgRcvd   MsgSent   TblVer  InQ OutQ  Up/Down State/PfxRcd   PfxSnt Desc
+r2(198.51.100.13) 4      65001        18        19        0    0    0 00:00:07       Active        0 r2
+r3(198.51.100.17) 4      65001        20        23        8    0    0 00:00:44            2        4 r3
+
+Total number of neighbors 2
+--- r1 route to h2 subnet (203.0.113.16/28) during failure (failover via r3) ---
+Connecting to container clab-netlab-demo-r1, executing vtysh -c "show ip route 203.0.113.16/28"
+Routing entry for 203.0.113.16/28
+  Known via "bgp", distance 200, metric 0, best
+  Last update 00:00:07 ago
+  Flags: Recursion iBGP Selected 
+  Status: Installed 
+    192.0.2.3 (recursive), weight 1
+  *   198.51.100.6, via eth3, weight 1
+
+=== [04-failure-scenario] Step 3: Verify netlab validate detects eBGP failure ===
+[ebgp_as65002] Check eBGP sessions from r2 and r3 to r4 (AS 65002) [ node(s): r2,r3 ]
+[FAIL]         Node r2: The neighbor 198.51.100.14 (r4)  is in state Active (expected Established)
+[PASS]         r3: Neighbor 198.51.100.18 (r4) is in state Established
+
+[FAIL]         2 tests completed, one test failed
+netlab validate ebgp_as65002 --skip-wait exit code: 1
+Confirmed: netlab validate detected the r2-r4 eBGP link failure.
+=== [04-failure-scenario] Step 4: Verify traffic reroutes via r3-r4 (h1 -> h2 ping still succeeds) ===
+Connecting to container clab-netlab-demo-h1, executing ping -c 4 203.0.113.22
+PING 203.0.113.22 (203.0.113.22): 56 data bytes
+64 bytes from 203.0.113.22: seq=0 ttl=61 time=0.126 ms
+sh: can't access tty; job control turned off
+64 bytes from 203.0.113.22: seq=1 ttl=61 time=0.218 ms
+64 bytes from 203.0.113.22: seq=2 ttl=61 time=0.216 ms
+64 bytes from 203.0.113.22: seq=3 ttl=61 time=0.120 ms
+
+--- 203.0.113.22 ping statistics ---
+4 packets transmitted, 4 packets received, 0% packet loss
+round-trip min/avg/max = 0.120/0.170/0.218 ms
+[ping_h1_h2] End-to-end IPv4 reachability from h1 to h2 [ node(s): h1 ]
+[PASS]       h1: Ping to h2 succeeded
+[PASS]       Test succeeded in 0.6 seconds
+
+[SUCCESS]    Tests passed: 1
+=== [04-failure-scenario] Step 5: Restore r2 eth3 and verify full recovery ===
+Connecting to container clab-netlab-demo-r2, executing vtysh -c "configure terminal" -c "interface eth3" -c "no shutdown"
+% Configuration applied with notes:
+No changes found to be committed!
+Waiting for full netlab validate recovery...
+[ospf_r1]      Check OSPFv2 adjacencies from r2 and r3 to r1 [ node(s): r2,r3 ]
+[PASS]         r2: OSPFv2 neighbor 192.0.2.1 is in state Full/-
+[PASS]         r3: OSPFv2 neighbor 192.0.2.1 is in state Full/-
+[PASS]         Test succeeded in 1.1 seconds
+
+[ospf_core]    Check OSPFv2 adjacency between r2 and r3 [ node(s): r2 ]
+[PASS]         r2: OSPFv2 neighbor 192.0.2.3 is in state Full/-
+[PASS]         Test succeeded in 0.5 seconds
+
+[ibgp_as65001] Check iBGP sessions from r2 and r3 to r1 [ node(s): r2,r3 ]
+[PASS]         r2: Neighbor 192.0.2.1 (r1) is in state Established
+[PASS]         r3: Neighbor 192.0.2.1 (r1) is in state Established
+[PASS]         Test succeeded in 1.1 seconds
+
+[ebgp_as65002] Check eBGP sessions from r2 and r3 to r4 (AS 65002) [ node(s): r2,r3 ]
+[PASS]         r2: Neighbor 198.51.100.14 (r4) is in state Established
+[PASS]         r3: Neighbor 198.51.100.18 (r4) is in state Established
+[PASS]         Test succeeded in 1.2 seconds
+
+[ping_h1_h2]   End-to-end IPv4 reachability from h1 to h2 [ node(s): h1 ]
+[PASS]         h1: Ping to h2 succeeded
+[PASS]         Test succeeded in 0.5 seconds
+
+[SUCCESS]      Tests passed: 8
+--- r2 BGP summary after recovery ---
+Connecting to container clab-netlab-demo-r2, executing vtysh -c "show ip bgp summary"
+
+IPv4 Unicast Summary:
+BGP router identifier 192.0.2.2, local AS number 65001 VRF default vrf-id 0
+BGP table version 8
+RIB entries 6, using 960 bytes of memory
+Peers 3, using 69 KiB of memory
+
+Neighbor          V         AS   MsgRcvd   MsgSent   TblVer  InQ OutQ  Up/Down State/PfxRcd   PfxSnt Desc
+r1(192.0.2.1)     4      65001        18        21        8    0    0 00:00:43            2        3 r1
+r3(192.0.2.3)     4      65001        20        23        8    0    0 00:00:43            3        3 r3
+r4(198.51.100.14) 4      65002        26        27        8    0    0 00:00:06            2        4 r4
+
+Total number of neighbors 3
+--- r4 BGP summary after recovery ---
+Connecting to container clab-netlab-demo-r4, executing vtysh -c "show ip bgp summary"
+
+IPv4 Unicast Summary:
+BGP router identifier 192.0.2.4, local AS number 65002 VRF default vrf-id 0
+BGP table version 10
+RIB entries 5, using 800 bytes of memory
+Peers 2, using 46 KiB of memory
+
+Neighbor          V         AS   MsgRcvd   MsgSent   TblVer  InQ OutQ  Up/Down State/PfxRcd   PfxSnt Desc
+r2(198.51.100.13) 4      65001        26        27       10    0    0 00:00:07            2        5 r2
+r3(198.51.100.17) 4      65001        25        29       10    0    0 00:00:58            2        5 r3
+
+Total number of neighbors 2
+=== [04-failure-scenario] PASS ===

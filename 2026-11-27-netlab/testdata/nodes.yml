@@ -1,0 +1,94 @@
+---
+# Made-up node inventory for the netlab-demo local lab.
+# Uses free, open-source container images only (FRR and Linux).
+lab_name: netlab-demo
+container_prefix: clab-netlab-demo
+domain: lab.example
+provider: clab
+published_host_ports: []
+
+image_policy:
+  free_open_source_only: true
+  allowed_device_types:
+    - frr
+    - linux
+  vendor_licensed_images: false
+
+nodes:
+  - name: r1
+    id: 1
+    fqdn: r1.lab.example
+    container_name: clab-netlab-demo-r1
+    device: frr
+    group: core
+    asn: 65001
+    role: OSPF core router and iBGP access router for h1
+    modules:
+      - ospf
+      - bgp
+    loopback: 192.0.2.1/32
+    stub_lan: 203.0.113.0/28
+
+  - name: r2
+    id: 2
+    fqdn: r2.lab.example
+    container_name: clab-netlab-demo-r2
+    device: frr
+    group: core
+    asn: 65001
+    role: OSPF core and primary AS 65001 eBGP border router to r4
+    modules:
+      - ospf
+      - bgp
+    loopback: 192.0.2.2/32
+    failure_test_interface: eth3
+
+  - name: r3
+    id: 3
+    fqdn: r3.lab.example
+    container_name: clab-netlab-demo-r3
+    device: frr
+    group: core
+    asn: 65001
+    role: OSPF core and redundant AS 65001 eBGP border router to r4
+    modules:
+      - ospf
+      - bgp
+    loopback: 192.0.2.3/32
+
+  - name: r4
+    id: 4
+    fqdn: r4.lab.example
+    container_name: clab-netlab-demo-r4
+    device: frr
+    group: edge
+    asn: 65002
+    role: Remote AS 65002 eBGP peer and gateway router for h2
+    modules:
+      - bgp
+    loopback: 192.0.2.4/32
+    stub_lan: 203.0.113.16/28
+
+  - name: h1
+    id: 5
+    fqdn: h1.lab.example
+    container_name: clab-netlab-demo-h1
+    device: linux
+    group: hosts
+    asn: null
+    role: End-user Linux test host attached to r1
+    modules: []
+    lan_ip: 203.0.113.5/28
+    gateway: 203.0.113.1
+
+  - name: h2
+    id: 6
+    fqdn: h2.lab.example
+    container_name: clab-netlab-demo-h2
+    device: linux
+    group: hosts
+    asn: null
+    role: Remote Linux test host attached to r4
+    modules: []
+    lan_ip: 203.0.113.22/28
+    gateway: 203.0.113.20

@@ -1,0 +1,109 @@
+---
+name: netlab-demo
+provider: clab
+
+defaults:
+  device: frr
+
+addressing:
+  mgmt:
+    # Non-colliding RFC 1918 management bridge (avoids existing Docker bridges on
+    # 192.0.2.0/24, 198.51.100.0/24, 203.0.113.0/24, and 192.168.112.0/20).
+    ipv4: 192.168.250.0/24
+    start: 10
+    _network: netlab-demo-mgmt
+  loopback:
+    ipv4: 192.0.2.0/24
+  p2p:
+    ipv4: 198.51.100.0/24
+    prefix: 30
+  lan:
+    ipv4: 203.0.113.0/24
+    prefix: 28
+
+groups:
+  core:
+    members: [ r1, r2, r3 ]
+    module: [ ospf, bgp ]
+    bgp.as: 65001
+  edge:
+    members: [ r4 ]
+    module: [ bgp ]
+    bgp.as: 65002
+
+nodes:
+  r1:
+    id: 1
+  r2:
+    id: 2
+  r3:
+    id: 3
+  r4:
+    id: 4
+  h1:
+    id: 5
+    device: linux
+  h2:
+    id: 6
+    device: linux
+
+links:
+  # Host-facing stub LANs (203.0.113.0/28 and 203.0.113.16/28)
+  - h1:
+    r1:
+    role: stub
+    bgp.advertise: true
+  - h2:
+    r4:
+    role: stub
+    bgp.advertise: true
+
+  # AS 65001 OSPF + iBGP core (198.51.100.0/30, .4/30, .8/30)
+  - r1:
+    r2:
+  - r1:
+    r3:
+  - r2:
+    r3:
+
+  # Redundant eBGP uplinks between AS 65001 and AS 65002 (.12/30, .16/30)
+  - r2:
+    r4:
+  - r3:
+    r4:
+
+validate:
+  ospf_r1:
+    description: Check OSPFv2 adjacencies from r2 and r3 to r1
+    wait: 30
+    wait_msg: Waiting for OSPFv2 adjacencies to r1
+    nodes: [ r2, r3 ]
+    plugin: ospf_neighbor(nodes.r1.ospf.router_id)
+
+  ospf_core:
+    description: Check OSPFv2 adjacency between r2 and r3
+    wait: 30
+    wait_msg: Waiting for OSPFv2 adjacency between r2 and r3
+    nodes: [ r2 ]
+    plugin: ospf_neighbor(nodes.r3.ospf.router_id)
+
+  ibgp_as65001:
+    description: Check iBGP sessions from r2 and r3 to r1
+    wait: 30
+    wait_msg: Waiting for iBGP sessions in AS 65001
+    nodes: [ r2, r3 ]
+    plugin: bgp_neighbor(node.bgp.neighbors, 'r1')
+
+  ebgp_as65002:
+    description: Check eBGP sessions from r2 and r3 to r4 (AS 65002)
+    wait: 30
+    wait_msg: Waiting for eBGP sessions to r4
+    nodes: [ r2, r3 ]
+    plugin: bgp_neighbor(node.bgp.neighbors, 'r4')
+
+  ping_h1_h2:
+    description: End-to-end IPv4 reachability from h1 to h2
+    wait: 15
+    wait_msg: Waiting for end-to-end routing convergence
+    nodes: [ h1 ]
+    plugin: ping('h2')

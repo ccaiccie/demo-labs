@@ -1,0 +1,33 @@
+Welcome to this local netlab demo running on Windows with WSL Ubuntu 24.04 and Docker.
+
+netlab is an open-source network lab automation tool created by Ivan Pepelnjak at netlab dot tools. Instead of writing container manifests, eye pee addressing tables, and router configurations by hand, we describe the whole lab in one YAML file and let netlab build, configure, validate, and tear it down.
+
+In this lab we use Containerlab with free, open-source images only: FRRouting ten point seven point one for four routers, and Alpine Linux with Python three point thirteen for two hosts. No commercial vendor images or licenses are needed, and zero host ports are published.
+
+Let us look at the topology file. Our lab is named netlab-demo, which prefixes every container with clab-netlab-demo. We define two autonomous systems: AS 65001 contains routers r1, r2, and r3 running OSPF area zero and a full eye BGP mesh over loopbacks. AS 65002 contains router r4 peering over eBGP with both r2 and r3 for dual-path redundancy. Linux host h1 connects to r1, and host h2 connects to r4.
+
+All data-plane addressing comes strictly from RFC 5737 documentation space: loopbacks in 192.0.2.0 slash 24, point-to-point router links in 198.51.100.0 slash 24 as slash 30 subnets, and host stub LANs in 203.0.113.0 slash 24 as slash 28 subnets. The isolated Containerlab management bridge uses 192.168.250.0 slash 24 so it never collides with existing Docker networks on this machine.
+
+At the bottom of topology dot yml, we define five built-in validation tests: OSPF adjacencies to r1, OSPF between r2 and r3, eye BGP sessions inside AS 65001, eBGP sessions to r4 in AS 65002, and an end-to-end ping from h1 to h2.
+
+Now we run netlab up. netlab version 26.11 creates the Containerlab manifest, generates the Ansible inventory and device variables, calls Containerlab version 0.83.0 to start all six containers on the netlab-demo-mgmt bridge, wires the point-to-point links, and deploys initial, OSPF, BGP, and Linux routing configurations across every node.
+
+Next we check netlab status. All six containers—r1 through r4, h1, and h2—are running with management addresses 192.168.250.11 through 192.168.250.16 and zero published host ports.
+
+With netlab report addressing and netlab report bgp, we reed the generated eye pee plan and BGP peering table straight from the netlab data model. We can also run netlab inspect on node r1 and node r4 to reed the exact transformed OSPF and BGP attributes that netlab feeds into its configuration templates.
+
+Now let us connect to the live nodes with netlab connect. On r1 and r2, show eye pee ospf neighbor confirms every AS 65001 OSPF adjacency is in state Full. Running show eye pee bgp summary across r1, r2, r3, and r4 confirms every eye BGP and eBGP session is Established and exchanging prefixes.
+
+When we run show eye pee route on r1, we see equal-cost multipath BGP routes to the h2 subnet 203.0.113.16 slash 28 via both r2 at 198.51.100.2 and r3 at 198.51.100.6. On r4, the return route to the h1 subnet 203.0.113.0 slash 28 also load-balances across r2 and r3. From h1, four pings to h2 at 203.0.113.22 return four out of four replies with zero percent packet loss and an average round-trip time of 0.317 milliseconds.
+
+Next we run netlab validate. netlab checks all five test groups automatically—OSPF adjacencies, eye BGP, eBGP, and end-to-end reachability—and reports success with eight tests passed.
+
+Now let us test a real link failure and recovery. Using netlab connect on r2, we shut down interface eth3, which carries the 198.51.100.12 slash 30 eBGP uplink to r4. Checking show eye pee bgp summary on r2 and r4 shows that eBGP session drops to Active. On r1, show eye pee route for 203.0.113.16 slash 28 immediately collapses from two equal-cost paths to a single backup path through r3 at 198.51.100.6.
+
+When we run netlab validate for ebgp_as65002 with skip-wait, netlab exits with status code one and pinpoints the exact fault: neighbor 198.51.100.14 on r2 is Active instead of Established, while r3 still passes. Meanwhile, pinging h2 from h1 continues with four out of four replies, zero percent packet loss, and an average latency of 0.159 milliseconds over the backup path, and the ping_h1_h2 validation still passes.
+
+Now we restore r2 eth3 with no shutdown. The eBGP session between r2 and r4 returns to Established, and running a full netlab validate passes all eight tests again.
+
+Before cleaning up, we run netlab graph and netlab graph dash t bgp, then render both DOT files with Graphviz onto a clean white background as SVG and PNG diagrams alongside our light-theme HTML report.
+
+Finally, we run netlab down with the cleanup flag. Containerlab destroys all six clab-netlab-demo containers, removes the netlab-demo-mgmt Docker network, and deletes generated configuration files. Zero clab-netlab-demo containers remain, and all 67 pre-existing Docker containers on this host stay completely untouched. The entire six-stage workflow runs end to end in 82 seconds.

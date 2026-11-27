@@ -1,0 +1,26 @@
+=== [03-validate] Running netlab validate ===
+[ospf_r1]      Check OSPFv2 adjacencies from r2 and r3 to r1 [ node(s): r2,r3 ]
+[PASS]         r2: OSPFv2 neighbor 192.0.2.1 is in state Full/-
+[PASS]         r3: OSPFv2 neighbor 192.0.2.1 is in state Full/-
+[PASS]         Test succeeded in 1.1 seconds
+
+[ospf_core]    Check OSPFv2 adjacency between r2 and r3 [ node(s): r2 ]
+[PASS]         r2: OSPFv2 neighbor 192.0.2.3 is in state Full/-
+[PASS]         Test succeeded in 0.6 seconds
+
+[ibgp_as65001] Check iBGP sessions from r2 and r3 to r1 [ node(s): r2,r3 ]
+[PASS]         r2: Neighbor 192.0.2.1 (r1) is in state Established
+[PASS]         r3: Neighbor 192.0.2.1 (r1) is in state Established
+[PASS]         Test succeeded in 1.0 seconds
+
+[ebgp_as65002] Check eBGP sessions from r2 and r3 to r4 (AS 65002) [ node(s): r2,r3 ]
+[PASS]         r2: Neighbor 198.51.100.14 (r4) is in state Established
+[PASS]         r3: Neighbor 198.51.100.18 (r4) is in state Established
+[PASS]         Test succeeded in 1.1 seconds
+
+[ping_h1_h2]   End-to-end IPv4 reachability from h1 to h2 [ node(s): h1 ]
+[PASS]         h1: Ping to h2 succeeded
+[PASS]         Test succeeded in 0.5 seconds
+
+[SUCCESS]      Tests passed: 8
+=== [03-validate] PASS ===

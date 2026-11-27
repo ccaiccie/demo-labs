@@ -1,0 +1,33 @@
+=== [06-down] Running netlab down --cleanup ===
+Checking virtualization provider installation
+OK: clab installed and working correctly
+Stopping clab nodes
+ [INFO] Setting containerlab runtime to docker
+provider clab: executing containerlab destroy --cleanup -t clab.yml
+11:02:43 INFO Parsing & checking topology file=clab.yml
+11:02:43 INFO Parsing & checking topology file=clab.yml
+11:02:43 INFO Destroying lab name=netlab-demo
+11:02:44 INFO Removed container name=clab-netlab-demo-h2
+11:02:44 INFO Removed container name=clab-netlab-demo-r1
+11:02:44 INFO Removed container name=clab-netlab-demo-h1
+11:02:44 INFO Removed container name=clab-netlab-demo-r2
+11:02:44 INFO Removed container name=clab-netlab-demo-r3
+11:02:45 INFO Removed container name=clab-netlab-demo-r4
+11:02:45 INFO Removing host entries path=/etc/hosts
+11:02:45 INFO Removing SSH config path=/etc/ssh/ssh_config.d/clab-netlab-demo.conf
+Cleanup configuration files
+... removing clab.yml
+... removing ansible.cfg
+... removing hosts.yml
+... removing directory tree group_vars
+... removing directory tree host_vars
+... removing directory tree node_files
+... removing netlab.snapshot.pickle
+=== [06-down] Verify no clab-netlab-demo-* containers remain ===
+Confirmed: 0 clab-netlab-demo-* containers remain.
+=== [06-down] Verify netlab-demo-mgmt Docker network removed ===
+Confirmed: netlab-demo-mgmt Docker network removed.
+=== [06-down] Verify pre-existing containers untouched ===
+Post-teardown pre-existing running containers: 67
+Confirmed: pre-existing container set is identical before and after lab run.
+=== [06-down] PASS ===
