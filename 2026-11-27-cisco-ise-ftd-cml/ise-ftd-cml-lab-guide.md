@@ -313,40 +313,129 @@ access-control and identity rules use it.
 ### The domain controller (AD-DC1) — needed for the captive portal
 ⭐ **Design fact**: FDM captive-portal (active) authentication works **only against an
 AD/LDAP realm** — the identity rule's source picker does not offer the FTD local user
-database. This lab therefore includes a small Samba Active Directory DC:
+database. This lab therefore includes a small Samba Active Directory DC. This section
+configures it completely, from a stock Ubuntu desktop to a verified domain controller;
+nothing is pre-configured.
 
-1. AD-DC1 is an Ubuntu 24.04 desktop node on ACC-SW Gi1/0/4 (access VLAN 20). Give it a
-   static address with NetworkManager: `10.10.20.60/24`, gateway `10.10.20.1`, DNS
-   `8.8.8.8` (it will become its own resolver after provisioning).
-2. Install the packages (the lab NAT gives it internet access):
-   `sudo apt install -y samba krb5-config winbind`. If apt reports the dpkg lock is held
-   by unattended-upgrades, stop and mask that service first.
-3. Provision the domain:
+AD-DC1 is an Ubuntu 24.04 desktop node on ACC-SW Gi1/0/4 (access VLAN 20). Its identity
+in the finished lab: hostname `addc1`, address `10.10.20.60/24`, domain **LAB.LOCAL**
+(NetBIOS name **LAB**). Work through the steps in order — Samba writes the hostname and
+the IP address into the domain's DNS database while provisioning, so both must be final
+*before* step 5.
+
+1. **Set the hostname.** The DC's name becomes part of every AD DNS record, so set it
+   first and give the machine a hosts entry for its own fully qualified name:
+   ```sh
+   sudo hostnamectl set-hostname addc1
+   echo "10.10.20.60 addc1.lab.local addc1" | sudo tee -a /etc/hosts
+   ```
+2. **Give it a static address with NetworkManager.** Find the wired connection's name
+   first (on a stock Ubuntu desktop it is usually `Wired connection 1`), then set the
+   address, gateway and — for now — an outside DNS server, and bring the connection up:
+   ```sh
+   nmcli connection show
+   sudo nmcli connection modify "Wired connection 1" ipv4.method manual \
+     ipv4.addresses 10.10.20.60/24 ipv4.gateway 10.10.20.1 ipv4.dns 8.8.8.8
+   sudo nmcli connection up "Wired connection 1"
+   ip address show          # expect 10.10.20.60/24 on the wired interface
+   ping -c2 10.10.20.1      # the FTD services-subinterface gateway
+   ping -c2 8.8.8.8         # internet via the lab NAT — apt needs this in step 3
+   ```
+3. **Install the packages** (the lab NAT gives the node internet access):
+   ```sh
+   sudo apt update
+   sudo apt install -y samba krb5-config winbind
+   ```
+   The `krb5-config` package asks three questions during install: default realm
+   `LAB.LOCAL`, and Kerberos server / admin server `addc1.lab.local`. Answer them — the
+   answers only seed `/etc/krb5.conf`, which step 6 replaces with the file provisioning
+   generates, but correct answers keep the package's own checks quiet. If apt reports
+   the dpkg lock is held by unattended-upgrades, stop and mask that service first, then
+   re-run the install.
+4. **Stop and disable the standalone file-server services.** A Samba AD DC runs its own
+   combined service (`samba-ad-dc`) and the classic `smbd`/`nmbd`/`winbind` daemons must
+   not run alongside it:
    ```sh
    sudo systemctl stop smbd nmbd winbind
    sudo systemctl disable smbd nmbd winbind
+   ```
+5. **Provision the domain.** Move the distribution `smb.conf` aside (provisioning writes
+   its own) and run the provision. In the guest terminal, run `set +H` on its own line
+   first, so the shell does not history-expand the `!` in the password:
+   ```sh
    sudo mv /etc/samba/smb.conf /etc/samba/smb.conf.orig
    sudo samba-tool domain provision --domain=LAB --realm=LAB.LOCAL \
      --server-role=dc --dns-backend=SAMBA_INTERNAL --adminpass=LabAdmin-2026!
+   ```
+   What the flags mean: `--domain` is the NetBIOS name users see at a logon prompt;
+   `--realm` is the Kerberos realm / DNS domain; `--server-role=dc` makes this machine a
+   domain controller (rather than a member server); `--dns-backend=SAMBA_INTERNAL` makes
+   Samba serve the domain's DNS itself (the alternative, BIND9_DLZ, is unnecessary
+   weight for a lab); `--adminpass` becomes the domain **Administrator** password — it
+   is also the password FDM will bind with in the realm section below. A successful run
+   ends by printing the paths of the `smb.conf` and `krb5.conf` it generated.
+6. **Install the generated Kerberos configuration**, so every Kerberos tool on the DC
+   (starting with the `kinit` check in step 9) defaults to the LAB.LOCAL realm:
+   ```sh
    sudo cp /var/lib/samba/private/krb5.conf /etc/krb5.conf
    ```
-4. **DNS fix**: Samba's DNS will not answer on IPv4 while systemd-resolved's stub listener
-   holds 127.0.0.53:53. Create `/etc/systemd/resolved.conf.d/no-stub.conf` with
-   `DNSStubListener=no`, set `dns forwarder = 8.8.8.8` in `/etc/samba/smb.conf`, then
-   restart systemd-resolved and enable/start `samba-ad-dc`, and point the DC's own
-   resolver at 127.0.0.1. Verify with `kinit Administrator@LAB.LOCAL` and an SRV query
-   for `_kerberos._udp.lab.local`.
-5. **Relax LDAP strong authentication** (lab simplification): FDM binds with a cleartext
-   simple bind, which Samba rejects by default (LDAP error 8, "stronger authentication
-   required"). Add `ldap server require strong auth = no` under `[global]` in
-   `/etc/samba/smb.conf` and restart `samba-ad-dc`.
-6. Create the portal user and turn off password expiry for both accounts (in a guest
-   terminal, run `set +H` first so the shell does not history-expand the `!`):
+7. **Fix DNS.** Samba's DNS cannot answer on IPv4 while systemd-resolved's stub
+   listener holds `127.0.0.53:53`, so turn the stub off, tell Samba where to forward
+   queries it is not authoritative for, and point the DC's own resolver at itself:
    ```sh
-   sudo samba-tool user create webuser WebUser-2026!
-   sudo samba-tool user setexpiry webuser --noexpiry
-   sudo samba-tool user setexpiry Administrator --noexpiry
+   sudo mkdir -p /etc/systemd/resolved.conf.d
+   printf '[Resolve]\nDNSStubListener=no\n' | sudo tee /etc/systemd/resolved.conf.d/no-stub.conf
+   sudo sed -i '/^\[global\]/a \tdns forwarder = 8.8.8.8' /etc/samba/smb.conf
+   sudo systemctl restart systemd-resolved
+   sudo nmcli connection modify "Wired connection 1" ipv4.dns 127.0.0.1
+   sudo nmcli connection up "Wired connection 1"
+   sudo systemctl enable --now samba-ad-dc
+   systemctl status samba-ad-dc     # expect: active (running)
+   ss -tulnp | grep -E ':(53|88|389|445)\b'   # Samba listening: DNS 53, Kerberos 88, LDAP 389, SMB 445
    ```
+8. **Relax LDAP strong authentication** (lab simplification): FDM binds with a cleartext
+   simple bind, which Samba rejects by default (LDAP error 8, "stronger authentication
+   required"). Add the setting under `[global]` and restart the DC service:
+   ```sh
+   sudo sed -i '/^\[global\]/a \tldap server require strong auth = no' /etc/samba/smb.conf
+   sudo systemctl restart samba-ad-dc
+   ```
+   (On a production DC you would do the opposite — leave strong auth on and give FDM an
+   LDAPS connection. Here it is a deliberate, documented lab trade-off.)
+9. **Verify the DC before touching FDM.** Each check below proves one thing the captive
+   portal will depend on:
+   ```sh
+   sudo samba-tool domain info 127.0.0.1   # reports the DC's own role and address
+   sudo samba-tool user list               # expect Administrator, krbtgt, Guest
+   kinit Administrator@LAB.LOCAL           # type the --adminpass password, then:
+   klist                                   # expect a krbtgt/LAB.LOCAL ticket
+   dig @127.0.0.1 addc1.lab.local A        # the DC's own record
+   dig @127.0.0.1 _kerberos._udp.lab.local SRV   # Kerberos service record → addc1.lab.local:88
+   dig @127.0.0.1 _ldap._tcp.lab.local SRV       # LDAP service record → addc1.lab.local:389
+   dig @127.0.0.1 google.com               # forwarded query — proves the forwarder works
+   ```
+   If `kinit` fails with a clock-skew error, check `timedatectl` — Kerberos allows only
+   a few minutes of difference (all lab nodes inherit the same host clock, so this
+   rarely bites in CML).
+10. **Create the portal user** and turn off password expiry for both accounts, so a
+    filmed or graded run never trips over an expired lab password (`set +H` first, as
+    in step 5 — both passwords contain `!`):
+    ```sh
+    sudo samba-tool user create webuser WebUser-2026!
+    sudo samba-tool user setexpiry webuser --noexpiry
+    sudo samba-tool user setexpiry Administrator --noexpiry
+    sudo samba-tool user show webuser       # verify the account exists and is enabled
+    ```
+11. **Prove the LDAP bind exactly the way FDM will do it.** This is the same bind +
+    search the realm **Test** button performs in the next section; if it works here,
+    the realm test passes there:
+    ```sh
+    sudo apt install -y ldap-utils
+    ldapsearch -x -H ldap://10.10.20.60 -D "Administrator@LAB.LOCAL" \
+      -w 'LabAdmin-2026!' -b "DC=lab,DC=local" "(sAMAccountName=webuser)" dn
+    ```
+    Expect one result: `dn: CN=webuser,CN=Users,DC=lab,DC=local`. An LDAP error 8 here
+    means step 8 was missed; "invalid credentials" means the bind password is wrong.
 
 ### AD realm in FDM
 **Objects → Identity Sources → Add** (AD realm `LAB-AD`):
@@ -619,6 +708,28 @@ port is authorized into **VLAN 30**. LINUX1 then DHCPs an address in 10.10.30.0/
    from the NAT rule, so the forward does not pass traffic in this environment. The
    workarounds (static outside address, or an explicit public-IP object in the NAT rule)
    are in Troubleshooting. Every other flow in this list passes as written.
+
+## Appendix — the same configuration as code (REST APIs and endpoint scripts)
+
+Everything in Parts 4 and 6 was configured in the FDM and ISE web GUIs. The
+`api/` folder next to this guide reproduces that same end state with REST API
+calls — same object names, created in the same order — for anyone who would
+rather run the build than click it:
+
+- `api/fdm-configure.sh` — the FTD through the FDM REST API: network and port
+  objects, the `iot_zone`, the `LAB-AD` realm, the manual NAT rules, the
+  access rules, the `CAPTIVE-PORTAL` identity rule, and a deployment.
+- `api/ise-configure.sh` — ISE through both of its APIs: ERS (port 9060) for
+  the network devices, the `employee1` user, the `MAB-Devices` endpoint group
+  with LINUX1's MAC, and the two authorization profiles; the OpenAPI (port
+  443) for the policy-set rules, which ERS cannot manage.
+- `endpoints/` — the endpoint setup from Part 8 as scripts: PC1's 802.1X
+  supplicant (`nmcli`), LINUX1's MAB networking, WEB1's web server, and
+  ADMIN-PC's operator setup.
+
+See `api/README.md` for prerequisites (the ISE APIs must be switched on once,
+in the GUI) and scope notes. The switch configuration files are in `configs/`,
+as before.
 
 ## Troubleshooting notes
 

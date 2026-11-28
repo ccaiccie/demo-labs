@@ -15,6 +15,10 @@ A complete wired-access lab built in **Cisco Modeling Labs (CML) 2.10**:
 | `ise-8021x-mab-ftd-egress-lab.yaml` | The exported CML topology (nodes, links and node configurations) — import it into your own CML to get the as-built lab. |
 | `configs/acc-sw-c9k-full.txt` | The complete Catalyst 9000v access-switch configuration (AAA, RADIUS to ISE, IBNS 2.0 policy maps, dot1x/MAB ports). |
 | `configs/core-sw-l2.txt` | The CORE-SW (IOSvL2) aggregation switch configuration. |
+| `api/fdm-configure.sh` | The FTD configuration from the guide's Part 4 as FDM REST API calls: objects, AD realm, NAT, access rules, identity rule, deployment. |
+| `api/ise-configure.sh` | The ISE configuration from Part 6 as REST API calls: ERS for devices, user, endpoint group/MAC and authorization profiles; the OpenAPI for the policy-set rules. |
+| `api/README.md` | How the API scripts map to the guide, prerequisites, and scope notes. |
+| `endpoints/` | Endpoint setup as scripts: PC1's 802.1X supplicant, LINUX1's MAB networking, WEB1's web server, ADMIN-PC's operator setup. |
 
 ## Requirements
 
