@@ -1,0 +1,4 @@
+.env
+web/html/backup.bin
+*.cookies
+__pycache__/

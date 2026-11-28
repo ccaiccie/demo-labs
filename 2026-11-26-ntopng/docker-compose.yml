@@ -1,0 +1,90 @@
+# ntopng Community (official ntop/ntopng image) watching a dedicated lab bridge.
+# ntopng runs on the host network namespace so it can see the bridge interface br-ntoplab.
+# UI/REST: http://127.0.0.1:3010   (change the default admin password first - see README)
+name: ntopng-lab
+
+x-tools: &tools
+  build: ./tools
+  image: ntopng-lab-tools:1
+  restart: unless-stopped
+  dns: [10.77.40.11]
+
+services:
+  web:
+    image: nginx:1.27-alpine
+    container_name: ntl-web
+    restart: unless-stopped
+    volumes:
+      - ./web/default.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./web/html:/usr/share/nginx/html:ro
+    networks:
+      ntoplab: {ipv4_address: 10.77.40.10}
+
+  dns:
+    <<: *tools
+    container_name: ntl-dns
+    dns: []
+    command: ["dnsmasq", "-k", "--no-resolv", "--server=1.1.1.1", "--server=9.9.9.9", "--cache-size=0",
+              "--host-record=web.lab.test,10.77.40.10", "--host-record=iperf.lab.test,10.77.40.12"]
+    cap_add: [NET_ADMIN]
+    networks:
+      ntoplab: {ipv4_address: 10.77.40.11}
+
+  iperf:
+    <<: *tools
+    container_name: ntl-iperf
+    command: ["iperf3", "-s"]
+    networks:
+      ntoplab: {ipv4_address: 10.77.40.12}
+
+  gen-a:
+    <<: *tools
+    container_name: ntl-gen-a
+    command: ["/scripts/traffic.sh", "office"]
+    volumes: ["./scripts:/scripts:ro"]
+    depends_on: [web, dns, iperf]
+    networks:
+      ntoplab: {ipv4_address: 10.77.40.21}
+
+  gen-b:
+    <<: *tools
+    container_name: ntl-gen-b
+    command: ["/scripts/traffic.sh", "engineering"]
+    volumes: ["./scripts:/scripts:ro"]
+    depends_on: [web, dns, iperf]
+    networks:
+      ntoplab: {ipv4_address: 10.77.40.22}
+
+  # idle host used on demand to create something worth alerting on (scripts/trigger.sh)
+  gen-c:
+    <<: *tools
+    container_name: ntl-gen-c
+    command: ["sleep", "infinity"]
+    volumes: ["./scripts:/scripts:ro"]
+    networks:
+      ntoplab: {ipv4_address: 10.77.40.23}
+
+  ntopng:
+    image: ntop/ntopng:latest
+    container_name: ntopng-lab
+    restart: unless-stopped
+    network_mode: host
+    cap_add: [NET_ADMIN, NET_RAW]
+    depends_on: [web]
+    environment:
+      TZ: America/Los_Angeles
+    command: ["-i", "br-ntoplab", "-w", "127.0.0.1:3010", "-m", "10.77.40.0/24", "-d", "/var/lib/ntopng", "--dns-mode", "1"]
+    volumes:
+      - ntopng-data:/var/lib/ntopng
+
+networks:
+  ntoplab:
+    name: ntoplab
+    driver: bridge
+    driver_opts:
+      com.docker.network.bridge.name: br-ntoplab
+    ipam:
+      config: [{subnet: 10.77.40.0/24}]
+
+volumes:
+  ntopng-data:
