@@ -1,0 +1,58 @@
+=== COMMAND ===
+Branch: change/acl-block-https (d7a04c3)
+$ git diff main..HEAD
+diff --git a/snapshots/lab/configs/edge-rtr.cfg b/snapshots/lab/configs/edge-rtr.cfg
+index dbadc75..6f3fccb 100644
+--- a/snapshots/lab/configs/edge-rtr.cfg
++++ b/snapshots/lab/configs/edge-rtr.cfg
+@@ -25,7 +25,7 @@ router bgp 65300
+ ip access-list extended EDGE_IN
+  permit tcp 10.10.34.0 0.0.0.3 10.10.34.0 0.0.0.3 eq 179
+  permit tcp 10.10.34.0 0.0.0.3 eq 179 10.10.34.0 0.0.0.3
+- permit tcp 192.0.2.0 0.0.0.255 203.0.113.0 0.0.0.255 eq 443
++ deny tcp 192.0.2.0 0.0.0.255 203.0.113.0 0.0.0.255 eq 443
+  permit icmp 192.0.2.0 0.0.0.255 203.0.113.0 0.0.0.255
+  deny tcp 192.0.2.0 0.0.0.255 203.0.113.0 0.0.0.255 eq 23
+  permit tcp 192.0.2.0 0.0.0.255 203.0.113.0 0.0.0.255 eq 8443
+
+$ bash ci/run_pipeline.sh
+=== Batfish Pre-Deployment Validation Pipeline ===
+Batfish Host : 127.0.0.1
+Snapshot Dir : snapshots/lab
+OK: Batfish reachable on 127.0.0.1:9996 (v2 API healthy) and 127.0.0.1:9997
+Running validation checks with .venv/bin/pytest...
+============================= test session starts ==============================
+platform linux -- Python 3.12.3, pytest-9.2.0, pluggy-1.7.0 -- /lab/batfish-cicd/.venv/bin/python3
+cachedir: .pytest_cache
+rootdir: /lab/batfish-cicd
+collecting ... collected 5 items
+
+tests/test_network.py::test_no_parse_warnings_or_init_issues PASSED      [ 20%]
+tests/test_network.py::test_no_undefined_references PASSED               [ 40%]
+tests/test_network.py::test_bgp_sessions_compatible_and_established PASSED [ 60%]
+tests/test_network.py::test_edge_acl_permits_https_and_denies_telnet FAILED [ 80%]
+tests/test_network.py::test_branch_to_server_reachability_and_traceroute FAILED [100%]
+
+=================================== FAILURES ===================================
+________________ test_edge_acl_permits_https_and_denies_telnet _________________
+tests/test_network.py:85: in test_edge_acl_permits_https_and_denies_telnet
+    assert (https_test_df["Action"] == "PERMIT").all(), (
+E   AssertionError: Expected EDGE_IN on edge-rtr to PERMIT HTTPS (192.0.2.50 -> 203.0.113.10:443):
+E         Node Filter_Name Action                                              Line_Content
+E     edge-rtr     EDGE_IN   DENY deny tcp 192.0.2.0 0.0.0.255 203.0.113.0 0.0.0.255 eq 443
+E   assert np.False_
+E    +  where np.False_ = all()
+E    +    where all = 0    DENY\nName: Action, dtype: object == 'PERMIT'.all
+______________ test_branch_to_server_reachability_and_traceroute _______________
+tests/test_network.py:162: in test_branch_to_server_reachability_and_traceroute
+    assert not tr_bad, (
+E   AssertionError: Traceroute from branch-rtr[GigabitEthernet0/0] to 203.0.113.10:443 failed:
+E     flow=start=branch-rtr [192.0.2.50:49152->203.0.113.10:443 TCP (SYN)] disposition=DENIED_IN hops=[branch-rtr -> core-rtr1 -> core-rtr2 -> edge-rtr]
+E   assert not ['flow=start=branch-rtr [192.0.2.50:49152->203.0.113.10:443 TCP (SYN)] disposition=DENIED_IN hops=[branch-rtr -> core-rtr1 -> core-rtr2 -> edge-rtr]']
+=========================== short test summary info ============================
+FAILED tests/test_network.py::test_edge_acl_permits_https_and_denies_telnet
+FAILED tests/test_network.py::test_branch_to_server_reachability_and_traceroute
+========================= 2 failed, 3 passed in 20.38s =========================
+=== PIPELINE RESULT: FAIL (exit code 1) ===
+
+EXIT_CODE=1

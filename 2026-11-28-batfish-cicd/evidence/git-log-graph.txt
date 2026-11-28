@@ -1,0 +1,22 @@
+$ git log --oneline --graph --decorate --all
+*   b86d1ba (HEAD -> main) Merge branch 'change/missing-server-route': restore server subnet route
+|\  
+| * fe6352f (change/missing-server-route) fix(bgp): restore 203.0.113.0/24 network advertisement on edge-rtr
+| * a236b3b change(bgp): drop 203.0.113.0/24 advertisement on edge-rtr
+|/  
+*   499359d Merge branch 'change/bgp-peer-as-mismatch': restore core-rtr1 BGP peer AS
+|\  
+| * 6423176 (change/bgp-peer-as-mismatch) fix(bgp): restore remote-as 65100 for branch-rtr on core-rtr1
+| * 9d7717f change(bgp): set mismatched remote-as 65199 on core-rtr1
+|/  
+*   369f36e Merge branch 'change/acl-block-https': restore EDGE_IN HTTPS permit
+|\  
+| * c0119ed (change/acl-block-https) fix(acl): restore HTTPS 443 permit in EDGE_IN
+| * d7a04c3 change(acl): block HTTPS 443 in EDGE_IN
+|/  
+*   1a7632a Merge branch 'feat/allow-metrics-port': allow metrics TCP 8443
+|\  
+| * 9623f15 (feat/allow-metrics-port) feat(acl): permit TCP 8443 metrics from branch to server subnet
+|/  
+* 1a144e0 feat: add Batfish compose lab, baseline 4-router configs, and CI pipeline
+* 16205ae chore: initial .gitignore

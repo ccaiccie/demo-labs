@@ -1,0 +1,11 @@
+diff --git a/snapshots/lab/configs/edge-rtr.cfg b/snapshots/lab/configs/edge-rtr.cfg
+--- a/snapshots/lab/configs/edge-rtr.cfg
++++ b/snapshots/lab/configs/edge-rtr.cfg
+@@ -28,6 +28,7 @@ ip access-list extended EDGE_IN
+  permit tcp 192.0.2.0 0.0.0.255 203.0.113.0 0.0.0.255 eq 443
+  permit icmp 192.0.2.0 0.0.0.255 203.0.113.0 0.0.0.255
+  deny tcp 192.0.2.0 0.0.0.255 203.0.113.0 0.0.0.255 eq 23
++ permit tcp 192.0.2.0 0.0.0.255 203.0.113.0 0.0.0.255 eq 8443
+  deny ip any any
+ !
+ end

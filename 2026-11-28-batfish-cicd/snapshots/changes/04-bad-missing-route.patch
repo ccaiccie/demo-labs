@@ -1,0 +1,11 @@
+diff --git a/snapshots/lab/configs/edge-rtr.cfg b/snapshots/lab/configs/edge-rtr.cfg
+--- a/snapshots/lab/configs/edge-rtr.cfg
++++ b/snapshots/lab/configs/edge-rtr.cfg
+@@ -19,7 +19,6 @@ interface GigabitEthernet0/1
+ router bgp 65300
+  bgp router-id 198.51.100.4
+  neighbor 10.10.34.1 remote-as 65200
+- network 203.0.113.0 mask 255.255.255.0
+  network 198.51.100.4 mask 255.255.255.255
+ !
+ ip access-list extended EDGE_IN

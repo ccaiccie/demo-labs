@@ -1,0 +1,47 @@
+=== COMMAND ===
+Branch: change/missing-server-route (a236b3b)
+$ git diff main..HEAD
+diff --git a/snapshots/lab/configs/edge-rtr.cfg b/snapshots/lab/configs/edge-rtr.cfg
+index dbadc75..5028def 100644
+--- a/snapshots/lab/configs/edge-rtr.cfg
++++ b/snapshots/lab/configs/edge-rtr.cfg
+@@ -19,7 +19,6 @@ interface GigabitEthernet0/1
+ router bgp 65300
+  bgp router-id 198.51.100.4
+  neighbor 10.10.34.1 remote-as 65200
+- network 203.0.113.0 mask 255.255.255.0
+  network 198.51.100.4 mask 255.255.255.255
+ !
+ ip access-list extended EDGE_IN
+
+$ bash ci/run_pipeline.sh
+=== Batfish Pre-Deployment Validation Pipeline ===
+Batfish Host : 127.0.0.1
+Snapshot Dir : snapshots/lab
+OK: Batfish reachable on 127.0.0.1:9996 (v2 API healthy) and 127.0.0.1:9997
+Running validation checks with .venv/bin/pytest...
+============================= test session starts ==============================
+platform linux -- Python 3.12.3, pytest-9.2.0, pluggy-1.7.0 -- /lab/batfish-cicd/.venv/bin/python3
+cachedir: .pytest_cache
+rootdir: /lab/batfish-cicd
+collecting ... collected 5 items
+
+tests/test_network.py::test_no_parse_warnings_or_init_issues PASSED      [ 20%]
+tests/test_network.py::test_no_undefined_references PASSED               [ 40%]
+tests/test_network.py::test_bgp_sessions_compatible_and_established PASSED [ 60%]
+tests/test_network.py::test_edge_acl_permits_https_and_denies_telnet PASSED [ 80%]
+tests/test_network.py::test_branch_to_server_reachability_and_traceroute FAILED [100%]
+
+=================================== FAILURES ===================================
+______________ test_branch_to_server_reachability_and_traceroute _______________
+tests/test_network.py:162: in test_branch_to_server_reachability_and_traceroute
+    assert not tr_bad, (
+E   AssertionError: Traceroute from branch-rtr[GigabitEthernet0/0] to 203.0.113.10:443 failed:
+E     flow=start=branch-rtr [192.0.2.50:49152->203.0.113.10:443 TCP (SYN)] disposition=NO_ROUTE hops=[branch-rtr]
+E   assert not ['flow=start=branch-rtr [192.0.2.50:49152->203.0.113.10:443 TCP (SYN)] disposition=NO_ROUTE hops=[branch-rtr]']
+=========================== short test summary info ============================
+FAILED tests/test_network.py::test_branch_to_server_reachability_and_traceroute
+========================= 1 failed, 4 passed in 20.88s =========================
+=== PIPELINE RESULT: FAIL (exit code 1) ===
+
+EXIT_CODE=1

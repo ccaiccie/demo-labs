@@ -1,0 +1,34 @@
+=== COMMAND ===
+Branch: change/acl-block-https (c0119ed)
+$ git show --stat
+commit c0119ed0cb0063ee11788e9bbe323fc956290703
+Author: NetOps Lab <netops-lab@example.invalid>
+Date:   Sat Nov 28 09:51:00 2026 -0800
+
+    fix(acl): restore HTTPS 443 permit in EDGE_IN
+
+ snapshots/lab/configs/edge-rtr.cfg | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+$ bash ci/run_pipeline.sh
+=== Batfish Pre-Deployment Validation Pipeline ===
+Batfish Host : 127.0.0.1
+Snapshot Dir : snapshots/lab
+OK: Batfish reachable on 127.0.0.1:9996 (v2 API healthy) and 127.0.0.1:9997
+Running validation checks with .venv/bin/pytest...
+============================= test session starts ==============================
+platform linux -- Python 3.12.3, pytest-9.2.0, pluggy-1.7.0 -- /lab/batfish-cicd/.venv/bin/python3
+cachedir: .pytest_cache
+rootdir: /lab/batfish-cicd
+collecting ... collected 5 items
+
+tests/test_network.py::test_no_parse_warnings_or_init_issues PASSED      [ 20%]
+tests/test_network.py::test_no_undefined_references PASSED               [ 40%]
+tests/test_network.py::test_bgp_sessions_compatible_and_established PASSED [ 60%]
+tests/test_network.py::test_edge_acl_permits_https_and_denies_telnet PASSED [ 80%]
+tests/test_network.py::test_branch_to_server_reachability_and_traceroute PASSED [100%]
+
+============================== 5 passed in 14.07s ==============================
+=== PIPELINE RESULT: PASS ===
+
+EXIT_CODE=0

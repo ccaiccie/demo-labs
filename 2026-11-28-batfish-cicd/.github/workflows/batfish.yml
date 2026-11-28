@@ -1,0 +1,50 @@
+name: Batfish Network Validation
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  validate-network:
+    runs-on: ubuntu-latest
+
+    services:
+      batfish:
+        image: batfish/allinone:latest
+        ports:
+          - 9996:9996
+          - 9997:9997
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Wait for Batfish service
+        run: |
+          for i in $(seq 1 30); do
+            if python3 -c "import socket, urllib.request; socket.create_connection(('127.0.0.1', 9997), 2).close(); r = urllib.request.urlopen('http://127.0.0.1:9996/v2/version', timeout=2); assert r.status == 200" 2>/dev/null; then
+              echo "Batfish is ready"
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "Timed out waiting for Batfish on ports 9996/9997" >&2
+          exit 1
+
+      - name: Run Batfish validation pipeline
+        env:
+          BATFISH_HOST: 127.0.0.1
+          SNAPSHOT_DIR: snapshots/lab
+        run: bash ci/run_pipeline.sh

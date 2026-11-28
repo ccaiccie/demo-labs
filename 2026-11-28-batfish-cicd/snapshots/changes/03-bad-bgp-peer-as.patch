@@ -1,0 +1,12 @@
+diff --git a/snapshots/lab/configs/core-rtr1.cfg b/snapshots/lab/configs/core-rtr1.cfg
+--- a/snapshots/lab/configs/core-rtr1.cfg
++++ b/snapshots/lab/configs/core-rtr1.cfg
+@@ -22,7 +22,7 @@ router ospf 1
+ !
+ router bgp 65200
+  bgp router-id 198.51.100.2
+- neighbor 10.10.12.1 remote-as 65100
++ neighbor 10.10.12.1 remote-as 65199
+  neighbor 198.51.100.3 remote-as 65200
+  neighbor 198.51.100.3 update-source Loopback0
+  neighbor 198.51.100.3 next-hop-self

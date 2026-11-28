@@ -1,0 +1,20 @@
+services:
+  batfish:
+    image: batfish/allinone:latest
+    container_name: batfish-lab
+    ports:
+      - "127.0.0.1:9996:9996"
+      - "127.0.0.1:9997:9997"
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python3",
+          "-c",
+          "import urllib.request; r = urllib.request.urlopen('http://127.0.0.1:9996/v2/version', timeout=3); assert r.status == 200",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 15s
+    restart: unless-stopped

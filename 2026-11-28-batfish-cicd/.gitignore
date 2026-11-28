@@ -1,0 +1,10 @@
+__pycache__/
+*.pyc
+.venv/
+venv/
+*.db
+*.mp4
+*.mkv
+.pytest_cache/
+snapshots/**/output/
+

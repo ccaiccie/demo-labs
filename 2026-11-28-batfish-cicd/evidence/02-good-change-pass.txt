@@ -1,0 +1,48 @@
+=== COMMAND ===
+Branch: feat/allow-metrics-port (9623f15)
+$ git show --stat
+commit 9623f15372aa47744fe819c962f3dba9048fae1b
+Author: NetOps Lab <netops-lab@example.invalid>
+Date:   Sat Nov 28 09:50:10 2026 -0800
+
+    feat(acl): permit TCP 8443 metrics from branch to server subnet
+
+ snapshots/lab/configs/edge-rtr.cfg | 1 +
+ 1 file changed, 1 insertion(+)
+
+$ git diff main..HEAD
+diff --git a/snapshots/lab/configs/edge-rtr.cfg b/snapshots/lab/configs/edge-rtr.cfg
+index c04c3cb..dbadc75 100644
+--- a/snapshots/lab/configs/edge-rtr.cfg
++++ b/snapshots/lab/configs/edge-rtr.cfg
+@@ -28,6 +28,7 @@ ip access-list extended EDGE_IN
+  permit tcp 192.0.2.0 0.0.0.255 203.0.113.0 0.0.0.255 eq 443
+  permit icmp 192.0.2.0 0.0.0.255 203.0.113.0 0.0.0.255
+  deny tcp 192.0.2.0 0.0.0.255 203.0.113.0 0.0.0.255 eq 23
++ permit tcp 192.0.2.0 0.0.0.255 203.0.113.0 0.0.0.255 eq 8443
+  deny ip any any
+ !
+ end
+
+$ bash ci/run_pipeline.sh
+=== Batfish Pre-Deployment Validation Pipeline ===
+Batfish Host : 127.0.0.1
+Snapshot Dir : snapshots/lab
+OK: Batfish reachable on 127.0.0.1:9996 (v2 API healthy) and 127.0.0.1:9997
+Running validation checks with .venv/bin/pytest...
+============================= test session starts ==============================
+platform linux -- Python 3.12.3, pytest-9.2.0, pluggy-1.7.0 -- /lab/batfish-cicd/.venv/bin/python3
+cachedir: .pytest_cache
+rootdir: /lab/batfish-cicd
+collecting ... collected 5 items
+
+tests/test_network.py::test_no_parse_warnings_or_init_issues PASSED      [ 20%]
+tests/test_network.py::test_no_undefined_references PASSED               [ 40%]
+tests/test_network.py::test_bgp_sessions_compatible_and_established PASSED [ 60%]
+tests/test_network.py::test_edge_acl_permits_https_and_denies_telnet PASSED [ 80%]
+tests/test_network.py::test_branch_to_server_reachability_and_traceroute PASSED [100%]
+
+============================== 5 passed in 13.71s ==============================
+=== PIPELINE RESULT: PASS ===
+
+EXIT_CODE=0
